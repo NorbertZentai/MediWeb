@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # DB service
+  db:
+    image: postgres:15
+    container_name: meditrack_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # BE service 
+  backend:
+    build:
+      context: ./MediTrack_Backend
+    container_name: meditrack_backend
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GOOGLE_CX: ${GOOGLE_CX}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./MediTrack_Backend:/app
+    working_dir: /app
+    command: ./mvnw spring-boot:run
+
+  # FE service
+  frontend:
+    build:
+      context: ./MediTrack_Frontend
+    container_name: meditrack_frontend
+    working_dir: /app
+    volumes:
+      - ./MediTrack_Frontend:/app
+    ports:
+      - "3000:3000"
+    environment:
+      CHOKIDAR_USEPOLLING: "1"
+    command: sh -c "npm install && npm run web"
+
+volumes:
+  postgres_data:

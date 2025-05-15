@@ -1,0 +1,77 @@
+# Node.js / React Native Web
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+expo/
+.expo/
+.expo-shared/
+web-build/
+build/
+dist/
+coverage/
+*.log
+*.tmp
+
+# React Native (mobil build esetén)
+android/
+ios/
+*.keystore
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# macOS / Windows rendszerfájlok
+.DS_Store
+Thumbs.db
+
+# Spring Boot / Java
+*.class
+*.jar
+*.war
+*.iml
+target/
+out/
+.gradle/
+.build/
+.mvn/
+!src/main/resources/static/**
+
+# Maven / Gradle cache
+.mvn/wrapper/maven-wrapper.jar
+**/build/
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+**/.idea/
+
+# IntelliJ / Eclipse / IDE
+*.iws
+*.iml
+*.ipr
+.idea/
+*.bak
+
+# Environment / secret files
+.env
+.env.*
+application.properties
+application.yml
+application-dev.yml
+application-prod.yml
+application-local.yml
+
+# Docker
+**/docker-compose.override.yml
+**/.docker/
+**/.env.docker
+
+# OS session files
+*.swp
+*.swo
+
+# Git temporary files
+.git/
+.gitignore.swp
