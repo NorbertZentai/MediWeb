@@ -1,0 +1,57 @@
+.nav-link {
+    margin-left: 5px;
+    font-size: 18px;
+    text-decoration: none;
+    color: black;
+    padding: 8px 14px;
+    border-radius: 10px;
+    transition: background-color 0.3s, color 0.3s;
+    cursor: pointer;
+    display: block;
+}
+
+.nav-link:hover {
+    background-color: rgba(102, 187, 106, 0.2);
+    color: #66BB6A;
+}
+
+.nav-link.active {
+    background-color: #66BB6A;
+    color: white;
+}
+
+.nav-link.logout:hover {
+    background-color: rgba(255, 0, 0, 0.15);
+    color: red;
+}
+
+select option {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.custom-date {
+    width: 22%;
+    min-width: 150px;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+}
+  
+
+@media (max-width: 768px) {
+    .menu {
+        display: none;
+    }
+    .hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+  
