@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS review CASCADE;
 DROP TABLE IF EXISTS profile_medications CASCADE;
 DROP TABLE IF EXISTS favorites CASCADE;
 DROP TABLE IF EXISTS profiles CASCADE;
@@ -36,17 +37,42 @@ CREATE TABLE profiles (
 );
 
 CREATE TABLE medications (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(200) NOT NULL,
-    manufacturer VARCHAR(200),
-    description TEXT,
-    packaging VARCHAR(100),
-    release_date DATE,
-    average_rating NUMERIC(2,2) DEFAULT 0
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255),
+    image_url TEXT,
+    registration_number VARCHAR(100),
+    substance VARCHAR(255),
+    atc_code VARCHAR(100),
+    company VARCHAR(255),
+    legal_basis VARCHAR(100),
+    status VARCHAR(100),
+    authorization_date DATE,
+    narcotic VARCHAR(100),
+    patient_info_url TEXT,
+    smpc_url TEXT,
+    label_url TEXT,
+    contains_lactose BOOLEAN,
+    contains_gluten BOOLEAN,
+    contains_benzoate BOOLEAN,
+    packages_json TEXT,
+    substitutes_json TEXT,
+    final_samples_json TEXT,
+    defective_forms_json TEXT,
+    hazipatika_json TEXT
 );
 
 CREATE TABLE favorites (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     medication_id INTEGER REFERENCES medications(id)
+);
+
+CREATE TABLE review (
+    id SERIAL PRIMARY KEY,
+    item_id INTEGER NOT NULL REFERENCES medications(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    rating INTEGER NOT NULL,
+    positive TEXT,
+    negative TEXT,
+    created_at TIMESTAMP NOT NULL
 );

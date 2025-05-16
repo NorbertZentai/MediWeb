@@ -42,3 +42,13 @@ export const getFilterOptions = async (name) => {
   const response = await api.get(`/api/filters/${name}`);
   return response.data;
 };
+
+export async function getReviewsForMedication(itemId) {
+  const response = await api.get(`/api/review/${itemId}`);
+  return response.data;
+}
+
+export async function submitReview(itemId, review) {
+  const response = await api.post(`/api/review/${itemId}`, review);
+  return response.data;
+}

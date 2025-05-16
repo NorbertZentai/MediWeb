@@ -1,57 +1,299 @@
+/* ==========================================================================
+   Alapbeállítások és betűtípus
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+
+html, body, * {
+  font-family: 'Nunito', sans-serif;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+:root {
+  --primary-color: #66BB6A;
+  --accent-color: #0077cc;
+  --error-color: #c62828;
+  --success-color: #2e7d32;
+  --bg-light: #f9f9f9;
+}
+
+/* ==========================================================================
+   Navigáció
+   ========================================================================== */
 .nav-link {
-    margin-left: 5px;
-    font-size: 18px;
-    text-decoration: none;
-    color: black;
-    padding: 8px 14px;
-    border-radius: 10px;
-    transition: background-color 0.3s, color 0.3s;
-    cursor: pointer;
-    display: block;
+  margin-left: 5px;
+  font-size: 18px;
+  text-decoration: none;
+  color: black;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: background-color 0.3s, color 0.3s;
+  cursor: pointer;
+  display: block;
 }
 
 .nav-link:hover {
-    background-color: rgba(102, 187, 106, 0.2);
-    color: #66BB6A;
+  background-color: rgba(102, 187, 106, 0.2);
+  color: #66BB6A;
 }
 
 .nav-link.active {
-    background-color: #66BB6A;
-    color: white;
+  background-color: #66BB6A;
+  color: white;
 }
 
 .nav-link.logout:hover {
-    background-color: rgba(255, 0, 0, 0.15);
-    color: red;
+  background-color: rgba(255, 0, 0, 0.15);
+  color: red;
 }
 
+/* ==========================================================================
+   Select mezők, dátummező
+   ========================================================================== */
 select option {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .custom-date {
-    width: 22%;
-    min-width: 150px;
-    background-color: #f1f1f1;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 16px;
-    border: 1px solid #ccc;
+  width: 22%;
+  min-width: 150px;
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  border: 1px solid #ccc;
 }
-  
 
+/* ==========================================================================
+   Responsiveness
+   ========================================================================== */
 @media (max-width: 768px) {
-    .menu {
-        display: none;
-    }
-    .hamburger {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+  .menu {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
-  
+/* ==========================================================================
+   MedicationDetailsScreen – HTML tartalom
+   ========================================================================== */
+.html-render {
+  line-height: 1.7;
+  font-size: 16px;
+  color: #222;
+}
+
+.html-render h1,
+.html-render h2,
+.html-render h3,
+.html-render h4 {
+  font-weight: 700;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.html-render p {
+  margin-bottom: 0.75em;
+  line-height: 1.6;
+  color: #111;
+  font-size: 15px;
+}
+
+.html-render ul,
+.html-render ol {
+  padding-left: 20px;
+  margin-bottom: 1em;
+}
+
+.html-render ul {
+  list-style-type: disc;
+}
+
+.html-render ol {
+  list-style-type: decimal;
+}
+
+.html-render li {
+  margin-bottom: 0.3em;
+}
+
+.html-render strong {
+  font-weight: 700;
+}
+
+.html-render em {
+  font-style: italic;
+}
+
+.html-render a {
+  color: #0077cc;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Accordion komponens
+   ========================================================================== */
+.accordion-section {
+  margin-bottom: 24px;
+}
+
+.accordion-section h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.accordion-header:hover {
+  background-color: #f0f0f0;
+}
+
+.accordion-title {
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.accordion-body {
+  background-color: #fff;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  margin-top: -8px;
+}
+
+.accordion-link {
+  display: block;
+  color: #0077cc;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 6px;
+  transition: color 0.2s;
+}
+
+.accordion-link:hover {
+  color: #004c99;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Kiszerelések és helyettesítők
+   ========================================================================== */
+.package-item {
+  display: block;
+  background-color: #fefefe;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #222;
+  font-size: 15px;
+}
+
+.substitute-link {
+  display: block;
+  background-color: #fafafa;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: black;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+  font-size: 15px;
+}
+
+.substitute-link:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+  color: #000;
+}
+
+/* ==========================================================================
+   Boolean mezők
+   ========================================================================== */
+.boolean-field {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.boolean-field .label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.boolean-field .value-icon {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  gap: 4px;
+}
+
+.boolean-yes {
+  color: #2e7d32;
+}
+
+.boolean-no {
+  color: #c62828;
+}
+
+/* ==========================================================================
+   Ikonos tooltip gombok
+   ========================================================================== */
+.icon-button {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.icon-button .tooltip {
+  visibility: hidden;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  position: absolute;
+  top: 120%;
+  white-space: nowrap;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.icon-button:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Egyéb
+   ========================================================================== */
+.scroll-view {
+  scroll-behavior: smooth;
+}

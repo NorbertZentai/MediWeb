@@ -1,8 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform,} from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image,
+  LayoutAnimation,
+  UIManager,
+  Platform,
+} from "react-native";
 import { useParams, Link } from "react-router-dom";
-import { getMedicationDetails } from "../api/auth";
+import { getMedicationDetails, getReviewsForMedication, submitReview } from "../api/auth";
 import { FontAwesome5 } from "@expo/vector-icons";
+import ReviewSection from "../components/ReviewSection";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -13,18 +25,27 @@ export default function MedicationDetailsScreen() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openSections, setOpenSections] = useState({
-    substitutes: true,
-    packages: true,
+    baseInfo: false,
+    substitutes: false,
+    packages: false,
+    sideEffects: false,
+    application: false,
+    fullLeaflet: false,
+    finalSamples: false,
+    defectiveForms: false,
+    reviews: false,
   });
+  const [reviews, setReviews] = useState([]);
+  const [newReview, setNewReview] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [ratingDistribution, setRatingDistribution] = useState({});
 
-  // Ezek a mezők még placeholderrel mennek egyelőre:
-  const extraDetails = [
-    ["Normatív TB támogatás", "—"],
-    ["Közgyógyellátásra adható", "—"],
-    ["EÜ támogatásra adható", "—"],
-    ["Üzemi baleset jogcím", "—"],
-  ];
 
+  const toggleSection = (key) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const fetchDetails = useCallback(async () => {
     try {
@@ -37,14 +58,35 @@ export default function MedicationDetailsScreen() {
     }
   }, [itemId]);
 
+  const fetchReviews = useCallback(async () => {
+    try {
+      const res = await getReviewsForMedication(itemId);
+      setReviews(res.reviews || []);
+      setAverageRating(res.averageRating || 0);
+      setRatingDistribution(res.ratingDistribution || {});
+    } catch (e) {
+      console.error("Hiba a review-k betöltésekor:", e);
+    }
+  }, [itemId]);
+
   useEffect(() => {
     fetchDetails();
-  }, [fetchDetails]);
+    fetchReviews();
+  }, [fetchDetails, fetchReviews]);
 
-  const toggleSection = (key) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  const handleSubmitReview = async () => {
+  if (!newReview.trim()) return;
+  setSubmitting(true);
+  try {
+    await submitReview(itemId, { text: newReview });
+    setNewReview("");
+    await fetchReviews();
+  } catch (e) {
+    console.error("Hiba a review elküldésekor:", e);
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (loading) {
     return (
@@ -64,85 +106,29 @@ export default function MedicationDetailsScreen() {
     { icon: "file-signature", label: "Címkeszöveg", url: data.labelUrl },
   ].filter((d) => d.url);
 
-  const sections = [
-    {
-      key: "substitutes",
-      title: "Helyettesítő készítmények",
-      content: (data.substitutes || []).map((item, i) => (
-        <TouchableOpacity
-          key={i}
-          onPress={() => (window.location.href = `/medication/${item.itemId}`)}
-        >
-          <Text style={[styles.itemText, { textDecorationLine: "underline" }]}>
-            {item.name} ({item.registrationNumber})
-          </Text>
-        </TouchableOpacity>
-      )),
-    },    
-    {
-      key: "packages",
-      title: "Kiszerelések",
-      content: (data.packages || []).map((item, i) => (
-        <Text key={i} style={styles.itemText}>
-          {item.name} – {item.registrationNumber}
-        </Text>
-      )),
-    },
-    {
-      key: "hazipatika",
-      title: "Betegtájékoztató",
-      content: data.hazipatikaInfo
-        ? [
-            data.hazipatikaInfo.section1,
-            data.hazipatikaInfo.section2,
-            data.hazipatikaInfo.section3,
-            data.hazipatikaInfo.section4,
-            data.hazipatikaInfo.section5,
-            data.hazipatikaInfo.section6,
-          ]
-            .filter(Boolean)
-            .map((text, i) => (
-              <Text key={i} style={styles.itemText}>
-                {text.replace(/<br\s*\/?>/gi, "\n")}
-              </Text>
-            ))
-        : [],
-    },
-    {
-      key: "finalSamples",
-      title: "Véglegminta engedélyek",
-      content: (data.finalSamples || []).map((item, i) => (
-        <Text key={i} style={styles.itemText}>
-          {item.packageDescription} – {item.decisionDate}
-        </Text>
-      )),
-    },
-    {
-      key: "defectiveForms",
-      title: "Alaki hiba engedélyek",
-      content: (data.defectiveForms || []).map((item, i) => (
-        <Text key={i} style={styles.itemText}>
-          {item.packageDescription} – {item.condition}
-        </Text>
-      )),
-    },
-    {
-      key: "reviews",
-      title: "Értékelések és vélemények",
-      content: [<Text key="placeholder" style={styles.itemText}>Review rész – ide majd jönnek az értékelések</Text>],
-    },
-  ];
+  const renderHtmlSection = (html) =>
+    html ? (
+      <div
+        dangerouslySetInnerHTML={{ __html: html }}
+        className="html-render"
+      />
+    ) : null;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.contentWrapper}>
-        <Text style={styles.title}>{data.name}</Text>
-
+        {/* 1. fejléc + kép + ikonok */}
         <View style={styles.topSection}>
-          <View style={styles.imageBlock}>
+          <View style={styles.headerSection}>
+            <Text style={styles.title}>{data.name}</Text>
+            <Text style={styles.subtitle}>
+              Hatóanyag: {data.substance} • ATC: {data.atcCode}
+            </Text>
+
             {data.imageUrl && (
-              <Image source={{ uri: data.imageUrl }} style={styles.image} />
+              <Image source={{ uri: data.imageUrl }} style={styles.mainImage} />
             )}
+
             <View style={styles.iconRow}>
               {docs.map((doc, i) => (
                 <TouchableOpacity
@@ -156,178 +142,143 @@ export default function MedicationDetailsScreen() {
               ))}
             </View>
           </View>
+        </View>
 
-          <View style={styles.infoBlock}>
-            <View style={styles.booleanRow}>
-              <BooleanField label="Laktóz" value={data.containsLactose} />
-              <BooleanField label="Búzakeményítő" value={data.containsStarch} />
-              <BooleanField label="Benzoát" value={data.containsBenzoate} />
-            </View>
+        {/* Boolean mezők */}
+        <View style={styles.quickInfoSection}>
+          <BooleanField label="Laktóz" value={data.containsLactose} />
+          <BooleanField label="Búzakeményítő" value={data.containsGluten} />
+          <BooleanField label="Benzoát" value={data.containsBenzoate} />
+        </View>
 
-            <View style={styles.detailsBlockBottom}>
-              <Detail label="Kábítószer" value={data.narcotic} />
-              <Detail label="Normatív TB támogatás" value={data.hazipatikaInfo?.normativeTbSupport ? "✓" : "✕"} />
-              <Detail label="Vényköteles" value={data.hazipatikaInfo?.prescriptionRequired ? "✓" : "✕"} />
-              <Detail label="Közgyógyellátásra adható" value={data.hazipatikaInfo?.publicHealthSupport ? "✓" : "✕"} />
-              <Detail label="Patikán kívül vásárolható" value={data.hazipatikaInfo?.outsidePharmacy ? "✓" : "✕"} />
-              <Detail label="EÜ támogatásra adható" value={data.hazipatikaInfo?.euSupportable ? "✓" : "✕"} />
-              <Detail label="EÜ Kiemelt támogatás" value={data.hazipatikaInfo?.euPrioritySupport ? "✓" : "✕"} />
-              <Detail label="Üzemi baleset jogcím" value={data.hazipatikaInfo?.accidentCoverage ? "✓" : "✕"} />
-            </View>
-
-            <View style={styles.detailsBlockTop}>
-              <Detail label="Forgalomba hozatali engedély jogosultja" value={data.company} />
-              <Detail label="Engedélyezés dátuma" value={data.authorizationDate} />
-              <Detail label="Nyilvántartási szám" value={data.registrationNumber} />
-              <Detail label="Hatóanyag" value={data.substance} />
-              <Detail label="ATC kód" value={data.atcCode} />
-              <Detail label="Gyártó" value={data.company} />
-              <Detail label="Jogalap" value={data.legalBasis} />
-              <Detail label="Státusz" value={data.status} />
-            </View>
-            
+        {/* Rácsos boolean mezők */}
+        <View style={styles.gridSection}>
+          <View style={styles.gridColumn}>
+            <BooleanField label="Kábítószer" value={data.narcotic?.toLowerCase() === "igen"} />
+            <BooleanField label="Vényköteles" value={data.hazipatikaInfo?.prescriptionRequired} />
+            <BooleanField label="Patikán kívül vásárolható" value={data.hazipatikaInfo?.outsidePharmacy} />
+            <BooleanField label="Normatív TB támogatás" value={data.hazipatikaInfo?.normativeTbSupport} />
+          </View>
+          <View style={styles.gridColumn}>
+            <BooleanField label="Közgyógyellátás" value={data.hazipatikaInfo?.publicHealthSupport} />
+            <BooleanField label="EÜ támogatás" value={data.hazipatikaInfo?.euSupportable} />
+            <BooleanField label="EÜ kiemelt" value={data.hazipatikaInfo?.euPrioritySupport} />
+            <BooleanField label="Üzemi baleset jogcím" value={data.hazipatikaInfo?.accidentCoverage} />
           </View>
         </View>
 
-        {/* 1. Helyettesítő készítmények */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("substitutes")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Helyettesítő készítmények</Text>
-            <Text>{openSections["substitutes"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["substitutes"] && (
-            <View style={styles.accordionBody}>
-              {(data.substitutes || []).map((item, i) => (
-                <Link
-                  key={i}
-                  to={`/medication/${item.itemId}`}
-                  style={styles.linkText}
-                >
-                  {item.name} ({item.registrationNumber})
-                </Link>
-              ))}
-            </View>
-          )}
-        </View>
+        {/* Alapadatok */}
+        <Accordion title="Alapadatok" isOpen={openSections.baseInfo} onToggle={() => toggleSection("baseInfo")}>
+          <Detail label="Hatóanyag" value={data.substance} />
+          <Detail label="ATC kód" value={data.atcCode} />
+          <Detail label="Forgalomba hozatali engedély jogosultja" value={data.company} />
+          <Detail label="Gyártó" value={data.company} />
+          <Detail label="Jogalap" value={data.legalBasis} />
+          <Detail label="Státusz" value={data.status} />
+          <Detail label="Engedélyezés dátuma" value={data.authorizationDate} />
+          <Detail label="Nyilvántartási szám" value={data.registrationNumber} />
+        </Accordion>
 
-        {/* 2. Kiszerelések */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("packages")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Kiszerelések</Text>
-            <Text>{openSections["packages"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["packages"] && (
-            <View style={styles.accordionBody}>
-              {(data.packages || []).map((item, i) => (
-                <Text key={i} style={styles.itemText}>
-                  {item.name} – {item.registrationNumber}
-                </Text>
-              ))}
-            </View>
-          )}
-        </View>
+        {/* Accordion szekciók */}
+        <Accordion title="Helyettesítő készítmények" isOpen={openSections.substitutes} onToggle={() => toggleSection("substitutes")}>
+          {data.substitutes?.map((s, i) => (
+            <Link key={i} to={`/medication/${s.itemId}`} className="substitute-link">
+              {s.name} ({s.registrationNumber})
+            </Link>
+          ))}
+        </Accordion>
 
-        {/* 3. Lehetséges mellékhatások */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("hazipatika4")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Lehetséges mellékhatások</Text>
-            <Text>{openSections["hazipatika4"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["hazipatika4"] && (
-            <View style={styles.accordionBody}>
-              <Text style={styles.itemText}>{data.hazipatikaInfo?.section4?.replace(/<br\s*\/?>/gi, "\n")}</Text>
-            </View>
-          )}
-        </View>
+        <Accordion title="Kiszerelések" isOpen={openSections.packages} onToggle={() => toggleSection("packages")}>
+          {data.packages?.map((p, i) => (
+            <div key={i} className="package-item">
+              {p.name} ({p.registrationNumber})
+            </div>
+          ))}
+        </Accordion>
 
-        {/* 4. Hogyan kell szedni az Algoflex Duo-t? */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("hazipatika3")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Hogyan kell szedni az Algoflex Duo-t?</Text>
-            <Text>{openSections["hazipatika3"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["hazipatika3"] && (
-            <View style={styles.accordionBody}>
-              <Text style={styles.itemText}>{data.hazipatikaInfo?.section3?.replace(/<br\s*\/?>/gi, "\n")}</Text>
-            </View>
-          )}
-        </View>
+        <Accordion title="Lehetséges mellékhatások" isOpen={openSections.sideEffects} onToggle={() => toggleSection("sideEffects")}>
+          {renderHtmlSection(data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Lehetséges mellékhatások"))?.html)}
+        </Accordion>
 
-        {/* 5. Betegtájékoztató */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("hazipatika")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Betegtájékoztató</Text>
-            <Text>{openSections["hazipatika"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["hazipatika"] && (
-            <View style={styles.accordionBody}>
-              {[1,2,5,6].map(n => {
-                const text = data.hazipatikaInfo?.[`section${n}`];
-                return text ? <Text key={n} style={styles.itemText}>{text.replace(/<br\s*\/?>/gi, "\n")}</Text> : null;
-              })}
-            </View>
-          )}
-        </View>
+        <Accordion title="Hogyan kell alkalmazni?" isOpen={openSections.application} onToggle={() => toggleSection("application")}>
+          {renderHtmlSection(data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Hogyan kell alkalmazni"))?.html)}
+        </Accordion>
 
-        {/* 6. Mellékhatások Bejelentése */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("finalSamples")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Mellékhatások Bejelentése</Text>
-            <Text>{openSections["finalSamples"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["finalSamples"] && (
-            <View style={styles.accordionBody}>
-              {(data.finalSamples || []).map((item, i) => (
-                <Text key={i} style={styles.itemText}>
-                  {item.packageDescription} – {item.decisionDate}
-                </Text>
-              ))}
+        <Accordion title="Teljes betegtájékoztató" isOpen={openSections.fullLeaflet} onToggle={() => toggleSection("fullLeaflet")}>
+          {data.hazipatikaInfo?.sections?.map((section, i) => (
+            <View key={i}>
+              <Text style={{ fontWeight: "bold", marginTop: 10 }}>{section.heading}</Text>
+              {renderHtmlSection(section.html)}
             </View>
-          )}
-        </View>
+          ))}
+        </Accordion>
 
-        {/* 7. Értékelése és Vélemények */}
-        <View style={styles.accordion}>
-          <TouchableOpacity onPress={() => toggleSection("reviews")} style={styles.accordionHeader}>
-            <Text style={styles.accordionTitle}>Értékelések és Vélemények</Text>
-            <Text>{openSections["reviews"] ? "▲" : "▼"}</Text>
-          </TouchableOpacity>
-          {openSections["reviews"] && (
-            <View style={styles.accordionBody}>
-              <Text style={styles.itemText}>Review rész – ide majd jönnek az értékelések</Text>
-            </View>
-          )}
-        </View>
+        <Accordion title="Véglegminták" isOpen={openSections.finalSamples} onToggle={() => toggleSection("finalSamples")}>
+          {data.finalSamples?.map((f, i) => (
+            <div key={i} className="package-item">
+              {f.packageDescription} – {f.decisionDate}
+            </div>
+          ))}
+        </Accordion>
+
+        <Accordion title="Alaki hibák" isOpen={openSections.defectiveForms} onToggle={() => toggleSection("defectiveForms")}>
+          {data.defectiveForms?.map((d, i) => (
+            <div key={i} className="package-item">
+              {d.packageDescription} – {d.decisionDate}
+            </div>
+          ))}
+        </Accordion>
+
+        {/* Vélemények szekció */}
+        <ReviewSection
+          reviews={reviews}
+          averageRating={averageRating}
+          ratingDistribution={ratingDistribution}
+          submitting={submitting}
+          onSubmit={async ({ rating, positive, negative }) => {
+            if (!rating || (!positive.trim() && !negative.trim())) return;
+            setSubmitting(true);
+            try {
+              await submitReview(itemId, { rating, positive, negative });
+              await fetchReviews();
+            } catch (e) {
+              console.error("Hiba az értékelés beküldésekor:", e);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        />
       </View>
     </ScrollView>
   );
 }
 
-function Detail({ label, value }) {
-  const isBooleanSymbol = value === "✓" || value === "✕";
-
+function BooleanField({ label, value }) {
   return (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}:</Text>
-      <Text
-        style={[
-          styles.detailValue,
-          isBooleanSymbol && (value === "✓" ? styles.detailValueTrue : styles.detailValueFalse),
-        ]}
-      >
-        {value}
-      </Text>
+    <View style={{ flexDirection: "row", marginBottom: 8 }}>
+      <Text style={{ fontWeight: "600", marginRight: 6 }}>{label}:</Text>
+      <Text style={{ fontWeight: "700", color: value ? "green" : "red" }}>{value ? "✓" : "✕"}</Text>
     </View>
   );
 }
 
-function BooleanField({ label, value }) {
+function Detail({ label, value }) {
   return (
-    <View style={styles.booleanField}>
-      <Text style={styles.boolLabel}>{label}:</Text>
-      <Text style={[styles.boolValue, value ? styles.detailValueFalse : styles.detailValueTrue]}>
-        {value ? "✓" : "✕"}
-      </Text>
+    <View style={{ flexDirection: "row", marginBottom: 8 }}>
+      <Text style={{ fontWeight: "600", width: 240 }}>{label}:</Text>
+      <Text>{value}</Text>
+    </View>
+  );
+}
+
+function Accordion({ title, isOpen, onToggle, children }) {
+  return (
+    <View style={{ marginBottom: 24 }}>
+      <TouchableOpacity onPress={onToggle} style={styles.accordionHeader}>
+        <Text style={styles.accordionTitle}>{title}</Text>
+        <Text>{isOpen ? "▲" : "▼"}</Text>
+      </TouchableOpacity>
+      {isOpen && <View style={styles.accordionBody}>{children}</View>}
     </View>
   );
 }
@@ -350,22 +301,21 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: 800,
-    textAlign: "left",
-    marginBottom: 32,
+    fontWeight: "800",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#444",
+    marginBottom: 24,
   },
   topSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
     marginBottom: 32,
   },
-  imageBlock: {
-    flex: 4,
+  headerSection: {
     alignItems: "center",
-    paddingRight: 16,
   },
-  image: {
+  mainImage: {
     width: 260,
     height: 260,
     resizeMode: "contain",
@@ -374,9 +324,9 @@ const styles = StyleSheet.create({
   },
   iconRow: {
     flexDirection: "row",
-    justifyContent: "center",
     flexWrap: "wrap",
     gap: 20,
+    justifyContent: "center",
   },
   iconButton: {
     alignItems: "center",
@@ -388,108 +338,41 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 4,
   },
-  infoBlock: {
-    flex: 6,
-    justifyContent: "flex-start",
-  },
-  details: {
-    marginBottom: 20,
-  },
-  detailRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  detailLabel: {
-    fontWeight: "600",
-    width: 180,
-  },
-  detailValue: {
-    flex: 1,
-  },
-  detailValueTrue: {
-    color: "green",
-    fontWeight: "700",
-  },
-  detailValueFalse: {
-    color: "red",
-    fontWeight: "700",
-  },  
-  booleanRow: {
+  quickInfoSection: {
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 36,
-  },
-  bool: {
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  booleanField: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 8,
-  },
-  boolLabel: {
-    fontWeight: "600",
-    fontSize: 14,
-    marginRight: 4,
-  },
-  boolValue: {
-    fontWeight: "700",
-    fontSize: 16,
-  },  
-  detailsBlockTop: {
-    flexDirection: "column",
-    width: "100%",
-    maxWidth: 500,
-  },
-  detailsBlockBottom: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    maxWidth: 500,
-    width: "100%",
-  },
-
-  accordion: {
+    backgroundColor: "#f3f3f3",
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
+    gap: 24,
+  },
+  gridSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+    gap: 32,
+  },
+  gridColumn: {
+    flex: 1,
   },
   accordionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: "#000", // fekete aláhúzás
-    backgroundColor: "#fff", // ugyanaz mint az oldal háttere
+    borderColor: "#000",
   },
   accordionTitle: {
-    fontSize: 18, // nagyobb betűméret
     fontWeight: "700",
-    color: "#000",
+    fontSize: 18,
   },
   accordionBody: {
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
-  },
-  itemText: {
-    marginBottom: 8,
-    lineHeight: 20,
+    paddingTop: 12,
   },
   errorText: {
     color: "red",
     textAlign: "center",
     marginTop: 24,
-  },
-  linkText: {
-    textDecorationLine: "underline",
-    color: "black",
-    marginBottom: 8,
-    display: "block",
-  }  
+  }
 });

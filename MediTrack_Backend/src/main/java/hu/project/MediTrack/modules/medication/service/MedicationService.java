@@ -2,6 +2,8 @@ package hu.project.MediTrack.modules.medication.service;
 
 import hu.project.MediTrack.modules.GoogleImage.service.GoogleImageService;
 import hu.project.MediTrack.modules.medication.dto.*;
+import hu.project.MediTrack.modules.medication.entity.MedicationDetailsEntity;
+import hu.project.MediTrack.modules.medication.repository.MedicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,16 +14,24 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MedicationService {
 
     private final GoogleImageService googleImageService;
+    private final MedicationRepository medicationRepository;
     private final HazipatikaSearchService hazipatikaSearchService;
 
-
+    // 🌐 2️⃣ Ha nincs az adatbázisban, lekérjük az OGYÉI oldalról
     public MedicationDetailsResponse getMedicationDetails(int itemId) throws Exception {
+        // 1️⃣ Először megpróbáljuk az adatbázisból lekérni a gyógyszert
+        Optional<MedicationDetailsEntity> optional = medicationRepository.findById(itemId);
+        if (optional.isPresent()) {
+            return MedicationDetailsMapper.toDto(optional.get());
+        }
+
         String url = "https://ogyei.gov.hu/gyogyszeradatbazis&action=show_details&item=" + itemId;
         Document doc = Jsoup.connect(url).get();
 
@@ -41,8 +51,8 @@ public class MedicationService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
             authorizationDate = LocalDate.parse(date, formatter);
         }
-        String narcotic = textFromTitle(topTable, "Kábítószer / pszichotróp anyagokat tartalmaz");
 
+        String narcotic = textFromTitle(topTable, "Kábítószer / pszichotróp anyagokat tartalmaz");
         String patientInfoUrl = getDocUrl(topTable, "betegtájékoztató");
         String smpcUrl = getDocUrl(topTable, "alkalmazási előírás");
         String labelUrl = getDocUrl(topTable, "cimkeszöveg");
@@ -89,7 +99,8 @@ public class MedicationService {
 
         HazipatikaResponse hazipatikaInfo = hazipatikaSearchService.searchMedication(name);
 
-        return MedicationDetailsResponse.builder()
+        // DTO objektum összeállítása
+        MedicationDetailsResponse response = MedicationDetailsResponse.builder()
                 .name(name)
                 .imageUrl(imageUrl)
                 .registrationNumber(regNum)
@@ -112,6 +123,12 @@ public class MedicationService {
                 .defectiveForms(defectiveForms)
                 .hazipatikaInfo(hazipatikaInfo)
                 .build();
+
+        // Elmentjük az adatokat adatbázisba
+        MedicationDetailsEntity entity = MedicationDetailsMapper.toEntity(itemId, response);
+        medicationRepository.save(entity);
+
+        return response;
     }
 
     private String textFromTitle(Element table, String title) {
