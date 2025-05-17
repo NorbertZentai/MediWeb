@@ -29,14 +29,9 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const loadUser = async () => {
-            try {
-                const currentUser = await fetchCurrentUser();
-                setUser(currentUser);
-            } catch (error) {
-                console.log('No user logged in.');
-            } finally {
-                setLoading(false);
-            }
+            const currentUser = await fetchCurrentUser();
+            setUser(currentUser);
+            setLoading(false);
         };
 
         loadUser();

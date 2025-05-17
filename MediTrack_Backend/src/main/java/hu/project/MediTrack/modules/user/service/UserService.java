@@ -20,7 +20,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> findUserById(Integer id) {
+    public Optional<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
 
@@ -35,11 +35,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 
-    public User updateUserRole(Integer userId, UserRole newRole) {
+    public User updateUserRole(Long userId, UserRole newRole) {
         return userRepository.findById(userId)
                 .map(u -> {
                     u.setRole(newRole);

@@ -20,12 +20,8 @@ export const logout = async () => {
 };
 
 export const fetchCurrentUser = async () => {
-  try {
-      const response = await api.get("/auth/me");
-      return response.data;
-  } catch (error) {
-      throw error;
-  }
+  const response = await api.get("/auth/me");
+  return response.data;
 };
 
 export const searchMedications = async (query) => {
@@ -50,5 +46,10 @@ export async function getReviewsForMedication(itemId) {
 
 export async function submitReview(itemId, review) {
   const response = await api.post(`/api/review/${itemId}`, review);
+  return response.data;
+}
+
+export async function updateReview(itemId, review) {
+  const response = await api.put(`/api/review/${itemId}`, review);
   return response.data;
 }

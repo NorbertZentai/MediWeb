@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,31 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
+import { Link } from "react-router-dom";
 
 export default function ReviewSection({
   reviews,
   averageRating,
   ratingDistribution,
   onSubmit,
+  updateReview,
   submitting,
+  isLoggedIn,
+  userId,
 }) {
   const [rating, setRating] = useState(0);
   const [positive, setPositive] = useState("");
   const [negative, setNegative] = useState("");
   const [sortOption, setSortOption] = useState("latest");
+  const ownReview = reviews.find((rev) => rev.userId === userId);
+
+  useEffect(() => {
+    if (ownReview) {
+        setRating(ownReview.rating);
+        setPositive(ownReview.positive);
+        setNegative(ownReview.negative);
+    }
+  }, [ownReview]);
 
   const totalRatings = Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
 
@@ -55,10 +68,22 @@ export default function ReviewSection({
     }
   });
 
+  const filteredReviews = sortedReviews.filter((rev) => rev.userId !== userId);
+
+  const handleSubmit = () => {
+    const payload = { rating, positive, negative, userId };
+    if (ownReview) {
+        updateReview(payload);
+    } else {
+        onSubmit(payload);
+    }
+  };
+
   return (
     <View style={styles.reviewSection}>
       <Text style={styles.reviewTitle}>Értékelések és vélemények</Text>
 
+      {/* Átlagértékelés és megoszlás */}
       <View style={styles.ratingContainer}>
         <View style={styles.ratingSummary}>
           <Text style={styles.ratingNumber}>{averageRating.toFixed(1)}</Text>
@@ -83,56 +108,65 @@ export default function ReviewSection({
         </View>
       </View>
 
-      <View style={styles.reviewForm}>
-        <Text style={styles.reviewFormLabel}>Értékelés:</Text>
-        <View style={styles.starPicker}>
-          {[1, 2, 3, 4, 5].map((val) => (
-            <TouchableOpacity key={val} onPress={() => setRating(val)}>
-              <FontAwesome
-                name={val <= rating ? "star" : "star-o"}
-                size={30}
-                color="#fbc02d"
-                style={{ marginHorizontal: 4 }}
-              />
+      {/* Új értékelés űrlap */}
+      {isLoggedIn ? (
+        <View style={styles.reviewForm}>
+            <Text style={styles.reviewFormLabel}>Értékelés:</Text>
+            <View style={styles.starPicker}>
+            {[1, 2, 3, 4, 5].map((val) => (
+                <TouchableOpacity key={val} onPress={() => setRating(val)}>
+                <FontAwesome
+                    name={val <= rating ? "star" : "star-o"}
+                    size={30}
+                    color="#fbc02d"
+                    style={{ marginHorizontal: 4 }}
+                />
+                </TouchableOpacity>
+            ))}
+            </View>
+
+            <Text style={styles.reviewFormLabel}>Pozitív vélemény:</Text>
+            <TextInput
+            value={positive}
+            onChangeText={setPositive}
+            placeholder="Mi tetszett?"
+            style={styles.reviewTextarea}
+            multiline
+            />
+
+            <Text style={styles.reviewFormLabel}>Negatív vélemény:</Text>
+            <TextInput
+            value={negative}
+            onChangeText={setNegative}
+            placeholder="Mi nem tetszett?"
+            style={styles.reviewTextarea}
+            multiline
+            />
+
+            <TouchableOpacity
+                style={[
+                    styles.reviewButton,
+                    (rating === 0 || submitting) && styles.disabledButton,
+                ]}
+                onPress={handleSubmit}
+                disabled={submitting || rating === 0}
+                >
+                {submitting ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <Text style={styles.reviewButtonText}>
+                    {ownReview ? "Véleményed frissítése" : "Vélemény küldése"}
+                    </Text>
+                )}
             </TouchableOpacity>
-          ))}
         </View>
+        ) : (
+        <Text style={styles.loginNotice}>
+            Bejelentkezés után tudsz véleményt írni.
+        </Text>
+      )}
 
-        <Text style={styles.reviewFormLabel}>Pozitív vélemény:</Text>
-        <TextInput
-          value={positive}
-          onChangeText={setPositive}
-          placeholder="Mi tetszett?"
-          style={styles.reviewTextarea}
-          multiline
-        />
-
-        <Text style={styles.reviewFormLabel}>Negatív vélemény:</Text>
-        <TextInput
-          value={negative}
-          onChangeText={setNegative}
-          placeholder="Mi nem tetszett?"
-          style={styles.reviewTextarea}
-          multiline
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.reviewButton,
-            (rating === 0 || submitting) && styles.disabledButton,
-          ]}
-          onPress={() => onSubmit({ rating, positive, negative })}
-          disabled={submitting || rating === 0}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.reviewButtonText}>Vélemény beküldése</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Véleménylista szekció */}
+      {/* Lista korábbi értékelésekről */}
       <View style={styles.reviewListSection}>
         <View style={styles.filterRow}>
           <Text style={styles.reviewListTitle}>Korábbi értékelések</Text>
@@ -151,22 +185,40 @@ export default function ReviewSection({
           </View>
         </View>
 
-        {sortedReviews.length > 0 ? (
-          sortedReviews.map((rev, idx) => (
-            <View key={idx} style={styles.reviewCard}>
-              <View style={styles.starRow}>{renderStars(rev.rating)}</View>
-              <Text style={styles.reviewMeta}>
-                Beküldte: {rev.author || "Anonim"} –{" "}
-                {new Date(rev.createdAt).toLocaleDateString()}
-              </Text>
-              <Text style={styles.reviewText}>👍 {rev.positive}</Text>
-              <Text style={styles.reviewText}>👎 {rev.negative}</Text>
+        {filteredReviews.length > 0 ? (
+            filteredReviews.map((rev, idx) => (
+                <View key={idx} style={styles.reviewCard}>
+                <View style={styles.starRow}>{renderStars(rev.rating)}</View>
+                <Text style={styles.reviewMeta}>
+                    Beküldte: {rev.author} –{" "}
+                    {new Date(rev.createdAt).toLocaleDateString()}
+                </Text>
+                <Text style={styles.reviewText}>👍 {rev.positive}</Text>
+                <Text style={styles.reviewText}>👎 {rev.negative}</Text>
+                </View>
+            ))
+            ) : ownReview ? (
+            <View style={styles.noReviewsBox}>
+                <FontAwesome name="user-circle" size={28} color="#888" style={{ marginBottom: 6 }} />
+                <Text style={styles.noReviewsTitle}>Csak a te értékelésed érkezett eddig</Text>
+                <Text style={styles.noReviewsSubtitle}>
+                Jelenleg még senki más nem írt véleményt ehhez a gyógyszerhez.
+                </Text>
             </View>
-          ))
-        ) : (
-          <Text style={styles.noReviewsText}>
-            Ehhez a gyógyszerhez még nem érkezett értékelés.
-          </Text>
+            ) : (
+            <View style={styles.noReviewsBox}>
+                <FontAwesome name="comment-o" size={28} color="#aaa" style={{ marginBottom: 6 }} />
+                <Text style={styles.noReviewsTitle}>Nincs még értékelés</Text>
+                <Text style={styles.noReviewsSubtitle}>
+                Legyél te az első, aki megosztja a tapasztalatait!
+                </Text>
+                {!isLoggedIn && (
+                <Text style={styles.loginPrompt}>
+                    <Text>Bejelentkezés után tudsz értékelést írni. </Text>
+                    <Link to="/login" style={styles.loginLink}>Bejelentkezés</Link>
+                </Text>
+                )}
+            </View>
         )}
       </View>
     </View>
@@ -181,10 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    boxShadow: "0px 1px 4px rgba(0,0,0,0.05)",
   },
   reviewTitle: {
     fontSize: 24,
@@ -283,10 +332,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
     elevation: 2,
   },
   reviewButtonText: {
@@ -304,10 +350,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: "0px 1px 2px rgba(0,0,0,0.05)",
   },
   reviewText: {
     fontSize: 15,
@@ -349,13 +392,53 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderColor: "#ccc",
     borderWidth: 1,
-    outline: "none",
     backgroundColor: "#fff",
   },
-  noReviewsText: {
-    fontStyle: "italic",
-    color: "#888",
-    textAlign: "center",
+  noReviewsBox: {
+    alignItems: "center",
+    padding: 24,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
     marginTop: 12,
+  },
+  noReviewsTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#555",
+    marginBottom: 6,
+  },
+  noReviewsSubtitle: {
+    fontSize: 14,
+    color: "#777",
+    textAlign: "center",
+    maxWidth: 300,
+  },
+  loginNotice: {
+    backgroundColor: "#fff9c4",
+    color: "#795548",
+    borderWidth: 1,
+    borderColor: "#fbc02d",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    textAlign: "center",
+    fontWeight: "600",
+    fontSize: 15,
+    marginTop: 20,
+    marginBottom: 16,
+  },
+  loginPrompt: {
+    marginTop: 10,
+    color: "#555",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  loginLink: {
+    color: "#2e7d32",
+    fontWeight: "700",
+    textDecorationLine: "underline",
+    marginLeft: 4,
   },
 });

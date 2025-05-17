@@ -25,9 +25,6 @@ export default function Navbar() {
 
   if (user) {
     navLinks.push({ to: "/user", label: "Profil" });
-  } else {
-    navLinks.push({ to: "/login", label: "Bejelentkezés" });
-    navLinks.push({ to: "/register", label: "Regisztráció" });
   }
 
   return (
@@ -55,6 +52,27 @@ export default function Navbar() {
             {link.label}
           </Link>
         ))}
+
+        {!user && (
+          <>
+            <Link
+              to="/login"
+              state={{ from: location }}
+              onClick={() => setMenuOpen(false)}
+              className={`nav-link ${location.pathname === "/login" ? "active" : ""}`}
+            >
+              Bejelentkezés
+            </Link>
+
+            <Link
+              to="/register"
+              onClick={() => setMenuOpen(false)}
+              className={`nav-link ${location.pathname === "/register" ? "active" : ""}`}
+            >
+              Regisztráció
+            </Link>
+          </>
+        )}
 
         {user && (
           <Link

@@ -22,7 +22,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Integer id) {
+    public User getUserById(@PathVariable Long id) {
         Optional<User> user = userService.findUserById(id);
         return user.orElse(null);
     }
@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Integer id, @RequestBody User updated) {
+    public User updateUser(@PathVariable Long id, @RequestBody User updated) {
         Optional<User> existing = userService.findUserById(id);
         if (existing.isPresent()) {
             User user = existing.get();
@@ -55,12 +55,12 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Integer id) {
+    public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
 
     @PutMapping("/{id}/role")
-    public User updateUserRole(@PathVariable Integer id, @RequestParam("role") String role) {
+    public User updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
         return userService.updateUserRole(id, UserRole.valueOf(role.toUpperCase()));
     }
 }

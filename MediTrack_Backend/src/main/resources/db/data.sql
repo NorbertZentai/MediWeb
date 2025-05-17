@@ -12,4 +12,5 @@ ON CONFLICT (name) DO NOTHING;
 
 -- 👤 Teszt felhasználó beszúrása (ha még nincs)
 INSERT INTO users (id, name, email, password, role)
-VALUES (9999, 'tesztfelhasználó', 'teszt@example.com', 'hashed_password', 'USER');
+VALUES (9999, 'tesztfelhasználó', 'teszt@example.com', 'hashed_password', 'USER')
+ON CONFLICT (id) DO NOTHING;

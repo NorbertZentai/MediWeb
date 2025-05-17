@@ -12,9 +12,10 @@ import {
   Platform,
 } from "react-native";
 import { useParams, Link } from "react-router-dom";
-import { getMedicationDetails, getReviewsForMedication, submitReview } from "../api/auth";
+import { getMedicationDetails, getReviewsForMedication, submitReview, updateReview } from "../api/auth";
 import { FontAwesome5 } from "@expo/vector-icons";
 import ReviewSection from "../components/ReviewSection";
+import { fetchCurrentUser } from "../api/auth";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -36,11 +37,10 @@ export default function MedicationDetailsScreen() {
     reviews: false,
   });
   const [reviews, setReviews] = useState([]);
-  const [newReview, setNewReview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
   const [ratingDistribution, setRatingDistribution] = useState({});
-
+  const [currentUser, setCurrentUser] = useState(null);
 
   const toggleSection = (key) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -72,21 +72,14 @@ export default function MedicationDetailsScreen() {
   useEffect(() => {
     fetchDetails();
     fetchReviews();
+    fetchCurrentUser()
+      .then((user) => {
+        setCurrentUser(user);
+      })
+      .catch((e) => {
+        console.error("Nem sikerült betölteni a felhasználót:", e);
+    });
   }, [fetchDetails, fetchReviews]);
-
-  const handleSubmitReview = async () => {
-  if (!newReview.trim()) return;
-  setSubmitting(true);
-  try {
-    await submitReview(itemId, { text: newReview });
-    setNewReview("");
-    await fetchReviews();
-  } catch (e) {
-    console.error("Hiba a review elküldésekor:", e);
-  } finally {
-    setSubmitting(false);
-  }
-};
 
   if (loading) {
     return (
@@ -114,6 +107,18 @@ export default function MedicationDetailsScreen() {
       />
     ) : null;
 
+  const handleUpdateReview = async (payload) => {
+    setSubmitting(true);
+    try {
+      await updateReview(itemId, payload);
+      await fetchReviews();
+    } catch (e) {
+      console.error("Hiba a vélemény módosításakor:", e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.contentWrapper}>
@@ -126,7 +131,11 @@ export default function MedicationDetailsScreen() {
             </Text>
 
             {data.imageUrl && (
-              <Image source={{ uri: data.imageUrl }} style={styles.mainImage} />
+              <Image 
+                source={{ uri: data.imageUrl }}
+                resizeMode="contain"
+                style={styles.mainImage}
+              />
             )}
 
             <View style={styles.iconRow}>
@@ -235,11 +244,17 @@ export default function MedicationDetailsScreen() {
           averageRating={averageRating}
           ratingDistribution={ratingDistribution}
           submitting={submitting}
-          onSubmit={async ({ rating, positive, negative }) => {
-            if (!rating || (!positive.trim() && !negative.trim())) return;
+          isLoggedIn={!!currentUser}
+          userId={currentUser?.id}
+          onSubmit={async ({ rating, positive, negative}) => {
+            if (!rating ) return;
+            if (!currentUser?.id) {
+              return;
+            }
+            
             setSubmitting(true);
             try {
-              await submitReview(itemId, { rating, positive, negative });
+              await submitReview(itemId, { rating, positive, negative, userId: currentUser.id,});
               await fetchReviews();
             } catch (e) {
               console.error("Hiba az értékelés beküldésekor:", e);
@@ -247,6 +262,7 @@ export default function MedicationDetailsScreen() {
               setSubmitting(false);
             }
           }}
+          updateReview={handleUpdateReview}
         />
       </View>
     </ScrollView>
@@ -318,7 +334,6 @@ const styles = StyleSheet.create({
   mainImage: {
     width: 260,
     height: 260,
-    resizeMode: "contain",
     marginBottom: 16,
     borderRadius: 10,
   },

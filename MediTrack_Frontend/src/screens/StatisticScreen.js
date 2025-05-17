@@ -51,10 +51,7 @@ const styles = StyleSheet.create({
     margin: 8,
     width: "40%",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    boxShadow: "0px 3px 4px rgba(0, 0, 0, 0.1)",
     elevation: 5,
   },
   cardTitle: {

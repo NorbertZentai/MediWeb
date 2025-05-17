@@ -1,11 +1,13 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,7 +34,7 @@ export default function RegisterScreen({ navigation }) {
         phone_number: phoneNumber 
       });
       Alert.alert('Siker', 'Sikeresen regisztráltál.');
-      navigate('/login');
+      navigate(from, { replace: true });
     } catch (error) {
       Alert.alert('Hiba', error);
     }

@@ -1,10 +1,12 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -19,7 +21,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await login({ email, password });
       Alert.alert('Siker', 'Sikeresen bejelentkeztél.');
-      navigate('/');
+      navigate(from, { replace: true });
     } catch (error) {
       Alert.alert('Hiba', error);
     }
