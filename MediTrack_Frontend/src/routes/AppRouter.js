@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     padding: 16,
     paddingHorizontal: 16,
-    paddingTop: 24,
+    paddingTop: 0,
     marginLeft: "auto",
     marginRight: "auto",
     display: "flex",
