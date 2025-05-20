@@ -1,132 +1,89 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { theme } from "../theme";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { AuthContext } from "contexts/AuthContext";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { styles } from "./Navbar.styles";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
 
   const navLinks = [
     { to: "/", label: "Főoldal" },
     { to: "/search", label: "Keresés" },
-    { to: "/favorites", label: "Kedvencek" },
     { to: "/statistics", label: "Statisztikák" },
+    ...(user ? [{ to: "/user", label: "Profil" }] : []),
   ];
 
-  if (user) {
-    navLinks.push({ to: "/user", label: "Profil" });
-  }
+  const handleNav = (to) => {
+    setMenuOpen(false);
+    navigate(to);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleNav("/");
+  };
+
+  const getLinkStyle = (to, extraStyle = {}) => {
+    const isActive = pathname === to;
+    return {
+      ...styles.navLink,
+      ...(isActive ? styles.activeLink : {}),
+      ...extraStyle,
+    };
+  };
 
   return (
-    <View style={styles.navbar}>
-      {/* Logo */}
-      <Text style={styles.logo}>MediTrack Web</Text>
+    <div style={styles.navbar}>
+      <Link to="/" style={styles.logo} onClick={() => handleNav("/")}>
+        MediTrack Web
+      </Link>
 
-      {/* Hamburger ikon mobilon */}
-      <TouchableOpacity
-        style={styles.hamburger}
-        onPress={() => setMenuOpen(!menuOpen)}
-      >
-        <FontAwesome5 name="bars" size={24} color="black" />
-      </TouchableOpacity>
-
-      {/* Menü (desktopon mindig látszik, mobilon csak ha nyitva) */}
-      <View style={[styles.menu, menuOpen && styles.menuOpen]}>
-        {navLinks.map((link, i) => (
+      <div style={styles.menu}>
+        {navLinks.map(({ to, label }) => (
           <Link
-            key={i}
-            to={link.to}
-            onClick={() => setMenuOpen(false)}
-            className={`nav-link ${location.pathname === link.to ? "active" : ""}`}
+            key={to}
+            to={to}
+            style={getLinkStyle(to)}
+            onClick={() => handleNav(to)}
           >
-            {link.label}
+            {label}
           </Link>
         ))}
 
-        {!user && (
+        {!user ? (
           <>
             <Link
               to="/login"
-              state={{ from: location }}
-              onClick={() => setMenuOpen(false)}
-              className={`nav-link ${location.pathname === "/login" ? "active" : ""}`}
+              style={getLinkStyle("/login")}
+              onClick={() => handleNav("/login")}
             >
               Bejelentkezés
             </Link>
-
             <Link
               to="/register"
-              onClick={() => setMenuOpen(false)}
-              className={`nav-link ${location.pathname === "/register" ? "active" : ""}`}
+              style={getLinkStyle("/register")}
+              onClick={() => handleNav("/register")}
             >
               Regisztráció
             </Link>
           </>
-        )}
-
-        {user && (
-          <Link
-            to="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handleLogout();
-              setMenuOpen(false);
-            }}
-            className={`nav-link logout`}
+        ) : (
+          <button
+            onClick={handleLogout}
+            style={getLinkStyle(null, styles.logoutLink)}
           >
             Kijelentkezés
-          </Link>
+          </button>
         )}
-      </View>
-    </View>
+      </div>
+
+      <button style={styles.hamburger} onClick={() => setMenuOpen((o) => !o)}>
+        <FontAwesome5 name="bars" size={20} />
+      </button>
+    </div>
   );
 }
-
-const styles = StyleSheet.create({
-  navbar: {
-    width: "100%",
-    height: theme.dimensions.navbarHeight,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    backgroundColor: theme.colors.white,
-    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
-    position: "relative",
-  },
-  logo: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: theme.colors.textDark,
-    marginLeft: 10,
-  },
-  hamburger: {
-    display: "none",
-  },
-  menu: {
-    flexDirection: "row",
-    margin: 0,
-    padding: 0,
-  },
-  menuOpen: {
-    flexDirection: "column",
-    position: "absolute",
-    top: theme.dimensions.navbarHeight,
-    right: 0,
-    backgroundColor: "#fff",
-    padding: 20,
-    width: 200,
-    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
-    zIndex: 100,
-  },
-});

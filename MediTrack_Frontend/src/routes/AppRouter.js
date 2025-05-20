@@ -1,23 +1,24 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
-
-import HomeScreen from "../screens/HomeScreen";
-import LoginScreen from "../screens/LoginScreen";
-import RegisterScreen from "../screens/RegisterScreen";
-import UserScreen from "../screens/UserScreen";
-import MedicationDetailScreen from "../screens/MedicationDetailScreen";
-import SearchScreen from "../screens/SearchScreen";
-import FavoriteScreen from "../screens/FavoriteScreen";
-import StatisticScreen from "../screens/StatisticScreen";
-import Navbar from "../components/Navbar";
-import { theme } from "../theme";
-import { AuthContext } from "../context/AuthContext";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+
+import HomeScreen from "features/home/HomeScreen";
+import LoginScreen from "features/auth/LoginScreen";
+import RegisterScreen from "features/auth/RegisterScreen";
+import UserScreen from "features/profile/ProfileScreen";
+import MedicationDetailScreen from "features/medication/MedicatioScreen";
+import SearchScreen from "features/search/SearchScreen";
+import StatisticScreen from "features/statistics/StatisticScreen";
+
+import Navbar from "components/Navbar";
+import { theme } from "styles/theme";
+import { AuthContext } from "contexts/AuthContext";
 
 export default function AppRouter() {
   const { loading } = useContext(AuthContext);
 
+  // Betöltés alatti spinner
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -32,7 +33,6 @@ export default function AppRouter() {
         <View style={styles.navbarWrapper}>
           <Navbar />
         </View>
-
         <ScrollView>
           <View style={styles.content}>
             <Routes>
@@ -42,9 +42,8 @@ export default function AppRouter() {
               <Route path="/user" element={<UserScreen />} />
               <Route path="/medication/:itemId" element={<MedicationDetailScreen />} />
               <Route path="/search" element={<SearchScreen />} />
-              <Route path="/favorites" element={<FavoriteScreen />} />
               <Route path="/statistics" element={<StatisticScreen />} />
-              <Route path="*" element={<h2>404 - A keresett oldal nem található.</h2>} />
+              <Route path="*" element={<Text style={styles.errorText}> 404 – A keresett oldal nem található. </Text> } />
             </Routes>
           </View>
         </ScrollView>
@@ -62,7 +61,6 @@ const styles = StyleSheet.create({
   },
   navbarWrapper: {
     width: "100%",
-    height: theme.dimensions.navbarHeight,
     zIndex: 1000,
   },
   content: {
@@ -82,5 +80,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+  },
+  errorText: {
+    fontSize: 18,
+    color: theme.colors.red600,
+    textAlign: "center",
+    marginTop: 24,
   },
 });
