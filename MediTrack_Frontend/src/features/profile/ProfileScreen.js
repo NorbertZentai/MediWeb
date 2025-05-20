@@ -30,6 +30,15 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  tabContent: { flex: 1, padding: 20 },
+  container: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "#fff",
+    alignSelf: "stretch",
+    alignItems: "stretch",
+  },
+  tabContent: {
+    flex: 1,
+    padding: 20,
+  },
 });
