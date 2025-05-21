@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: MediTrack
+  config:
+    import: optional:dotenv:./.env
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/meditrack
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+
+logging:
+  level:
+    root: info
+    org.springframework.web: warn
+    org.hibernate: error
+
+google:
+  api:
+    key: REDACTED_GOOGLE_API_KEY
+    cx: REDACTED_GOOGLE_CX
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: Strict
