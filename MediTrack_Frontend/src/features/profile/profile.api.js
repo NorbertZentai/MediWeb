@@ -9,18 +9,18 @@ export const fetchCurrentUser = async () => {
 
 // USER PROFILE
 
-export const updateUsername = async (userId, username) => {
-  const response = await api.put(`/api/profile/${userId}`, username);
+export const updateUsername = async (username) => {
+  const response = await api.put(`/api/users/${userId}`, username);
+  return response.data;
+};
+k
+export const updateEmail = async (email) => {
+  const response = await api.put(`/api/users/${userId}`, email);
   return response.data;
 };
 
-export const updateEmail = async (userId, email) => {
-  const response = await api.put(`/api/profile/${userId}`, email);
-  return response.data;
-};
-
-export const updatePassword = async (userId, currentPassword, newPassword, reNewPassword) => {
-  const response = await api.put(`/api/profile/${userId}`, {
+export const updatePassword = async (currentPassword, newPassword, reNewPassword) => {
+  const response = await api.put(`/api/users/${userId}`, {
     currentPassword,
     newPassword,
     reNewPassword,
@@ -28,16 +28,16 @@ export const updatePassword = async (userId, currentPassword, newPassword, reNew
   return response.data;
 };
 
-export const updatePhoneNumber = async (userId, phoneNumber) => {
-  const response = await api.put(`/api/profile/${userId}/phone`, phoneNumber);
+export const updatePhoneNumber = async (phoneNumber) => {
+  const response = await api.put(`/api/users/${userId}/phone`, phoneNumber);
   return response.data;
 };
 
-export const updateProfileImage = async (userId, imageFile) => {
+export const updateProfileImage = async ( imageFile) => {
   const formData = new FormData();
   formData.append("file", imageFile);
 
-  const response = await api.put(`/api/profile/${userId}/image`, formData, {
+  const response = await api.put(`/api/users/${userId}/image`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

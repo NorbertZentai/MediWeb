@@ -42,7 +42,7 @@ public class User {
 
     private LocalDateTime last_login;
 
-    private String profile_picture;
+    private byte[] profile_picture;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable=false)
