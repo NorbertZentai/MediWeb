@@ -3,8 +3,13 @@ package hu.project.MediTrack.modules.user.controller;
 import hu.project.MediTrack.modules.user.entity.User;
 import hu.project.MediTrack.modules.user.enums.UserRole;
 import hu.project.MediTrack.modules.user.service.UserService;
+import hu.project.MediTrack.modules.user.dto.PasswordChangeRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +20,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private User getCurrentUser(HttpServletRequest request) {
+        return (User) request.getSession().getAttribute("user");
+    }
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -32,28 +41,6 @@ public class UserController {
         return userService.saveUser(user);
     }
 
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User updated) {
-        Optional<User> existing = userService.findUserById(id);
-        if (existing.isPresent()) {
-            User user = existing.get();
-            user.setName(updated.getName());
-            user.setEmail(updated.getEmail());
-            user.setGender(updated.getGender());
-            user.setDate_of_birth(updated.getDate_of_birth());
-            user.setAddress(updated.getAddress());
-            user.setPhone_number(updated.getPhone_number());
-            user.setProfile_picture(updated.getProfile_picture());
-            user.setRole(updated.getRole());
-            user.setIs_active(updated.getIs_active());
-            user.setLanguage(updated.getLanguage());
-            user.setDeleted_at(updated.getDeleted_at());
-            return userService.saveUser(user);
-        } else {
-            return null;
-        }
-    }
-
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -62,5 +49,47 @@ public class UserController {
     @PutMapping("/{id}/role")
     public User updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
         return userService.updateUserRole(id, UserRole.valueOf(role.toUpperCase()));
+    }
+
+    @PutMapping("/username")
+    public ResponseEntity<?> updateUsername(@RequestBody String username, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        user.setName(username);
+        userService.saveUser(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/email")
+    public ResponseEntity<?> updateEmail(@RequestBody String email, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        user.setEmail(email);
+        userService.saveUser(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<?> updatePassword(@RequestBody PasswordChangeRequest requestBody, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        boolean success = userService.changePassword(user, requestBody);
+        if (success) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.badRequest().body("Hibás jelenlegi jelszó vagy nem egyező új jelszavak.");
+        }
+    }
+
+    @PutMapping("/phone")
+    public ResponseEntity<?> updatePhoneNumber(@RequestBody String phoneNumber, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        user.setPhone_number(phoneNumber);
+        userService.saveUser(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/image")
+    public ResponseEntity<?> updateProfileImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+        userService.updateProfilePicture(user, file);
+        return ResponseEntity.ok().build();
     }
 }
