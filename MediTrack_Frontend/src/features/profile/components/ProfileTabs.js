@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { styles } from "./ProfileScreen.style";
+import { styles } from "../ProfileScreen.style";
 
 const tabs = [
   { key: "profiles", label: "Profilok" },

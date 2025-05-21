@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, TextInput, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { styles } from "./ProfileScreen.style";
+import { styles } from "../ProfileScreen.style";
 import defaultAvatar from "assets/default-avatar.jpg";
 import { updateUsername, updateEmail, updatePassword, updatePhoneNumber, updateProfileImage, fetchCurrentUser } from "features/profile/profile.api";
 
@@ -26,9 +26,9 @@ export default function ProfileHeader() {
       try {
         const user = await fetchCurrentUser();
         setUserId(user.id);
-        setName(user.name ?? "");
-        setEmail(user.email ?? "");
-        setPhone(user.phone_number ?? "");
+        setName(user.name ?? " - ");
+        setEmail(user.email ?? " - ");
+        setPhone(user.phone_number ?? " - ");
         setProfileImageUrl(user.imageUrl || defaultAvatar);
       } catch (e) {
         console.error("Nem sikerült betölteni a felhasználót.", e);
@@ -42,7 +42,7 @@ export default function ProfileHeader() {
     if (field === "name") setInputValue(name);
     if (field === "email") setInputValue(email);
     if (field === "phone") setInputValue(phone);
-    if (field === "image") setInputValue(null); // reset fájl
+    if (field === "image") setInputValue(null);
     setModalVisible(true);
   };
 
@@ -143,7 +143,7 @@ export default function ProfileHeader() {
             <FontAwesome5 name="edit" size={14} style={styles.editIcon} onPress={() => openEditModal("phone")} />
           </View>
           <View style={styles.inlineInfoItem}>
-            <Text style={styles.label}>Jelszó:</Text>
+            <Text style={styles.label}>Jelszó módosítása</Text>
             <FontAwesome5 name="edit" size={14} style={styles.editIcon} onPress={() => openEditModal("password")} />
           </View>
         </View>

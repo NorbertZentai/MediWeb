@@ -1,16 +1,23 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  // --- Fő konténer (ProfileScreen) ---
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
-    alignItems: "center",
     width: "100%",
+    backgroundColor: "#fff",
+    alignSelf: "stretch",
+    alignItems: "stretch",
   },
 
+  tabContent: {
+    flex: 1,
+    padding: 20,
+  },
+
+  // --- Fejléc (ProfileHeader) ---
   header: {
-    width: "100vw",
-    marginLeft: "calc(-50vw + 50%)",
+    width: "100%",
     backgroundColor: "#ECFDF5",
     alignItems: "center",
     paddingTop: 40,
@@ -84,21 +91,18 @@ export const styles = StyleSheet.create({
     marginLeft: 6,
     color: "#4B5563",
     opacity: 0.7,
-    cursor: "pointer",
-    transition: "opacity 0.2s",
   },
 
+  // --- Fülek (ProfileTabs) ---
   tabs: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 14,
     backgroundColor: "#F5F7FA",
-    width: "100vw",
-    marginLeft: "calc(-50vw + 50%)",
+    width: "100%",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
-    gap: 20,
   },
 
   tabButton: {
@@ -116,15 +120,9 @@ export const styles = StyleSheet.create({
     color: "#059669",
   },
 
-  tabContent: {
-    width: "90%",
-    maxWidth: 1000,
-    padding: 24,
-  },
-
-  // 🧩 Modal styles
+  // --- Modal stílusok ---
   modalOverlay: {
-    position: "fixed",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
@@ -140,7 +138,11 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 20,
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
   },
 
   modalTitle: {

@@ -1,55 +1,32 @@
 import api from "api/config";
 
+// AUTHENTICATION
+
 export const fetchCurrentUser = async () => {
   const response = await api.get("/auth/me");
   return response.data;
 };
 
-export const getProfilesForUser = async () => {
-  const response = await api.get("/api/profiles");
-  return response.data;
-};
-
-export const addMedicationToProfile = async (profileId, itemId) => {
-  const response = await api.post(`/api/profiles/addMedication/${profileId}`, itemId);
-  return response.data;
-};
-
-export const getMedicationsForProfile = async (profileId, itemId) => {
-  const response = await api.get(`/api/profiles/${profileId}`, itemId);
-  return response.data;
-};
-
-export const addToFavorites = async (itemId, userId) => {
-  const response = await api.post(`/api/favorites/${userId}`, itemId);
-  return response.data;
-};
-
-export const getFavorites = async (userId, itemId) => {
-  const response = await api.get(`/api/favorites/${userId}`, itemId);
-  return response.data;
-};
+// USER PROFILE
 
 export const updateUsername = async (userId, username) => {
   const response = await api.put(`/api/profile/${userId}`, username);
   return response.data;
-}
+};
 
 export const updateEmail = async (userId, email) => {
   const response = await api.put(`/api/profile/${userId}`, email);
   return response.data;
-}
+};
 
 export const updatePassword = async (userId, currentPassword, newPassword, reNewPassword) => {
-  const response = await api.put(`/api/profile/${userId}`, 
-    {
+  const response = await api.put(`/api/profile/${userId}`, {
     currentPassword,
     newPassword,
-    reNewPassword
-    }
-  );
+    reNewPassword,
+  });
   return response.data;
-}
+};
 
 export const updatePhoneNumber = async (userId, phoneNumber) => {
   const response = await api.put(`/api/profile/${userId}/phone`, phoneNumber);
@@ -65,6 +42,66 @@ export const updateProfileImage = async (userId, imageFile) => {
       "Content-Type": "multipart/form-data",
     },
   });
-  
+
+  return response.data;
+};
+
+// FAVORITES
+
+export const addToFavorites = async (itemId, userId) => {
+  const response = await api.post(`/api/favorites/${userId}`, itemId);
+  return response.data;
+};
+
+export const getFavorites = async (userId, itemId) => {
+  const response = await api.get(`/api/favorites/${userId}`, itemId);
+  return response.data;
+};
+
+// PROFILE ENTITIES
+
+export const getProfilesForUser = async () => {
+  const response = await api.get("/api/profiles");
+  return response.data;
+};
+
+export const createProfile = async (name, description) => {
+  const response = await api.post(`/api/profile/profiles`, { name, description });
+  return response.data;
+};
+
+export const updateProfile = async (profileId, name, description) => {
+  const response = await api.put(`/api/profiles/${profileId}`, { name, description });
+  return response.data;
+};
+
+// MEDICATIONS for Profile
+
+export const getMedicationsForProfile = async (profileId) => {
+  const response = await api.get(`/api/profiles/${profileId}/medications`);
+  return response.data;
+};
+
+export const addMedicationToProfile = async (profileId, itemId) => {
+  const response = await api.post(`/api/profiles/addMedication/${profileId}`, itemId);
+  return response.data;
+};
+
+export const removeMedicationFromProfile = async (profileId, itemId) => {
+  const response = await api.delete(`/api/profiles/${profileId}/medications/${itemId}`);
+  return response.data;
+};
+
+export const updateMedicationForProfile = async (profileId, itemId, data) => {
+  const response = await api.put(`/api/profiles/${profileId}/medications/${itemId}`, data);
+  return response.data;
+};
+
+// SEARCH
+
+export const searchMedicationsByName = async (query) => {
+  const response = await api.get(
+    `/api/medications/search?query=${encodeURIComponent(query)}`
+  );
   return response.data;
 };

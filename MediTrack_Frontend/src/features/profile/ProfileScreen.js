@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
-import ProfileHeader from "./ProfileHeader";
-import ProfileTabs from "./ProfileTabs";
-import ProfilesTab from "./ProfilesTab";
-import FavoritesTab from "./FavoritesTab";
-import SettingsTab from "./SettingsTab";
+import { View } from "react-native";
+import ProfileHeader from "./components/ProfileHeader";
+import ProfileTabs from "./components/ProfileTabs";
+import ProfilesTab from "./components/ProfilesTab";
+import FavoritesTab from "./components/FavoritesTab";
+import SettingsTab from "./components/SettingsTab";
+import { styles } from "./ProfileScreen.style";
 
 export default function ProfileScreen() {
   const [selectedTab, setSelectedTab] = useState("profiles");
@@ -28,17 +29,3 @@ export default function ProfileScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: "#fff",
-    alignSelf: "stretch",
-    alignItems: "stretch",
-  },
-  tabContent: {
-    flex: 1,
-    padding: 20,
-  },
-});
