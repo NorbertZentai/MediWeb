@@ -6,7 +6,7 @@ import EditProfileModal from './profiles/EditProfileModal';
 import AssignMedicationModal from './profiles/AssignMedicationModal';
 import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
-import { getProfiles, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
+import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
 import { styles } from './ProfilesTab.style';
 
 export default function ProfilesTab() {
@@ -23,7 +23,7 @@ export default function ProfilesTab() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const data = await getProfiles();
+        const data = await getProfilesForUser();
         setProfiles(data);
       } catch (error) {
         console.error('Error fetching profiles:', error);

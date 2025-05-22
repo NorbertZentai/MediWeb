@@ -30,41 +30,26 @@ public class UserController {
         return userService.findAllUsers();
     }
 
-    @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.findUserById(id);
-        return user.orElse(null);
-    }
-
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.saveUser(user);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-    }
-
-    @PutMapping("/{id}/role")
-    public User updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
-        return userService.updateUserRole(id, UserRole.valueOf(role.toUpperCase()));
-    }
 
     @PutMapping("/username")
-    public ResponseEntity<?> updateUsername(@RequestBody String username, HttpServletRequest request) {
+    public ResponseEntity<String> updateUsername(@RequestBody String username, HttpServletRequest request) {
         User user = getCurrentUser(request);
         user.setName(username);
         userService.saveUser(user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(username);
     }
 
     @PutMapping("/email")
-    public ResponseEntity<?> updateEmail(@RequestBody String email, HttpServletRequest request) {
+    public ResponseEntity<String> updateEmail(@RequestBody String email, HttpServletRequest request) {
         User user = getCurrentUser(request);
         user.setEmail(email);
         userService.saveUser(user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(email);
     }
 
     @PutMapping("/password")
@@ -79,17 +64,33 @@ public class UserController {
     }
 
     @PutMapping("/phone")
-    public ResponseEntity<?> updatePhoneNumber(@RequestBody String phoneNumber, HttpServletRequest request) {
+    public ResponseEntity<String> updatePhoneNumber(@RequestBody String phoneNumber, HttpServletRequest request) {
         User user = getCurrentUser(request);
         user.setPhone_number(phoneNumber);
         userService.saveUser(user);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(phoneNumber);
     }
 
     @PutMapping("/image")
-    public ResponseEntity<?> updateProfileImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public ResponseEntity<String> updateProfileImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         User user = getCurrentUser(request);
         userService.updateProfilePicture(user, file);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Siker");
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        Optional<User> user = userService.findUserById(id);
+        return user.orElse(null);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
+
+    @PutMapping("/{id}/role")
+    public User updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
+        return userService.updateUserRole(id, UserRole.valueOf(role.toUpperCase()));
     }
 }
