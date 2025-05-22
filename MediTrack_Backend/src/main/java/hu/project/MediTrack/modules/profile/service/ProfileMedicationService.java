@@ -2,15 +2,17 @@ package hu.project.MediTrack.modules.profile.service;
 
 import hu.project.MediTrack.modules.medication.entity.Medication;
 import hu.project.MediTrack.modules.medication.repository.MedicationRepository;
+import hu.project.MediTrack.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediTrack.modules.profile.entity.Profile;
 import hu.project.MediTrack.modules.profile.entity.ProfileMedication;
 import hu.project.MediTrack.modules.profile.repository.ProfileMedicationRepository;
 import hu.project.MediTrack.modules.profile.repository.ProfileRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileMedicationService {
@@ -24,11 +26,15 @@ public class ProfileMedicationService {
     @Autowired
     private MedicationRepository medicationRepository;
 
-    public List<ProfileMedication> getMedicationsForProfile(Long profileId) {
-        return profileMedicationRepository.findByProfileId(profileId);
+    @Transactional
+    public List<ProfileMedicationDTO> getMedicationsForProfile(Long profileId) {
+        return profileMedicationRepository.findByProfileId(profileId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public ProfileMedication addMedication(Long profileId, Long medicationId) {
+    @Transactional
+    public ProfileMedicationDTO addMedication(Long profileId, Long medicationId) {
         Profile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new IllegalArgumentException("Profil nem található: " + profileId));
         Medication medication = medicationRepository.findById(medicationId)
@@ -41,20 +47,36 @@ public class ProfileMedicationService {
                 .reminders("[]")
                 .build();
 
-        return profileMedicationRepository.save(pm);
+        return convertToDTO(profileMedicationRepository.save(pm));
     }
 
-    public ProfileMedication updateMedication(Long profileId, Long medicationId, ProfileMedication updatedData) {
-        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId(profileId, medicationId)
+    @Transactional
+    public ProfileMedicationDTO updateMedication( Long profileId, Long medicationId, ProfileMedicationDTO updatedData) {
+        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId(
+                        profileId,
+                        medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Nincs ilyen gyógyszer hozzárendelve a profilhoz."));
 
         existing.setNotes(updatedData.getNotes());
         existing.setReminders(updatedData.getReminders());
 
-        return profileMedicationRepository.save(existing);
+        return convertToDTO(profileMedicationRepository.save(existing));
     }
 
+    @Transactional
     public void removeMedication(Long profileId, Long medicationId) {
         profileMedicationRepository.deleteByProfileIdAndMedicationId(profileId, medicationId);
+    }
+
+    private ProfileMedicationDTO convertToDTO(ProfileMedication pm) {
+        return ProfileMedicationDTO.builder()
+                .id(pm.getId())
+                .profileId(pm.getProfile().getId())
+                .medicationId(pm.getMedication().getId())
+                .medicationName(pm.getMedication().getName())
+                .notes(pm.getNotes())
+                .reminders(pm.getReminders())
+                .createdAt(pm.getAddedAt())
+                .build();
     }
 }

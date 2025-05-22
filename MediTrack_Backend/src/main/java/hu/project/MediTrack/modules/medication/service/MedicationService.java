@@ -4,6 +4,7 @@ import hu.project.MediTrack.modules.GoogleImage.service.GoogleImageService;
 import hu.project.MediTrack.modules.medication.dto.*;
 import hu.project.MediTrack.modules.medication.entity.Medication;
 import hu.project.MediTrack.modules.medication.repository.MedicationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,12 +25,16 @@ public class MedicationService {
     private final MedicationRepository medicationRepository;
     private final HazipatikaSearchService hazipatikaSearchService;
 
-    // 🌐 2️⃣ Ha nincs az adatbázisban, lekérjük az OGYÉI oldalról
     public MedicationDetailsResponse getMedicationDetails(Long itemId) throws Exception {
-        // 1️⃣ Először megpróbáljuk az adatbázisból lekérni a gyógyszert
         Optional<Medication> optional = medicationRepository.findById(itemId);
         if (optional.isPresent()) {
-            return MedicationDetailsMapper.toDto(optional.get());
+            Medication medication = optional.get();
+
+            if (medication.getLastUpdated() != null && medication.getLastUpdated().isAfter(LocalDate.now().minusDays(7))) {
+                return MedicationDetailsMapper.toDto(medication);
+            }
+
+            medicationRepository.deleteById(itemId);
         }
 
         String url = "https://ogyei.gov.hu/gyogyszeradatbazis&action=show_details&item=" + itemId;
@@ -99,7 +104,6 @@ public class MedicationService {
 
         HazipatikaResponse hazipatikaInfo = hazipatikaSearchService.searchMedication(name);
 
-        // DTO objektum összeállítása
         MedicationDetailsResponse response = MedicationDetailsResponse.builder()
                 .name(name)
                 .imageUrl(imageUrl)
@@ -124,11 +128,20 @@ public class MedicationService {
                 .hazipatikaInfo(hazipatikaInfo)
                 .build();
 
-        // Elmentjük az adatokat adatbázisba
         Medication entity = MedicationDetailsMapper.toEntity(itemId, response);
-        medicationRepository.save(entity);
+        saveIfNotExists(entity);
 
         return response;
+    }
+
+    @Transactional
+    public void saveIfNotExists(Medication medication) {
+        if (!medicationRepository.existsById(medication.getId())) {
+            if (medication.getLastUpdated() == null) {
+                medication.setLastUpdated(LocalDate.now());
+            }
+            medicationRepository.save(medication);
+        }
     }
 
     private String textFromTitle(Element table, String title) {
@@ -154,7 +167,6 @@ public class MedicationService {
 
     private List<FinalSampleApproval> extractFinalSampleApprovals(Document doc) {
         List<FinalSampleApproval> list = new ArrayList<>();
-
         for (Element section : doc.select(".gy-content__datasheet")) {
             Element title = section.selectFirst(".datasheet__title");
             if (title != null && title.text().toLowerCase().contains("véglegminta engedély")) {
@@ -174,13 +186,11 @@ public class MedicationService {
                 }
             }
         }
-
         return list;
     }
 
     private List<DefectiveFormApproval> extractDefectiveForms(Document doc) {
         List<DefectiveFormApproval> list = new ArrayList<>();
-
         for (Element section : doc.select(".gy-content__datasheet")) {
             Element title = section.selectFirst(".datasheet__title");
             if (title != null && title.text().toLowerCase().contains("alaki hiba engedély")) {
@@ -201,7 +211,6 @@ public class MedicationService {
                 }
             }
         }
-
         return list;
     }
 }

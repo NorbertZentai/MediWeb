@@ -18,7 +18,7 @@ export default function MedicationCard({ medication, onEditNote, onDelete, onRem
   return (
     <View style={styles.medicationCard}>
       <View style={styles.medicationHeader}>
-        <Text style={styles.medicationName}>{medication.name}</Text>
+        <Text style={styles.medicationName}>{medication.medicationName}</Text>
 
         <View style={styles.medicationActions}>
           <TouchableOpacity onPress={onReminder}>

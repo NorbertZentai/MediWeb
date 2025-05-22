@@ -1,13 +1,15 @@
 package hu.project.MediTrack.modules.profile.service;
 
+import hu.project.MediTrack.modules.profile.dto.ProfileDTO;
 import hu.project.MediTrack.modules.profile.entity.Profile;
 import hu.project.MediTrack.modules.profile.repository.ProfileRepository;
 import hu.project.MediTrack.modules.user.entity.User;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileService {
@@ -15,29 +17,49 @@ public class ProfileService {
     @Autowired
     private ProfileRepository profileRepository;
 
-    public List<Profile> findByUser(User user) {
-        return profileRepository.findAllByUser(user);
+    @Transactional
+    public List<ProfileDTO> findByUser(User user) {
+        return profileRepository.findAllByUser(user).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Profile> findById(Long id) {
-        return profileRepository.findById(id);
+    @Transactional
+    public ProfileDTO findById(Long id) {
+        return profileRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElse(null);
     }
 
-    public Profile saveProfile(Profile profile) {
-        return profileRepository.save(profile);
+    @Transactional
+    public ProfileDTO saveProfile(Profile profile) {
+        Profile saved = profileRepository.save(profile);
+        return convertToDTO(saved);
     }
 
-    public Profile updateProfile(Long id, Profile updatedProfile) {
+    @Transactional
+    public ProfileDTO updateProfile(Long id, Profile updatedProfile) {
         return profileRepository.findById(id)
                 .map(existing -> {
                     existing.setName(updatedProfile.getName());
                     existing.setNotes(updatedProfile.getNotes());
-                    return profileRepository.save(existing);
+                    Profile saved = profileRepository.save(existing);
+                    return convertToDTO(saved);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Profil nem található ezzel az ID-val: " + id));
     }
 
+    @Transactional
     public void deleteById(Long id) {
         profileRepository.deleteById(id);
+    }
+
+    private ProfileDTO convertToDTO(Profile profile) {
+        return ProfileDTO.builder()
+                .id(profile.getId())
+                .userId(profile.getUser().getId())
+                .name(profile.getName())
+                .notes(profile.getNotes())
+                .build();
     }
 }
