@@ -4,7 +4,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 
-export default function MedicationCard({ medication, onEditNote, onDelete, onReminder }) {
+export default function MedicationCard({ medication, onEditNote, onDelete }) {
   const handleDelete = async () => {
     try {
       await onDelete();
@@ -21,9 +21,6 @@ export default function MedicationCard({ medication, onEditNote, onDelete, onRem
         <Text style={styles.medicationName}>{medication.medicationName}</Text>
 
         <View style={styles.medicationActions}>
-          <TouchableOpacity onPress={onReminder}>
-            <FontAwesome5 name="bell" size={16} style={styles.icon} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={onEditNote}>
             <FontAwesome5 name="edit" size={16} style={styles.icon} />
           </TouchableOpacity>
@@ -34,7 +31,7 @@ export default function MedicationCard({ medication, onEditNote, onDelete, onRem
       </View>
 
       <Text style={styles.medicationNote}>
-        {medication.note || "Nincs megjegyzés."}
+        {medication.notes || "Nincs megjegyzés."}
       </Text>
     </View>
   );
