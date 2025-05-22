@@ -1,3 +1,5 @@
+GRANT ALL ON SCHEMA public TO postgres;
+
 -- USERS tábla létrehozása
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -10,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone_number VARCHAR(200),
     registration_date TIMESTAMP,
     last_login TIMESTAMP,
-    profile_picture TEXT,
+    profile_picture BYTEA,
     role VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     language VARCHAR(10) DEFAULT 'hu',
