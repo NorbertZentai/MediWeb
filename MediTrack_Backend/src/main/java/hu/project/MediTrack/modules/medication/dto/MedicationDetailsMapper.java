@@ -3,15 +3,15 @@ package hu.project.MediTrack.modules.medication.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.project.MediTrack.modules.medication.entity.MedicationDetailsEntity;
+import hu.project.MediTrack.modules.medication.entity.Medication;
 
 public class MedicationDetailsMapper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static MedicationDetailsEntity toEntity(int id, MedicationDetailsResponse dto) {
+    public static Medication toEntity(int id, MedicationDetailsResponse dto) {
         try {
-            return MedicationDetailsEntity.builder()
+            return Medication.builder()
                     .id(id)
                     .name(dto.getName())
                     .imageUrl(dto.getImageUrl())
@@ -40,7 +40,7 @@ public class MedicationDetailsMapper {
         }
     }
 
-    public static MedicationDetailsResponse toDto(MedicationDetailsEntity e) throws JsonProcessingException {
+    public static MedicationDetailsResponse toDto(Medication e) throws JsonProcessingException {
         return MedicationDetailsResponse.builder()
                 .name(e.getName())
                 .imageUrl(e.getImageUrl())

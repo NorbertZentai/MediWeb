@@ -72,7 +72,7 @@ export const getProfilesForUser = async () => {
 };
 
 export const createProfile = async (name, description) => {
-  const response = await api.post(`/api/profile/profiles`, { name, description });
+  const response = await api.post(`/api/profiles`, { name, description });
   return response.data;
 };
 

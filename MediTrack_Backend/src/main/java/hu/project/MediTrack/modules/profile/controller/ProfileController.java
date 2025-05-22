@@ -1,17 +1,17 @@
 package hu.project.MediTrack.modules.profile.controller;
 
 import hu.project.MediTrack.modules.profile.entity.Profile;
+import hu.project.MediTrack.modules.profile.entity.ProfileMedication;
 import hu.project.MediTrack.modules.profile.service.ProfileService;
+import hu.project.MediTrack.modules.profile.service.ProfileMedicationService;
+import hu.project.MediTrack.modules.user.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-/**
- * REST controller a Profile entitáshoz.
- * A React Native kliens ezen a végponton keresztül érheti el a profil-adatokat.
- */
 @RestController
 @RequestMapping("/api/profiles")
 public class ProfileController {
@@ -19,61 +19,79 @@ public class ProfileController {
     @Autowired
     private ProfileService profileService;
 
-    /**
-     * GET /api/profiles
-     * Az összes profil lekérése.
-     */
+    @Autowired
+    private ProfileMedicationService medicationService;
+
+    private User getCurrentUser(HttpServletRequest request) {
+        return (User) request.getSession().getAttribute("user");
+    }
+
+    // --- Alapműveletek (GET all, POST create) ---
+
     @GetMapping
     public List<Profile> getAllProfiles() {
         return profileService.findAll();
     }
 
-    /**
-     * GET /api/profiles/{id}
-     * Egy profil lekérése ID alapján.
-     */
-    @GetMapping("/{id}")
-    public Profile getProfileById(@PathVariable Integer id) {
-        Optional<Profile> profile = profileService.findById(id);
-        return profile.orElse(null);
-    }
-
-    /**
-     * POST /api/profiles
-     * Új profil létrehozása.
-     */
     @PostMapping
-    public Profile createProfile(@RequestBody Profile profile) {
+    public Profile createProfile(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        User user = getCurrentUser(request);
+
+        String name = body.get("name");
+        String note = body.get("note");
+
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setName(name);
+        profile.setNotes(note);
+
         return profileService.saveProfile(profile);
     }
 
-    /**
-     * PUT /api/profiles/{id}
-     * Létező profil frissítése.
-     */
-    @PutMapping("/{id}")
-    public Profile updateProfile(@PathVariable Integer id, @RequestBody Profile updatedProfile) {
-        Optional<Profile> existing = profileService.findById(id);
-        if (existing.isPresent()) {
-            Profile p = existing.get();
-            p.setName(updatedProfile.getName());
-            p.setDateOfBirth(updatedProfile.getDateOfBirth());
-            p.setGender(updatedProfile.getGender());
-            p.setNotes(updatedProfile.getNotes());
-            p.setRelationship(updatedProfile.getRelationship());
-            p.setHealthCondition(updatedProfile.getHealthCondition());
-            p.setEmergencyContact(updatedProfile.getEmergencyContact());
-            p.setAddress(updatedProfile.getAddress());
-            p.setUser(updatedProfile.getUser());
-            return profileService.saveProfile(p);
-        }
-        return null; // v. dobj exception-t
+    // --- Profilhoz tartozó gyógyszerek listázása ---
+
+    @GetMapping("/{profileId}/medications")
+    public List<ProfileMedication> getMedicationsForProfile(@PathVariable Integer profileId) {
+        return medicationService.getMedicationsForProfile(profileId);
     }
 
-    /**
-     * DELETE /api/profiles/{id}
-     * Profil törlése ID alapján.
-     */
+    @PostMapping("/addMedication/{profileId}")
+    public ProfileMedication addMedicationToProfile(
+            @PathVariable Integer profileId,
+            @RequestBody Integer itemId
+    ) {
+        return medicationService.addMedication(profileId, itemId);
+    }
+
+    @PutMapping("/{profileId}/medications/{itemId}")
+    public ProfileMedication updateMedicationForProfile(
+            @PathVariable Integer profileId,
+            @PathVariable Integer itemId,
+            @RequestBody ProfileMedication data
+    ) {
+        return medicationService.updateMedication(profileId, itemId, data);
+    }
+
+    @DeleteMapping("/{profileId}/medications/{itemId}")
+    public void removeMedicationFromProfile(
+            @PathVariable Integer profileId,
+            @PathVariable Integer itemId
+    ) {
+        medicationService.removeMedication(profileId, itemId);
+    }
+
+    // --- Egyedi profilműveletek (ID alapján) ---
+
+    @GetMapping("/{id}")
+    public Profile getProfileById(@PathVariable Integer id) {
+        return profileService.findById(id).orElse(null);
+    }
+
+    @PutMapping("/{id}")
+    public Profile updateProfile(@PathVariable Integer id, @RequestBody Profile updatedProfile) {
+        return profileService.updateProfile(id, updatedProfile);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteProfile(@PathVariable Integer id) {
         profileService.deleteById(id);

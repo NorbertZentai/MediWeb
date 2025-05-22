@@ -56,6 +56,7 @@ public class UserController {
     public ResponseEntity<?> updatePassword(@RequestBody PasswordChangeRequest requestBody, HttpServletRequest request) {
         User user = getCurrentUser(request);
         boolean success = userService.changePassword(user, requestBody);
+
         if (success) {
             return ResponseEntity.ok().build();
         } else {
