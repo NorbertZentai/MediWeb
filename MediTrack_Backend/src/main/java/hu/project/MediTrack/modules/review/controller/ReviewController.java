@@ -21,7 +21,6 @@ public class ReviewController {
 
     @GetMapping("/{itemId}")
     public ReviewListResponse getReviews(@PathVariable int itemId) {
-        System.out.println(reviewService.getReviewListForItem(itemId));
         return reviewService.getReviewListForItem(itemId);
     }
 

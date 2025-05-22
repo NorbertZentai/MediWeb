@@ -1,7 +1,8 @@
+CREATE SCHEMA IF NOT EXISTS public;
+
 GRANT ALL ON SCHEMA public TO postgres;
 
--- USERS tábla létrehozása
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS public.users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -20,29 +21,16 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT unique_user_name_email UNIQUE (name, email)
 );
 
--- PROFILES tábla létrehozása
-CREATE TABLE IF NOT EXISTS profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id),
-    name VARCHAR(100) NOT NULL,
-    notes TEXT,
-    CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
-);
-
--- PROFILE_Medications tábla létrehozása
-CREATE TABLE IF NOT EXISTS profile_medications (
+CREATE TABLE IF NOT EXISTS public.profiles (
    id SERIAL PRIMARY KEY,
-   profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-   medication_id INTEGER NOT NULL REFERENCES medications(id),
+   user_id INTEGER NOT NULL REFERENCES public.users(id),
+   name VARCHAR(100) NOT NULL,
    notes TEXT,
-   reminders TEXT,
-   added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   CONSTRAINT unique_profile_medication UNIQUE (profile_id, medication_id)
+   CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
 );
 
--- MEDICATIONS tábla létrehozása
-CREATE TABLE IF NOT EXISTS medications (
-    id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS public.medications (
+    id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     image_url TEXT,
     registration_number VARCHAR(100),
@@ -64,22 +52,30 @@ CREATE TABLE IF NOT EXISTS medications (
     final_samples_json TEXT,
     defective_forms_json TEXT,
     hazipatika_json TEXT,
-    CONSTRAINT unique_medication_identifier UNIQUE (registration_number)
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- FAVORITES tábla létrehozása
-CREATE TABLE IF NOT EXISTS favorites (
+CREATE TABLE IF NOT EXISTS public.profile_medications (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id),
-    medication_id INTEGER NOT NULL REFERENCES medications(id),
+    profile_id INTEGER NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    medication_id INTEGER NOT NULL REFERENCES public.medications(id),
+    notes TEXT,
+    reminders TEXT,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_profile_medication UNIQUE (profile_id, medication_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.favorites (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES public.users(id),
+    medication_id INTEGER NOT NULL REFERENCES public.medications(id),
     CONSTRAINT unique_favorite_per_user UNIQUE (user_id, medication_id)
 );
 
--- REVIEW tábla létrehozása
-CREATE TABLE IF NOT EXISTS reviews (
+CREATE TABLE IF NOT EXISTS public.reviews (
     id SERIAL PRIMARY KEY,
-    item_id INTEGER NOT NULL REFERENCES medications(id),
-    user_id INTEGER NOT NULL REFERENCES users(id),
+    item_id INTEGER NOT NULL REFERENCES public.medications(id),
+    user_id INTEGER NOT NULL REFERENCES public.users(id),
     rating INTEGER NOT NULL,
     positive TEXT,
     negative TEXT,

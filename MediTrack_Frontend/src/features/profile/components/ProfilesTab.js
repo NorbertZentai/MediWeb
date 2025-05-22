@@ -126,7 +126,7 @@ export default function ProfilesTab() {
           ) : (
             medications.map((med) => (
               <MedicationCard
-                key={med.itemId}
+                key={med.medicationId}
                 medication={med}
                 onReminder={() => {}}
                 onEditNote={() => setMedicationToEdit(med)}
@@ -181,14 +181,14 @@ export default function ProfilesTab() {
           onClose={() => setMedicationToEdit(null)}
           onUpdated={(updatedMed) => {
             setMedications((prev) =>
-              prev.map((m) => (m.itemId === updatedMed.itemId ? updatedMed : m))
+              prev.map((m) => (m.medicationId === updatedMed.medicationId ? updatedMed : m))
             );
             toast.success("Gyógyszer frissítve.");
             setMedicationToEdit(null);
           }}
           onDeleted={(deletedItemId) => {
             setMedications((prev) =>
-              prev.filter((m) => m.itemId !== deletedItemId)
+              prev.filter((m) => m.medicationId  !== deletedItemId)
             );
             toast.success("Gyógyszer törölve.");
             setMedicationToEdit(null);
@@ -200,7 +200,7 @@ export default function ProfilesTab() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
+              Biztosan törölni szeretnéd a(z) "{medicationToDelete.name}" gyógyszert a profilból?
             </Text>
             <View style={styles.modalActions}>
               <Button title="Mégse" onPress={() => setDeletingProfile(null)} />
@@ -214,7 +214,7 @@ export default function ProfilesTab() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{medicationToDelete.name}" gyógyszert a profilból?
+              Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert a profilból?
             </Text>
             <View style={styles.modalActions}>
               <Button title="Mégse" onPress={() => setMedicationToDelete(null)} />

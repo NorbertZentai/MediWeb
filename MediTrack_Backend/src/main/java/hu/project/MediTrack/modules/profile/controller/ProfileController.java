@@ -1,5 +1,7 @@
 package hu.project.MediTrack.modules.profile.controller;
 
+import hu.project.MediTrack.modules.profile.dto.ProfileDTO;
+import hu.project.MediTrack.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediTrack.modules.profile.entity.Profile;
 import hu.project.MediTrack.modules.profile.entity.ProfileMedication;
 import hu.project.MediTrack.modules.profile.service.ProfileService;
@@ -27,77 +29,62 @@ public class ProfileController {
         return (User) request.getSession().getAttribute("user");
     }
 
-    // --- Alapműveletek (GET all, POST create) ---
-
     @GetMapping
-    public List<Profile> getAllProfiles(HttpServletRequest request) {
+    public List<ProfileDTO> getAllProfiles(HttpServletRequest request) {
         User user = getCurrentUser(request);
-
         return profileService.findByUser(user);
     }
 
     @PostMapping
-    public Profile createProfile(@RequestBody Map<String, String> body, HttpServletRequest request) {
+    public ProfileDTO createProfile(@RequestBody Map<String, String> body, HttpServletRequest request) {
         User user = getCurrentUser(request);
 
-        String name = body.get("name");
-        String note = body.get("note");
-
-        Profile profile = new Profile();
-        profile.setUser(user);
-        profile.setName(name);
-        profile.setNotes(note);
+        Profile profile = Profile.builder()
+                .user(user)
+                .name(body.get("name"))
+                .notes(body.get("note"))
+                .build();
 
         return profileService.saveProfile(profile);
     }
 
-    // --- Profilhoz tartozó gyógyszerek listázása ---
-
     @GetMapping("/{profileId}/medications")
-    public List<ProfileMedication> getMedicationsForProfile(@PathVariable Long profileId) {
+    public List<ProfileMedicationDTO> getMedicationsForProfile(@PathVariable Long profileId) {
         return medicationService.getMedicationsForProfile(profileId);
     }
 
     @PostMapping("/addMedication/{profileId}")
-    public ResponseEntity<?> addMedication(@PathVariable Long profileId, @RequestBody Map<String, Long> request) {
-        ProfileMedication added = medicationService.addMedication(profileId, request.get("itemId"));
+    public ResponseEntity<ProfileMedicationDTO> addMedication( @PathVariable Long profileId, @RequestBody Map<String, Long> request) {
+        Long itemId = request.get("itemId");
+        ProfileMedicationDTO added = medicationService.addMedication(profileId, itemId);
         return ResponseEntity.ok(added);
     }
 
     @PutMapping("/{profileId}/medications/{itemId}")
-    public ProfileMedication updateMedicationForProfile(
-            @PathVariable Long profileId,
-            @PathVariable Long itemId,
-            @RequestBody ProfileMedication data
-    ) {
+    public ProfileMedicationDTO updateMedicationForProfile(@PathVariable Long profileId, @PathVariable Long itemId, @RequestBody ProfileMedicationDTO data ) {
         return medicationService.updateMedication(profileId, itemId, data);
     }
 
     @DeleteMapping("/{profileId}/medications/{itemId}")
     public void removeMedicationFromProfile(
             @PathVariable Long profileId,
-            @PathVariable Long itemId
-    ) {
+            @PathVariable Long itemId) {
         medicationService.removeMedication(profileId, itemId);
     }
 
-    // --- Egyedi profilműveletek (ID alapján) ---
-
-
-
     @GetMapping("/{id}")
-    public Profile getProfileById(@PathVariable Long id) {
-        return profileService.findById(id).orElse(null);
+    public ResponseEntity<ProfileDTO> getProfileById(@PathVariable Long id) {
+        ProfileDTO dto = profileService.findById(id);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public Profile updateProfile(@PathVariable Long id, @RequestBody Profile updatedProfile) {
+    public ProfileDTO updateProfile(@PathVariable Long id, @RequestBody Profile updatedProfile) {
         return profileService.updateProfile(id, updatedProfile);
     }
 
     @DeleteMapping("/{id}")
     public void deleteProfile(@PathVariable Long id) {
-        System.out.println("Meghívta!!!");
         profileService.deleteById(id);
     }
 }

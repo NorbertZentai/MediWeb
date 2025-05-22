@@ -1,6 +1,7 @@
 package hu.project.MediTrack.modules.profile.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hu.project.MediTrack.modules.medication.entity.Medication;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,6 +30,7 @@ public class ProfileMedication {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "medication_id", nullable = false)
+    @JsonIgnore
     private Medication medication;
 
     private String notes;
