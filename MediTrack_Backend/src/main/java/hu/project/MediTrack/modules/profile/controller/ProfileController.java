@@ -1,5 +1,6 @@
 package hu.project.MediTrack.modules.profile.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediTrack.modules.profile.dto.ProfileDTO;
 import hu.project.MediTrack.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediTrack.modules.profile.entity.Profile;
@@ -42,7 +43,7 @@ public class ProfileController {
         Profile profile = Profile.builder()
                 .user(user)
                 .name(body.get("name"))
-                .notes(body.get("note"))
+                .notes(body.get("notes"))
                 .build();
 
         return profileService.saveProfile(profile);
@@ -60,9 +61,17 @@ public class ProfileController {
         return ResponseEntity.ok(added);
     }
 
-    @PutMapping("/{profileId}/medications/{itemId}")
-    public ProfileMedicationDTO updateMedicationForProfile(@PathVariable Long profileId, @PathVariable Long itemId, @RequestBody ProfileMedicationDTO data ) {
-        return medicationService.updateMedication(profileId, itemId, data);
+    @PutMapping("/{profileId}/medications/{medicationId}")
+    public ProfileMedicationDTO updateMedicationForProfile( @PathVariable Long profileId, @PathVariable Long medicationId, @RequestBody Map<String, Object> data ) {
+        try {
+            String note = (String) data.get("note");
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String remindersJson = objectMapper.writeValueAsString(data.get("reminders"));
+            return medicationService.updateMedication(profileId, medicationId, note, remindersJson);
+        } catch (Exception e) {
+            throw new RuntimeException("Reminders feldolgozási hiba", e);
+        }
     }
 
     @DeleteMapping("/{profileId}/medications/{itemId}")

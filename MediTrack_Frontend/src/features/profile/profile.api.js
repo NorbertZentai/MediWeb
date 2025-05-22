@@ -76,13 +76,13 @@ export const getProfilesForUser = async () => {
   return response.data;
 };
 
-export const createProfile = async (name, description) => {
-  const response = await api.post(`/api/profiles`, { name, description });
+export const createProfile = async (name, notes) => {
+  const response = await api.post(`/api/profiles`, { name, notes });
   return response.data;
 };
 
-export const updateProfile = async (profileId, name, description) => {
-  const response = await api.put(`/api/profiles/${profileId}`, { name, description });
+export const updateProfile = async (profileId, name, notes) => {
+  const response = await api.put(`/api/profiles/${profileId}`, { name, notes });
   return response.data;
 };
 
@@ -103,8 +103,8 @@ export const removeMedicationFromProfile = async (profileId, itemId) => {
   return response.data;
 };
 
-export const updateMedicationForProfile = async (profileId, itemId, data) => {
-  const response = await api.put(`/api/profiles/${profileId}/medications/${itemId}`, data);
+export const updateMedicationForProfile = async (profileId, medicationId, data) => {
+  const response = await api.put(`/api/profiles/${profileId}/medications/${medicationId}`, data);
   return response.data;
 };
 

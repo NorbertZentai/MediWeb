@@ -79,9 +79,9 @@ export default function ProfilesTab() {
 
   const confirmDeleteMedication = async () => {
     try {
-      await removeMedicationFromProfile(selectedProfileId, medicationToDelete.itemId);
+      await removeMedicationFromProfile(selectedProfileId, medicationToDelete.medicationId);
       setMedications((prev) =>
-        prev.filter((m) => m.itemId !== medicationToDelete.itemId)
+        prev.filter((m) => m.medicationId !== medicationToDelete.medicationId)
       );
       toast.success("Gyógyszer törölve.");
       setMedicationToDelete(null);
@@ -200,7 +200,7 @@ export default function ProfilesTab() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{medicationToDelete.name}" gyógyszert a profilból?
+              Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" gyógyszert a profilból?
             </Text>
             <View style={styles.modalActions}>
               <Button title="Mégse" onPress={() => setDeletingProfile(null)} />
