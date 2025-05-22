@@ -33,8 +33,9 @@ public class ProfileMedication {
 
     private String notes;
 
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "text")
     private String reminders;
 
+    @Builder.Default
     private LocalDateTime addedAt = LocalDateTime.now();
 }

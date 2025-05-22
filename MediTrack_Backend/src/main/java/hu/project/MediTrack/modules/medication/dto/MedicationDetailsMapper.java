@@ -9,7 +9,7 @@ public class MedicationDetailsMapper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static Medication toEntity(int id, MedicationDetailsResponse dto) {
+    public static Medication toEntity(Long id, MedicationDetailsResponse dto) {
         try {
             return Medication.builder()
                     .id(id)

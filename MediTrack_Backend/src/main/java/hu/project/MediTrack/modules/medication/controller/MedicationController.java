@@ -15,7 +15,7 @@ public class MedicationController {
     private MedicationService medicationService;
 
     @GetMapping("/{itemId}")
-    public MedicationDetailsResponse getDetails(@PathVariable int itemId) throws Exception {
+    public MedicationDetailsResponse getDetails(@PathVariable Long itemId) throws Exception {
         return medicationService.getMedicationDetails(itemId);
     }
 }

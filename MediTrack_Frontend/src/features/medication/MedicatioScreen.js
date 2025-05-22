@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform } from "react-native";
 import { useParams, Link } from "react-router-dom";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { addToFavorites, addMedicationToProfile } from "features/profile/profile.api";
+import { addToFavorites, addMedicationToProfile, getMedicationsForProfile } from "features/profile/profile.api";
 import { submitReview, updateReview } from "features/review/review.api";
 import ReviewSection from "features/review/ReviewSection";
 import { useMedicationService } from "./MedicationService";
@@ -38,7 +38,6 @@ export default function MedicationDetailsScreen() {
     finalSamples: false,
     defectiveForms: false,
   });
-
 
   const [selectedProfileId, setSelectedProfileId] = useState(null);
   const [profileHasMedication, setProfileHasMedication] = useState(false);

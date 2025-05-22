@@ -8,7 +8,7 @@ import java.util.Optional;
 
 
 public interface ProfileMedicationRepository extends JpaRepository<ProfileMedication, Long> {
-    List<ProfileMedication> findByProfileId(Integer profileId);
-    Optional<ProfileMedication> findByProfileIdAndMedicationId(Integer profileId, Integer medicationId);
-    void deleteByProfileIdAndMedicationId(Integer profileId, Integer medicationId);
+    List<ProfileMedication> findByProfileId(Long profileId);
+    Optional<ProfileMedication> findByProfileIdAndMedicationId(Long profileId, Long medicationId);
+    void deleteByProfileIdAndMedicationId(Long profileId, Long medicationId);
 }

@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class Medication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false, length = 200)
     private String name;
@@ -75,6 +75,7 @@ public class Medication {
 
     private LocalDate releaseDate;
 
+    @Builder.Default
     @Column(precision = 2, scale = 2)
     private BigDecimal averageRating = BigDecimal.ZERO;
 
