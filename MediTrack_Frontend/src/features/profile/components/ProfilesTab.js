@@ -8,12 +8,7 @@ import EditProfileModal from './profiles/EditProfileModal';
 import AssignMedicationModal from './profiles/AssignMedicationModal';
 import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
-import {
-  getProfilesForUser,
-  getMedicationsForProfile,
-  deleteProfile,
-  removeMedicationFromProfile
-} from 'features/profile/profile.api';
+import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
 import { styles } from './ProfilesTab.style';
 
 export default function ProfilesTab() {

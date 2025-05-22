@@ -31,14 +31,13 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- PROFILE_Medications tábla létrehozása
 CREATE TABLE IF NOT EXISTS profile_medications (
-    profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    item_id INTEGER NOT NULL,
-    item_name TEXT NOT NULL,
-    notes TEXT,
-    reminders JSONB,
-    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (profile_id, item_id),
-    CONSTRAINT unique_profile_medication UNIQUE (profile_id, item_id)
+   id SERIAL PRIMARY KEY,
+   profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+   medication_id INTEGER NOT NULL REFERENCES medications(id),
+   notes TEXT,
+   reminders TEXT,
+   added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   CONSTRAINT unique_profile_medication UNIQUE (profile_id, medication_id)
 );
 
 -- MEDICATIONS tábla létrehozása
