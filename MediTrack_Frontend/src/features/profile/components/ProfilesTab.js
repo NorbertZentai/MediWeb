@@ -177,7 +177,7 @@ export default function ProfilesTab() {
       {medicationToEdit && (
         <EditMedicationModal
           profileId={selectedProfileId}
-          medication={medicationToEdit}
+          medication={{ ...medicationToEdit, itemId: medicationToEdit.medicationId }}
           onClose={() => setMedicationToEdit(null)}
           onUpdated={(updatedMed) => {
             setMedications((prev) =>
@@ -188,7 +188,7 @@ export default function ProfilesTab() {
           }}
           onDeleted={(deletedItemId) => {
             setMedications((prev) =>
-              prev.filter((m) => m.medicationId  !== deletedItemId)
+              prev.filter((m) => m.medicationId !== deletedItemId)
             );
             toast.success("Gyógyszer törölve.");
             setMedicationToEdit(null);
