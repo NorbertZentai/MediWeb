@@ -2,7 +2,7 @@ package hu.project.MediTrack.modules.medication.service;
 
 import hu.project.MediTrack.modules.GoogleImage.service.GoogleImageService;
 import hu.project.MediTrack.modules.medication.dto.*;
-import hu.project.MediTrack.modules.medication.entity.MedicationDetailsEntity;
+import hu.project.MediTrack.modules.medication.entity.Medication;
 import hu.project.MediTrack.modules.medication.repository.MedicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -27,7 +27,7 @@ public class MedicationService {
     // 🌐 2️⃣ Ha nincs az adatbázisban, lekérjük az OGYÉI oldalról
     public MedicationDetailsResponse getMedicationDetails(int itemId) throws Exception {
         // 1️⃣ Először megpróbáljuk az adatbázisból lekérni a gyógyszert
-        Optional<MedicationDetailsEntity> optional = medicationRepository.findById(itemId);
+        Optional<Medication> optional = medicationRepository.findById(itemId);
         if (optional.isPresent()) {
             return MedicationDetailsMapper.toDto(optional.get());
         }
@@ -125,7 +125,7 @@ public class MedicationService {
                 .build();
 
         // Elmentjük az adatokat adatbázisba
-        MedicationDetailsEntity entity = MedicationDetailsMapper.toEntity(itemId, response);
+        Medication entity = MedicationDetailsMapper.toEntity(itemId, response);
         medicationRepository.save(entity);
 
         return response;

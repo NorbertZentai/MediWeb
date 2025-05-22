@@ -8,9 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Üzleti logika a Profile entitáshoz kapcsolódóan.
- */
 @Service
 public class ProfileService {
 
@@ -26,8 +23,17 @@ public class ProfileService {
     }
 
     public Profile saveProfile(Profile profile) {
-        // Itt lehet plusz logika: pl. validálás, eseményküldés stb.
         return profileRepository.save(profile);
+    }
+
+    public Profile updateProfile(Integer id, Profile updatedProfile) {
+        return profileRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(updatedProfile.getName());
+                    existing.setNotes(updatedProfile.getNotes());
+                    return profileRepository.save(existing);
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Profil nem található ezzel az ID-val: " + id));
     }
 
     public void deleteById(Integer id) {

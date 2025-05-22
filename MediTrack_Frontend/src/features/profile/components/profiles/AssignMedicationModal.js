@@ -5,9 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  Alert,
   ActivityIndicator,
 } from "react-native";
+import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 import {
   addMedicationToProfile,
@@ -33,6 +33,7 @@ export default function AssignMedicationModal({ profileId, onClose, onAssigned }
         setResults(response);
       } catch (e) {
         console.error("Keresési hiba:", e);
+        toast.error("Nem sikerült lekérni a gyógyszereket.");
         setResults([]);
       } finally {
         setLoading(false);
@@ -45,17 +46,18 @@ export default function AssignMedicationModal({ profileId, onClose, onAssigned }
 
   const handleAssign = async () => {
     if (!selected) {
-      Alert.alert("Hiba", "Válassz ki egy gyógyszert!");
+      toast.error("Válassz ki egy gyógyszert!");
       return;
     }
 
     try {
       const result = await addMedicationToProfile(profileId, selected.itemId);
+      toast.success("Gyógyszer sikeresen hozzárendelve.");
       onAssigned(result);
       onClose();
     } catch (error) {
       console.error("Hozzárendelési hiba:", error);
-      Alert.alert("Hiba", "Nem sikerült hozzárendelni a gyógyszert.");
+      toast.error("Nem sikerült hozzárendelni a gyógyszert.");
     }
   };
 
@@ -86,7 +88,8 @@ export default function AssignMedicationModal({ profileId, onClose, onAssigned }
                 <TouchableOpacity
                   style={[
                     styles.medicationListItem,
-                    selected?.itemId === item.itemId && styles.medicationListItemSelected,
+                    selected?.itemId === item.itemId &&
+                      styles.medicationListItemSelected,
                   ]}
                   onPress={() => setSelected(item)}
                 >

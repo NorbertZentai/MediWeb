@@ -25,14 +25,20 @@ CREATE TABLE IF NOT EXISTS profiles (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
     name VARCHAR(100) NOT NULL,
-    date_of_birth DATE,
-    gender VARCHAR(10),
     notes TEXT,
-    relationship VARCHAR(50),
-    health_condition TEXT,
-    emergency_contact VARCHAR(20),
-    address TEXT,
     CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
+);
+
+-- PROFILE_Medications tábla létrehozása
+CREATE TABLE IF NOT EXISTS profile_medications (
+    profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    item_id INTEGER NOT NULL,
+    item_name TEXT NOT NULL,
+    notes TEXT,
+    reminders JSONB,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (profile_id, item_id),
+    CONSTRAINT unique_profile_medication UNIQUE (profile_id, item_id)
 );
 
 -- MEDICATIONS tábla létrehozása
@@ -80,15 +86,4 @@ CREATE TABLE IF NOT EXISTS reviews (
     negative TEXT,
     created_at TIMESTAMP NOT NULL,
     CONSTRAINT unique_user_review UNIQUE (user_id, item_id)
-);
-
--- PROFILE_MEDICATIONS tábla létrehozása
-CREATE TABLE IF NOT EXISTS profile_medications (
-    id SERIAL PRIMARY KEY,
-    profile_id INTEGER NOT NULL REFERENCES profiles(id),
-    medication_id INTEGER NOT NULL REFERENCES medications(id),
-    notes TEXT,
-    start_date DATE,
-    end_date DATE,
-    CONSTRAINT unique_profile_medication UNIQUE (profile_id, medication_id)
 );
