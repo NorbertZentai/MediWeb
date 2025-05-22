@@ -4,16 +4,17 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   Button,
   ScrollView,
+  Platform,
 } from "react-native";
-import { toast } from "react-toastify";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { styles } from "../ProfilesTab.style";
 import {
   updateMedicationForProfile,
   removeMedicationFromProfile,
 } from "features/profile/profile.api";
+import { toast } from "react-toastify";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
 
@@ -24,7 +25,7 @@ export default function EditMedicationModal({
   onUpdated,
   onDeleted,
 }) {
-  const [note, setNote] = useState(medication.note || "");
+  const [note, setNote] = useState(medication.notes || "");
   const [reminders, setReminders] = useState(() => {
     try {
       if (Array.isArray(medication.reminders)) return medication.reminders;
@@ -36,6 +37,9 @@ export default function EditMedicationModal({
       return [];
     }
   });
+
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [currentEditIndex, setCurrentEditIndex] = useState({ group: null, time: null });
 
   const updateReminder = (index, newReminder) => {
     const updated = [...reminders];
@@ -65,6 +69,15 @@ export default function EditMedicationModal({
     const updated = [...reminders];
     updated[index].times[timeIndex] = value;
     setReminders(updated);
+  };
+
+  const handleTimeSelect = (event, selectedDate) => {
+    if (selectedDate && currentEditIndex.group !== null) {
+      const hours = selectedDate.getHours().toString().padStart(2, "0");
+      const minutes = selectedDate.getMinutes().toString().padStart(2, "0");
+      updateTime(currentEditIndex.group, currentEditIndex.time, `${hours}:${minutes}`);
+    }
+    setTimePickerVisible(false);
   };
 
   const handleSave = async () => {
@@ -144,13 +157,53 @@ export default function EditMedicationModal({
 
             <Text style={styles.label}>Időpontok:</Text>
             {[0, 1, 2].map((timeIndex) => (
-              <TextInput
-                key={timeIndex}
-                style={styles.modalInput}
-                placeholder="Pl. 08:00"
-                value={reminder.times[timeIndex] || ""}
-                onChangeText={(value) => updateTime(index, timeIndex, value)}
-              />
+              <View key={timeIndex} style={{ marginBottom: 10 }}>
+                {Platform.OS === "web" ? (
+                  <input
+                    type="time"
+                    value={reminder.times[timeIndex] || ""}
+                    onChange={(e) => updateTime(index, timeIndex, e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: 8,
+                      borderRadius: 4,
+                      borderColor: "#ccc",
+                      borderWidth: 1,
+                    }}
+                  />
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setCurrentEditIndex({ group: index, time: timeIndex });
+                        setTimePickerVisible(true);
+                      }}
+                      style={styles.modalInput}
+                    >
+                      <Text>
+                        {reminder.times[timeIndex]
+                          ? reminder.times[timeIndex]
+                          : "Válassz időt"}
+                      </Text>
+                    </TouchableOpacity>
+                    {timePickerVisible &&
+                      currentEditIndex.group === index &&
+                      currentEditIndex.time === timeIndex && (
+                        <DateTimePicker
+                          value={
+                            reminder.times[timeIndex]
+                              ? new Date(`1970-01-01T${reminder.times[timeIndex]}:00`)
+                              : new Date()
+                          }
+                          mode="time"
+                          is24Hour={true}
+                          display="default"
+                          onChange={handleTimeSelect}
+                        />
+                      )}
+                  </>
+                )}
+              </View>
             ))}
 
             <TouchableOpacity onPress={() => deleteReminderGroup(index)}>
