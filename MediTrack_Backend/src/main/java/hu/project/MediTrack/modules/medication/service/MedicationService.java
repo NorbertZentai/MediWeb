@@ -25,7 +25,7 @@ public class MedicationService {
     private final HazipatikaSearchService hazipatikaSearchService;
 
     // 🌐 2️⃣ Ha nincs az adatbázisban, lekérjük az OGYÉI oldalról
-    public MedicationDetailsResponse getMedicationDetails(int itemId) throws Exception {
+    public MedicationDetailsResponse getMedicationDetails(Long itemId) throws Exception {
         // 1️⃣ Először megpróbáljuk az adatbázisból lekérni a gyógyszert
         Optional<Medication> optional = medicationRepository.findById(itemId);
         if (optional.isPresent()) {

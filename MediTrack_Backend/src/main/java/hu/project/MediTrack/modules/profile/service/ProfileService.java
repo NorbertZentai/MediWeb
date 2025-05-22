@@ -2,6 +2,7 @@ package hu.project.MediTrack.modules.profile.service;
 
 import hu.project.MediTrack.modules.profile.entity.Profile;
 import hu.project.MediTrack.modules.profile.repository.ProfileRepository;
+import hu.project.MediTrack.modules.user.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,11 @@ public class ProfileService {
     @Autowired
     private ProfileRepository profileRepository;
 
-    public List<Profile> findAll() {
-        return profileRepository.findAll();
+    public List<Profile> findByUser(User user) {
+        return profileRepository.findAllByUser(user);
     }
 
-    public Optional<Profile> findById(Integer id) {
+    public Optional<Profile> findById(Long id) {
         return profileRepository.findById(id);
     }
 
@@ -26,7 +27,7 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public Profile updateProfile(Integer id, Profile updatedProfile) {
+    public Profile updateProfile(Long id, Profile updatedProfile) {
         return profileRepository.findById(id)
                 .map(existing -> {
                     existing.setName(updatedProfile.getName());
@@ -36,7 +37,7 @@ public class ProfileService {
                 .orElseThrow(() -> new IllegalArgumentException("Profil nem található ezzel az ID-val: " + id));
     }
 
-    public void deleteById(Integer id) {
+    public void deleteById(Long id) {
         profileRepository.deleteById(id);
     }
 }

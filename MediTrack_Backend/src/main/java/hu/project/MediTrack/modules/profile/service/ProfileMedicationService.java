@@ -9,6 +9,7 @@ import hu.project.MediTrack.modules.profile.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +24,11 @@ public class ProfileMedicationService {
     @Autowired
     private MedicationRepository medicationRepository;
 
-    public List<ProfileMedication> getMedicationsForProfile(Integer profileId) {
+    public List<ProfileMedication> getMedicationsForProfile(Long profileId) {
         return profileMedicationRepository.findByProfileId(profileId);
     }
 
-    public ProfileMedication addMedication(Integer profileId, Integer medicationId) {
+    public ProfileMedication addMedication(Long profileId, Long medicationId) {
         Profile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new IllegalArgumentException("Profil nem található: " + profileId));
         Medication medication = medicationRepository.findById(medicationId)
@@ -36,12 +37,14 @@ public class ProfileMedicationService {
         ProfileMedication pm = ProfileMedication.builder()
                 .profile(profile)
                 .medication(medication)
+                .notes("")
+                .reminders("[]")
                 .build();
 
         return profileMedicationRepository.save(pm);
     }
 
-    public ProfileMedication updateMedication(Integer profileId, Integer medicationId, ProfileMedication updatedData) {
+    public ProfileMedication updateMedication(Long profileId, Long medicationId, ProfileMedication updatedData) {
         ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId(profileId, medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Nincs ilyen gyógyszer hozzárendelve a profilhoz."));
 
@@ -51,7 +54,7 @@ public class ProfileMedicationService {
         return profileMedicationRepository.save(existing);
     }
 
-    public void removeMedication(Integer profileId, Integer medicationId) {
+    public void removeMedication(Long profileId, Long medicationId) {
         profileMedicationRepository.deleteByProfileIdAndMedicationId(profileId, medicationId);
     }
 }
