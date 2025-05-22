@@ -1,5 +1,6 @@
 package hu.project.MediTrack.modules.user.controller;
 
+import hu.project.MediTrack.modules.user.dto.UserDTO;
 import hu.project.MediTrack.modules.user.entity.User;
 import hu.project.MediTrack.modules.user.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,10 +58,10 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<UserDTO> getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(UserDTO.from(user));
     }
 }

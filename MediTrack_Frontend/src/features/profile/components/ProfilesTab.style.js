@@ -120,10 +120,7 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.3)",
     elevation: 5,
   },
   modalTitle: {

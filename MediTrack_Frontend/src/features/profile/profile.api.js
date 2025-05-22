@@ -10,17 +10,21 @@ export const fetchCurrentUser = async () => {
 // USER PROFILE
 
 export const updateUsername = async (username) => {
-  const response = await api.put(`/api/users/${userId}`, username);
+  const response = await api.put(`/api/users/username`, username, {
+    headers: { "Content-Type": "text/plain" },
+  });
   return response.data;
 };
-k
+
 export const updateEmail = async (email) => {
-  const response = await api.put(`/api/users/${userId}`, email);
+  const response = await api.put(`/api/users/email`, email, {
+    headers: { "Content-Type": "text/plain" },
+  });
   return response.data;
 };
 
 export const updatePassword = async (currentPassword, newPassword, reNewPassword) => {
-  const response = await api.put(`/api/users/${userId}`, {
+  const response = await api.put(`/api/users/password`, {
     currentPassword,
     newPassword,
     reNewPassword,
@@ -29,15 +33,17 @@ export const updatePassword = async (currentPassword, newPassword, reNewPassword
 };
 
 export const updatePhoneNumber = async (phoneNumber) => {
-  const response = await api.put(`/api/users/${userId}/phone`, phoneNumber);
+  const response = await api.put(`/api/users/phone`, phoneNumber, {
+    headers: { "Content-Type": "text/plain" },
+  });
   return response.data;
 };
 
-export const updateProfileImage = async ( imageFile) => {
+export const updateProfileImage = async (imageFile) => {
   const formData = new FormData();
   formData.append("file", imageFile);
 
-  const response = await api.put(`/api/users/${userId}/image`, formData, {
+  const response = await api.put(`/api/users/image`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -48,13 +54,13 @@ export const updateProfileImage = async ( imageFile) => {
 
 // FAVORITES
 
-export const addToFavorites = async (itemId, userId) => {
-  const response = await api.post(`/api/favorites/${userId}`, itemId);
+export const addToFavorites = async (itemId) => {
+  const response = await api.post(`/api/favorites`, itemId);
   return response.data;
 };
 
-export const getFavorites = async (userId, itemId) => {
-  const response = await api.get(`/api/favorites/${userId}`, itemId);
+export const getFavorites = async () => {
+  const response = await api.get(`/api/favorites`);
   return response.data;
 };
 

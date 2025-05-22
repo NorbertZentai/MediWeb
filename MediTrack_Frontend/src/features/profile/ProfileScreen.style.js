@@ -41,10 +41,7 @@ export const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
     resizeMode: "cover",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
+    boxShadow: "0px 1px 4px rgba(0, 0, 0, 0.05)",
   },
 
   imageOverlay: {
@@ -139,10 +136,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
   },
 
   modalTitle: {
