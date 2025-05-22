@@ -27,7 +27,7 @@ export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onD
         <Text style={styles.profileCardTitle}>{profile.name}</Text>
 
         <View style={styles.profileCardActions}>
-          <TouchableOpacity onPress={onEdit}>
+          <TouchableOpacity onPress={() => onEdit(profile)}>
             <FontAwesome5 name="edit" size={16} style={styles.icon} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDelete}>
@@ -37,7 +37,7 @@ export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onD
       </View>
 
       <Text style={styles.profileCardDescription}>
-        {profile.description || "Nincs leírás."}
+        {profile.notes || "Nincs leírás."}
       </Text>
     </TouchableOpacity>
   );

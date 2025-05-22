@@ -51,14 +51,12 @@ public class ProfileMedicationService {
     }
 
     @Transactional
-    public ProfileMedicationDTO updateMedication( Long profileId, Long medicationId, ProfileMedicationDTO updatedData) {
-        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId(
-                        profileId,
-                        medicationId)
+    public ProfileMedicationDTO updateMedication( Long profileId, Long medicationId, String note, String remindersJson) {
+        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId( profileId, medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Nincs ilyen gyógyszer hozzárendelve a profilhoz."));
 
-        existing.setNotes(updatedData.getNotes());
-        existing.setReminders(updatedData.getReminders());
+        existing.setNotes(note);
+        existing.setReminders(remindersJson);
 
         return convertToDTO(profileMedicationRepository.save(existing));
     }

@@ -25,16 +25,17 @@ export default function EditMedicationModal({
   onDeleted,
 }) {
   const [note, setNote] = useState(medication.note || "");
-  const [reminders, setReminders] = useState(
-    medication.reminders?.length > 0
-      ? medication.reminders
-      : [
-          {
-            days: [],
-            times: [""],
-          },
-        ]
-  );
+  const [reminders, setReminders] = useState(() => {
+    try {
+      if (Array.isArray(medication.reminders)) return medication.reminders;
+      if (typeof medication.reminders === "string")
+        return JSON.parse(medication.reminders || "[]");
+      return [];
+    } catch (e) {
+      console.error("Érvénytelen reminders JSON:", e);
+      return [];
+    }
+  });
 
   const updateReminder = (index, newReminder) => {
     const updated = [...reminders];
