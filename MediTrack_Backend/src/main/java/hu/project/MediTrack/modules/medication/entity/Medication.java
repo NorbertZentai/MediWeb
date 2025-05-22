@@ -2,6 +2,7 @@ package hu.project.MediTrack.modules.medication.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +16,6 @@ import java.time.LocalDate;
 @Builder
 public class Medication {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 200)
@@ -76,7 +76,7 @@ public class Medication {
     private LocalDate releaseDate;
 
     @Builder.Default
-    @Column(precision = 2, scale = 2)
+    @Transient
     private BigDecimal averageRating = BigDecimal.ZERO;
 
     @Column(columnDefinition = "text")
@@ -84,4 +84,8 @@ public class Medication {
 
     @Column(length = 200)
     private String manufacturer;
+
+    @Column(name = "last_updated")
+    @CreationTimestamp
+    private LocalDate lastUpdated;
 }
