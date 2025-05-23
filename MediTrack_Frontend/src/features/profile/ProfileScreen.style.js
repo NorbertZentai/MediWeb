@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
 
   tabContent: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
   },
 
   // --- Fejléc (ProfileHeader) ---

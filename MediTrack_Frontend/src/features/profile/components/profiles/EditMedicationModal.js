@@ -1,30 +1,13 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Button,
-  ScrollView,
-  Platform,
-} from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, Button, ScrollView, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { styles } from "../ProfilesTab.style";
-import {
-  updateMedicationForProfile,
-  removeMedicationFromProfile,
-} from "features/profile/profile.api";
+import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
 import { toast } from "react-toastify";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
 
-export default function EditMedicationModal({
-  profileId,
-  medication,
-  onClose,
-  onUpdated,
-  onDeleted,
-}) {
+export default function EditMedicationModal({ profileId, medication, onClose, onUpdated, onDeleted }) {
   const [note, setNote] = useState(medication.notes || "");
   const [reminders, setReminders] = useState(() => {
     try {
@@ -115,120 +98,94 @@ export default function EditMedicationModal({
   };
 
   return (
-    <View style={styles.modalOverlay}>
-      <ScrollView contentContainerStyle={styles.modalBox}>
-        <Text style={styles.modalTitle}>Gyógyszer szerkesztése</Text>
-        <Text style={styles.medicationTitle}>{medication.name}</Text>
+    <Modal visible={true} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.editMedicationModalContainer}>
+          <ScrollView contentContainerStyle={styles.modalContent}>
+            <Text style={styles.modalTitle}>Gyógyszer szerkesztése</Text>
+            <Text style={styles.medicationTitle}>{medication.medicationName}</Text>
 
-        <TextInput
-          style={styles.modalInput}
-          value={note}
-          onChangeText={setNote}
-          placeholder="Megjegyzés..."
-          multiline
-        />
+            <TextInput
+              style={styles.modalInput}
+              value={note}
+              onChangeText={setNote}
+              placeholder="Megjegyzés..."
+              multiline
+            />
 
-        <Text style={styles.sectionHeaderText}>Értesítések</Text>
+            <Text style={styles.sectionHeaderTextInModal}>Értesítések</Text>
 
-        {reminders.length === 0 && (
-          <Text style={styles.noRemindersText}>Nincs beállított értesítés.</Text>
-        )}
+            {reminders.length === 0 && (
+              <Text style={styles.noRemindersText}>Nincs beállított értesítés.</Text>
+            )}
 
-        {reminders.map((reminder, index) => (
-          <View key={index} style={styles.reminderGroup}>
-            <Text style={styles.label}>Napok:</Text>
-            <View style={styles.dayList}>
-              {DAYS.map((day) => {
-                const isSelected = reminder.days.includes(day);
-                return (
-                  <TouchableOpacity
-                    key={day}
-                    onPress={() => toggleDay(index, day)}
-                    style={[
-                      styles.dayButton,
-                      isSelected && styles.dayButtonSelected,
-                    ]}
-                  >
-                    <Text>{day}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            {reminders.map((reminder, index) => (
+              <View key={index} style={styles.reminderGroup}>
+                <View style={styles.reminderRow}>
+                  {/* Napválasztó gombok */}
+                  <View style={styles.dayListInline}>
+                    {DAYS.map((day) => {
+                      const isSelected = reminder.days.includes(day);
+                      return (
+                        <TouchableOpacity
+                          key={day}
+                          onPress={() => toggleDay(index, day)}
+                          style={[
+                            styles.dayButton,
+                            isSelected && styles.dayButtonSelected,
+                          ]}
+                        >
+                          <Text>{day}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
 
-            <Text style={styles.label}>Időpontok:</Text>
-            {[0, 1, 2].map((timeIndex) => (
-              <View key={timeIndex} style={{ marginBottom: 10 }}>
-                {Platform.OS === "web" ? (
-                  <input
-                    type="time"
-                    value={reminder.times[timeIndex] || ""}
-                    onChange={(e) => updateTime(index, timeIndex, e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      borderRadius: 4,
-                      borderColor: "#ccc",
-                      borderWidth: 1,
-                    }}
-                  />
-                ) : (
-                  <>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setCurrentEditIndex({ group: index, time: timeIndex });
-                        setTimePickerVisible(true);
-                      }}
-                      style={styles.modalInput}
-                    >
-                      <Text>
-                        {reminder.times[timeIndex]
-                          ? reminder.times[timeIndex]
-                          : "Válassz időt"}
-                      </Text>
-                    </TouchableOpacity>
-                    {timePickerVisible &&
-                      currentEditIndex.group === index &&
-                      currentEditIndex.time === timeIndex && (
-                        <DateTimePicker
-                          value={
-                            reminder.times[timeIndex]
-                              ? new Date(`1970-01-01T${reminder.times[timeIndex]}:00`)
-                              : new Date()
-                          }
-                          mode="time"
-                          is24Hour={true}
-                          display="default"
-                          onChange={handleTimeSelect}
+                  {/* Időválasztók */}
+                  <View style={styles.reminderTimesInline}>
+                    {[0, 1, 2].map((timeIndex) => (
+                      <View key={timeIndex}>
+                        <input
+                          type="time"
+                          value={reminder.times[timeIndex] || ""}
+                          onChange={(e) => updateTime(index, timeIndex, e.target.value)}
+                          style={styles.timeInput}
                         />
-                      )}
-                  </>
-                )}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <TouchableOpacity onPress={() => deleteReminderGroup(index)}>
+                  <Text style={styles.deleteReminderText}>Emlékeztető törlése</Text>
+                </TouchableOpacity>
               </View>
             ))}
 
-            <TouchableOpacity onPress={() => deleteReminderGroup(index)}>
-              <Text style={styles.deleteReminderText}>Emlékeztető törlése</Text>
+            <TouchableOpacity onPress={addReminderGroup}>
+              <Text style={styles.addReminderButton}>+ Új emlékeztető</Text>
             </TouchableOpacity>
+          </ScrollView>
+
+          <View style={styles.modalFooter}>
+            <View style={styles.modalFooterRow}>
+              <View style={styles.modalFooterLeft}>
+                <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+                  <Text style={styles.deleteButtonText}>TÖRLÉS</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalFooterRight}>
+                <TouchableOpacity onPress={onClose}>
+                  <Text style={styles.cancelButton}>Mégse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleSave}>
+                  <Text style={styles.saveButton}>Mentés</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        ))}
-
-        <TouchableOpacity onPress={addReminderGroup}>
-          <Text style={styles.addReminderButton}>+ Új emlékeztető</Text>
-        </TouchableOpacity>
-
-        <View style={styles.modalActions}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Mégse</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSave}>
-            <Text style={styles.saveButton}>Mentés</Text>
-          </TouchableOpacity>
         </View>
-
-        <View style={styles.deleteButtonContainer}>
-          <Button title="Törlés" onPress={handleDelete} color="#d32f2f" />
-        </View>
-      </ScrollView>
-    </View>
+      </View>
+    </Modal>
   );
 }
