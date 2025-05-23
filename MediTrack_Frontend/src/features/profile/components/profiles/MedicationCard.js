@@ -19,13 +19,20 @@ export default function MedicationCard({ medication, onEditNote, onDelete }) {
     <View style={styles.medicationCard}>
       <View style={styles.medicationHeader}>
         <Text style={styles.medicationName}>{medication.medicationName}</Text>
-
         <View style={styles.medicationActions}>
           <TouchableOpacity onPress={onEditNote}>
-            <FontAwesome5 name="edit" size={16} style={styles.icon} />
+            <FontAwesome5
+              name="edit"
+              size={16}
+              style={{ ...styles.icon, color: "#2563EB" }}
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDelete}>
-            <FontAwesome5 name="trash" size={16} style={styles.icon} />
+            <FontAwesome5
+              name="trash"
+              size={16}
+              style={{ ...styles.icon, color: "#DC2626" }}
+            />
           </TouchableOpacity>
         </View>
       </View>

@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
 import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
-import {
-  addMedicationToProfile,
-  searchMedicationsByName,
-} from "features/profile/profile.api";
+import { addMedicationToProfile, searchMedicationsByName } from "features/profile/profile.api";
 
 export default function AssignMedicationModal({ profileId, onClose, onAssigned }) {
   const [search, setSearch] = useState("");
@@ -62,63 +52,66 @@ export default function AssignMedicationModal({ profileId, onClose, onAssigned }
   };
 
   return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalBox}>
-        <Text style={styles.modalTitle}>Gyógyszer hozzárendelése</Text>
+    <Modal visible={true} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Gyógyszer hozzárendelése</Text>
 
-        <TextInput
-          style={styles.modalInput}
-          placeholder="Keresés név alapján..."
-          value={search}
-          onChangeText={setSearch}
-        />
-
-        {loading ? (
-          <ActivityIndicator
-            size="small"
-            color="#10B981"
-            style={styles.loadingIndicator}
-          />
-        ) : (
-          <>
-            <FlatList
-              data={results}
-              keyExtractor={(item) => item.itemId.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.medicationListItem,
-                    selected?.itemId === item.itemId &&
-                      styles.medicationListItemSelected,
-                  ]}
-                  onPress={() => setSelected(item)}
-                >
-                  <Text>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-              style={styles.medicationList}
-              keyboardShouldPersistTaps="handled"
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Keresés név alapján..."
+              value={search}
+              onChangeText={setSearch}
             />
-            {results.length === 0 && search.trim() !== "" && !loading && (
-              <Text style={styles.noResultsText}>Nincs találat.</Text>
-            )}
-          </>
-        )}
 
-        <View style={styles.modalActions}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Mégse</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleAssign}
-            disabled={!selected}
-          >
-            <Text style={[styles.saveButton, !selected && styles.disabledButton]}>
-              Hozzáadás
-            </Text>
-          </TouchableOpacity>
+            {loading ? (
+              <ActivityIndicator
+                size="small"
+                color="#10B981"
+                style={styles.loadingIndicator}
+              />
+            ) : (
+              <>
+                <FlatList
+                  data={results}
+                  keyExtractor={(item) => item.itemId.toString()}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.medicationListItem,
+                        selected?.itemId === item.itemId &&
+                          styles.medicationListItemSelected,
+                      ]}
+                      onPress={() => setSelected(item)}
+                    >
+                      <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                  )}
+                  style={styles.medicationList}
+                  keyboardShouldPersistTaps="handled"
+                />
+                {results.length === 0 && search.trim() !== "" && !loading && (
+                  <Text style={styles.noResultsText}>Nincs találat.</Text>
+                )}
+              </>
+            )}
+          </View>
+
+          <View style={styles.modalFooter}>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={onClose}>
+                <Text style={styles.cancelButton}>Mégse</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleAssign} disabled={!selected}>
+                <Text style={[styles.saveButton, !selected && styles.disabledButton]}>
+                  Hozzáadás
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 }
