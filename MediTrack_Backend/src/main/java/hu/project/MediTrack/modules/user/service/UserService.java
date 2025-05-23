@@ -4,6 +4,7 @@ import hu.project.MediTrack.modules.user.dto.PasswordChangeRequest;
 import hu.project.MediTrack.modules.user.entity.User;
 import hu.project.MediTrack.modules.user.enums.UserRole;
 import hu.project.MediTrack.modules.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,10 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public User getCurrentUser(HttpServletRequest request) {
+        return (User) request.getSession().getAttribute("user");
+    }
 
     @Transactional
     public List<User> findAllUsers() {

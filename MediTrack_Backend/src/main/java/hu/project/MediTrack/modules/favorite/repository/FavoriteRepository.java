@@ -1,18 +1,15 @@
 package hu.project.MediTrack.modules.favorite.repository;
 
 import hu.project.MediTrack.modules.favorite.entity.Favorite;
+import hu.project.MediTrack.modules.medication.entity.Medication;
+import hu.project.MediTrack.modules.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface FavoriteRepository extends JpaRepository<Favorite, Integer> {
+public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
-    // Példa: lekérdezés user szerint
-    List<Favorite> findByUserId(Integer userId);
+    List<Favorite> findByUserId(Long userId);
 
-    // Példa: lekérdezés medication szerint
-    List<Favorite> findByMedicationId(Integer medicationId);
-
-    // Ha korlátozni akarod, hogy 1 user + 1 medication csak egyszer szerepeljen:
-    // Optional<Favorite> findByUserIdAndMedicationId(Integer userId, Integer medicationId);
+    boolean existsByUserAndMedication(User user, Medication medication);
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Button } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { toast } from 'react-toastify';
 import ProfileCard from './profiles/ProfileCard';
 import AddProfileModal from './profiles/AddProfileModal';
@@ -122,9 +122,14 @@ export default function ProfilesTab() {
         <AddProfileModal
           onClose={() => setAddModalVisible(false)}
           onProfileCreated={(newProfile) => {
-            setProfiles((prev) => [...prev, newProfile]);
-            toast.success("Profil sikeresen létrehozva.");
-            setAddModalVisible(false);
+            try {
+              setProfiles((prev) => [...prev, newProfile]);
+              toast.success("Profil sikeresen létrehozva.");
+            } catch (err) {
+              toast.error("Nem sikerült hozzáadni a profilt.");
+            } finally {
+              setAddModalVisible(false);
+            }
           }}
         />
       )}
@@ -134,11 +139,16 @@ export default function ProfilesTab() {
           profile={editingProfile}
           onClose={() => setEditingProfile(null)}
           onProfileUpdated={(updated) => {
-            setProfiles((prev) =>
-              prev.map((p) => (p.id === updated.id ? updated : p))
-            );
-            toast.success("Profil frissítve.");
-            setEditingProfile(null);
+            try {
+              setProfiles((prev) =>
+                prev.map((p) => (p.id === updated.id ? updated : p))
+              );
+              toast.success("Profil frissítve.");
+            } catch {
+              toast.error("Nem sikerült frissíteni a profilt.");
+            } finally {
+              setEditingProfile(null);
+            }
           }}
         />
       )}
@@ -149,54 +159,86 @@ export default function ProfilesTab() {
           medication={{ ...medicationToEdit, itemId: medicationToEdit.medicationId }}
           onClose={() => setMedicationToEdit(null)}
           onUpdated={(updatedMed) => {
-            setProfileMedications((prev) => ({
-              ...prev,
-              [activeProfileId]: prev[activeProfileId].map((m) =>
-                m.medicationId === updatedMed.medicationId ? updatedMed : m
-              ),
-            }));
-            toast.success("Gyógyszer frissítve.");
-            setMedicationToEdit(null);
+            try {
+              setProfileMedications((prev) => ({
+                ...prev,
+                [activeProfileId]: prev[activeProfileId].map((m) =>
+                  m.medicationId === updatedMed.medicationId ? updatedMed : m
+                ),
+              }));
+              toast.success("Gyógyszer frissítve.");
+            } catch {
+              toast.error("Nem sikerült frissíteni a gyógyszert.");
+            } finally {
+              setMedicationToEdit(null);
+            }
           }}
           onDeleted={(deletedId) => {
-            setProfileMedications((prev) => ({
-              ...prev,
-              [activeProfileId]: prev[activeProfileId].filter(
-                (m) => m.medicationId !== deletedId
-              ),
-            }));
-            toast.success("Gyógyszer törölve.");
-            setMedicationToEdit(null);
+            try {
+              setProfileMedications((prev) => ({
+                ...prev,
+                [activeProfileId]: prev[activeProfileId].filter(
+                  (m) => m.medicationId !== deletedId
+                ),
+              }));
+              toast.success("Gyógyszer törölve.");
+            } catch {
+              toast.error("Nem sikerült törölni a gyógyszert.");
+            } finally {
+              setMedicationToEdit(null);
+            }
           }}
         />
       )}
 
       {deletingProfile && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
-            </Text>
-            <View style={styles.modalActions}>
-              <Button title="Mégse" onPress={() => setDeletingProfile(null)} />
-              <Button title="Törlés" color="#d32f2f" onPress={confirmDeleteProfile} />
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setDeletingProfile(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalDeleteContainer}>
+              <Text style={styles.modalDeleteTitle}>
+                Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
+              </Text>
+              <View style={styles.modalDeleteActions}>
+                <TouchableOpacity onPress={() => setDeletingProfile(null)}>
+                  <Text style={styles.cancelButton}>Mégse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteButton} onPress={confirmDeleteProfile}>
+                  <Text style={styles.deleteButtonText}>Törlés</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </Modal>
       )}
 
       {medicationToDelete && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert?
-            </Text>
-            <View style={styles.modalActions}>
-              <Button title="Mégse" onPress={() => setMedicationToDelete(null)} />
-              <Button title="Törlés" color="#d32f2f" onPress={confirmDeleteMedication} />
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setMedicationToDelete(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalDeleteContainer}>
+              <Text style={styles.modalDeleteTitle}>
+                Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert?
+              </Text>
+              <View style={styles.modalDeleteActions}>
+                <TouchableOpacity onPress={() => setMedicationToDelete(null)}>
+                  <Text style={styles.cancelButton}>Mégse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.deleteButton} onPress={confirmDeleteMedication}>
+                  <Text style={styles.deleteButtonText}>Törlés</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </Modal>
       )}
     </View>
   );

@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, Button, ScrollView, Platform } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { styles } from "../ProfilesTab.style";
 import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
-import { toast } from "react-toastify";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
 
@@ -76,24 +74,20 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
         note,
         reminders: cleanedReminders,
       });
-      toast.success("Gyógyszer frissítve.");
       onUpdated(updated);
       onClose();
     } catch (error) {
       console.error("Frissítési hiba:", error);
-      toast.error("Nem sikerült frissíteni a gyógyszert.");
     }
   };
 
   const handleDelete = async () => {
     try {
       await removeMedicationFromProfile(profileId, medication.itemId);
-      toast.success("Gyógyszer törölve.");
       onDeleted(medication.itemId);
       onClose();
     } catch (error) {
       console.error("Törlési hiba:", error);
-      toast.error("Nem sikerült törölni a gyógyszert.");
     }
   };
 

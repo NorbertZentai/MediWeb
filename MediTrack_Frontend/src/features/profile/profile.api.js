@@ -59,8 +59,8 @@ export const deleteProfile = async (profileId) => {
 
 // FAVORITES
 
-export const addToFavorites = async (itemId) => {
-  const response = await api.post(`/api/favorites`, itemId);
+export const addToFavorites = async (medicationId) => {
+  const response = await api.post(`/api/favorites/${medicationId}`);
   return response.data;
 };
 

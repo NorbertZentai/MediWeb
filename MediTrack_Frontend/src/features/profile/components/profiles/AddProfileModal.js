@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
-import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 import { createProfile } from "features/profile/profile.api";
+import { toast } from 'react-toastify';
 
 export default function AddProfileModal({ onClose, onProfileCreated }) {
   const [name, setName] = useState("");
@@ -10,17 +10,16 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      toast.error("A név megadása kötelező.");
+      toast.error("Kötelező megadni profil nevet.");
       return;
     }
 
     try {
       const newProfile = await createProfile(name, description);
-      toast.success("Profil sikeresen létrehozva.");
       onProfileCreated(newProfile);
     } catch (error) {
       console.error("Error creating profile:", error);
-      toast.error("Profil létrehozása sikertelen.");
+      toast.error(error.response?.data?.message || "Nem sikerült létrehozni a profilt.");
     }
   };
 

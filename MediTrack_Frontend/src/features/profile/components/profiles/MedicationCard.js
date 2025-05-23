@@ -1,24 +1,28 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 
 export default function MedicationCard({ medication, onEditNote, onDelete }) {
   const handleDelete = async () => {
     try {
       await onDelete();
-      toast.success("Gyógyszer törölve.");
     } catch (error) {
       console.error("Hiba a törlés során:", error);
-      toast.error("Nem sikerült törölni a gyógyszert.");
     }
+  };
+
+  const openMedicationPage = () => {
+    const url = `${window.location.origin}/medication/${medication.medicationId}`;
+    window.open(url, "_blank");
   };
 
   return (
     <View style={styles.medicationCard}>
       <View style={styles.medicationHeader}>
-        <Text style={styles.medicationName}>{medication.medicationName}</Text>
+        <TouchableOpacity onPress={openMedicationPage}>
+          <Text style={styles.medicationName}> {medication.medicationName} </Text>
+        </TouchableOpacity>
         <View style={styles.medicationActions}>
           <TouchableOpacity onPress={onEditNote}>
             <FontAwesome5

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity } from "react-native";
-import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 import { updateProfile } from "features/profile/profile.api";
 
@@ -16,12 +15,10 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
   const handleSave = async () => {
     try {
       const updated = await updateProfile(profile.id, name, notes);
-      toast.success("Profil frissítve.");
       onProfileUpdated(updated);
       onClose();
     } catch (error) {
       console.error("Profil mentése sikertelen:", error);
-      toast.error("Nem sikerült frissíteni a profilt.");
     }
   };
 
