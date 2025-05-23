@@ -1,24 +1,25 @@
 import { useCallback, useState, useEffect } from "react";
 import { getMedicationDetails } from "features/medication/medication.api";
 import { getReviewsForMedication } from "features/review/review.api";
-import { getProfilesForUser, fetchCurrentUser, getFavorites } from "features/profile/profile.api";
+import { getProfilesForUser, fetchCurrentUser, getFavorites, removeFromFavorites } from "features/profile/profile.api";
 
-export function useMedicationService(itemId) {
+export function useMedicationService(medicationId) {
   const [data, setData] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [ratingDistribution, setRatingDistribution] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDetails = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
     const startTime = Date.now();
 
     try {
-      const result = await getMedicationDetails(itemId);
+      const result = await getMedicationDetails(medicationId);
       setData(result);
     } catch (e) {
       console.error("Hiba a részletek betöltésekor:", e);
@@ -31,28 +32,31 @@ export function useMedicationService(itemId) {
         setLoading(false);
       }
     }
-  }, [itemId]);
+  }, [medicationId]);
 
   const fetchReviews = useCallback(async () => {
     try {
-      const res = await getReviewsForMedication(itemId);
+      const res = await getReviewsForMedication(medicationId);
       setReviews(res.reviews || []);
       setAverageRating(res.averageRating || 0);
       setRatingDistribution(res.ratingDistribution || {});
     } catch (e) {
       console.error("Hiba a review-k betöltésekor:", e);
     }
-  }, [itemId]);
+  }, [medicationId]);
 
   const fetchFavorites = useCallback(async () => {
     try {
       const favorites = await getFavorites();
-      const isFav = favorites.some((f) => f.itemId === parseInt(itemId));
-      setIsFavorite(isFav);
+      const fav = favorites.find(
+        (f) => f.medicationId === parseInt(medicationId)
+      );
+      setIsFavorite(!!fav);
+      setFavoriteId(fav?.id || null);
     } catch (e) {
       console.error("Hiba a kedvencek betöltésekor:", e);
     }
-  }, [itemId]);
+  }, [medicationId]);
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -84,9 +88,12 @@ export function useMedicationService(itemId) {
     ratingDistribution,
     currentUser,
     isFavorite,
+    favoriteId,
     profiles,
     loading,
     setIsFavorite,
+    setFavoriteId,
     fetchReviews,
+    fetchFavorites,
   };
 }

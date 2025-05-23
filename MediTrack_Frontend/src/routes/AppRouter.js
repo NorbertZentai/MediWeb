@@ -7,9 +7,8 @@ import HomeScreen from "features/home/HomeScreen";
 import LoginScreen from "features/auth/LoginScreen";
 import RegisterScreen from "features/auth/RegisterScreen";
 import UserScreen from "features/profile/ProfileScreen";
-import MedicationDetailScreen from "features/medication/MedicatioScreen";
+import MedicationDetailScreen from "features/medication/MedicationScreen";
 import SearchScreen from "features/search/SearchScreen";
-import StatisticScreen from "features/statistics/StatisticScreen";
 
 import Navbar from "components/Navbar";
 import { theme } from "styles/theme";
@@ -42,7 +41,6 @@ export default function AppRouter() {
               <Route path="/user" element={<UserScreen />} />
               <Route path="/medication/:itemId" element={<MedicationDetailScreen />} />
               <Route path="/search" element={<SearchScreen />} />
-              <Route path="/statistics" element={<StatisticScreen />} />
               <Route path="*" element={<Text style={styles.errorText}> 404 – A keresett oldal nem található. </Text> } />
             </Routes>
           </View>

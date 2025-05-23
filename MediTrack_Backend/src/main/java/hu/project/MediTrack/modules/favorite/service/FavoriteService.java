@@ -25,25 +25,25 @@ public class FavoriteService {
     }
 
     @Transactional
-    public Favorite saveFavorite(User user, Long medicationItemId) {
+    public Favorite addFavorite(User user, Long medicationItemId) {
         Medication medication = medicationRepository.findById(medicationItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Gyógyszer nem található az itemId alapján: " + medicationItemId));
 
-        boolean exists = favoriteRepository.existsByUserAndMedication(user, medication);
-        if (exists) {
-            throw new IllegalStateException("Ez a gyógyszer már a kedvencek között van.");
-        }
-
-        Favorite favorite = Favorite.builder()
-                .user(user)
-                .medication(medication)
-                .build();
-
-        return favoriteRepository.save(favorite);
+        return favoriteRepository.findByUserAndMedication(user, medication)
+                .orElseGet(() -> {
+                    Favorite favorite = Favorite.builder()
+                            .user(user)
+                            .medication(medication)
+                            .build();
+                    return favoriteRepository.save(favorite);
+                });
     }
 
     @Transactional
     public void deleteById(Long id) {
+        if (!favoriteRepository.existsById(id)) {
+            throw new IllegalArgumentException("Nem létezik ilyen favorite ID: " + id);
+        }
         favoriteRepository.deleteById(id);
     }
 }
