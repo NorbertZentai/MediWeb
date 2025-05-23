@@ -33,11 +33,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginVertical: 12,
   },
   sectionHeaderText: {
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 17,
     color: "#111827",
   },
 
@@ -129,6 +129,8 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#111827",
+    textDecorationLine: "underline",
+    cursor: "pointer",
   },
   medicationActions: {
     flexDirection: "row",
@@ -168,6 +170,28 @@ export const styles = StyleSheet.create({
     zIndex: 9999,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalDeleteContainer: {
+    width: "90%",
+    maxWidth: 420,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 20,
+  },
+  modalDeleteTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    textAlign: "left",
+  },
+  modalDeleteActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
   },
   modalContainer: {
     width: "950%",

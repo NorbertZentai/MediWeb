@@ -16,7 +16,7 @@ public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     // Kapcsolat a User táblával
     @ManyToOne

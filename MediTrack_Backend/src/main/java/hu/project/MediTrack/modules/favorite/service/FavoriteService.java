@@ -2,52 +2,48 @@ package hu.project.MediTrack.modules.favorite.service;
 
 import hu.project.MediTrack.modules.favorite.entity.Favorite;
 import hu.project.MediTrack.modules.favorite.repository.FavoriteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import hu.project.MediTrack.modules.medication.entity.Medication;
+import hu.project.MediTrack.modules.medication.repository.MedicationRepository;
+import hu.project.MediTrack.modules.user.entity.User;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class FavoriteService {
 
-    @Autowired
-    private FavoriteRepository favoriteRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final MedicationRepository medicationRepository;
 
-    /**
-     * Visszaadja az összes favorite bejegyzést.
-     */
-    public List<Favorite> findAll() {
-        return favoriteRepository.findAll();
+    @Transactional
+    public List<Favorite> findByUserId(Long userId) {
+        return favoriteRepository.findByUserId(userId);
     }
 
-    /**
-     * Visszaadja az adott id-jú favorite bejegyzést, ha létezik.
-     */
-    public Optional<Favorite> findById(Integer id) {
-        return favoriteRepository.findById(id);
-    }
+    @Transactional
+    public Favorite saveFavorite(User user, Long medicationItemId) {
+        Medication medication = medicationRepository.findById(medicationItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Gyógyszer nem található az itemId alapján: " + medicationItemId));
 
-    /**
-     * Elment egy favorite bejegyzést (létrehoz vagy frissít).
-     */
-    public Favorite save(Favorite favorite) {
-        // Itt pl. ellenőrizheted, hogy van-e duplikát:
-        // (user, medication) pair már létezik-e stb.
+        boolean exists = favoriteRepository.existsByUserAndMedication(user, medication);
+        if (exists) {
+            throw new IllegalStateException("Ez a gyógyszer már a kedvencek között van.");
+        }
+
+        Favorite favorite = Favorite.builder()
+                .user(user)
+                .medication(medication)
+                .build();
+
         return favoriteRepository.save(favorite);
     }
 
-    /**
-     * Töröl egy favorite bejegyzést ID alapján.
-     */
-    public void deleteById(Integer id) {
+    @Transactional
+    public void deleteById(Long id) {
         favoriteRepository.deleteById(id);
-    }
-
-    /**
-     * Visszaadja egy user összes kedvenc gyógyszerét.
-     */
-    public List<Favorite> findByUserId(Integer userId) {
-        return favoriteRepository.findByUserId(userId);
     }
 }

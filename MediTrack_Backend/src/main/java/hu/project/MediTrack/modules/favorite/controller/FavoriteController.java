@@ -1,82 +1,51 @@
 package hu.project.MediTrack.modules.favorite.controller;
 
+import hu.project.MediTrack.modules.favorite.dto.FavoriteDTO;
 import hu.project.MediTrack.modules.favorite.entity.Favorite;
 import hu.project.MediTrack.modules.favorite.service.FavoriteService;
+import hu.project.MediTrack.modules.user.entity.User;
+import hu.project.MediTrack.modules.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-/**
- * REST controller a Favorites kezeléséhez.
- * A React Native (vagy más) kliens hívja JSON kérésekkel.
- */
 @RestController
 @RequestMapping("/api/favorites")
 public class FavoriteController {
 
     @Autowired
     private FavoriteService favoriteService;
+    @Autowired
+    private UserService userService;
 
-    /**
-     * GET /api/favorites
-     * Az összes kedvenc bejegyzés listája.
-     */
     @GetMapping
-    public List<Favorite> getAllFavorites() {
-        return favoriteService.findAll();
+    public List<FavoriteDTO> getMyFavorites(HttpServletRequest request) {
+        User currentUser = userService.getCurrentUser(request);
+        return favoriteService.findByUserId(currentUser.getId().longValue()).stream()
+                .map(fav -> FavoriteDTO.builder()
+                        .id(fav.getId().longValue())
+                        .userId(fav.getUser().getId().longValue())
+                        .medicationId(fav.getMedication().getId().longValue())
+                        .build())
+                .toList();
     }
 
-    /**
-     * GET /api/favorites/{id}
-     * Egy kedvenc lekérése ID alapján.
-     */
-    @GetMapping("/{id}")
-    public Favorite getFavoriteById(@PathVariable Integer id) {
-        Optional<Favorite> fav = favoriteService.findById(id);
-        return fav.orElse(null);
+    @PostMapping("/{medicationId}")
+    public FavoriteDTO createFavorite(@PathVariable Long medicationId, HttpServletRequest request) {
+        User currentUser = userService.getCurrentUser(request);
+        Favorite favorite = favoriteService.saveFavorite(currentUser, medicationId);
+
+        return FavoriteDTO.builder()
+                .id(favorite.getId().longValue())
+                .userId(currentUser.getId().longValue())
+                .medicationId(favorite.getMedication().getId().longValue())
+                .build();
     }
 
-    /**
-     * GET /api/favorites/user/{userId}
-     * Egy user összes kedvencének lekérése.
-     */
-    @GetMapping("/user/{userId}")
-    public List<Favorite> getFavoritesByUserId(@PathVariable Integer userId) {
-        return favoriteService.findByUserId(userId);
-    }
-
-    /**
-     * POST /api/favorites
-     * Új favorite bejegyzés létrehozása.
-     */
-    @PostMapping
-    public Favorite createFavorite(@RequestBody Favorite favorite) {
-        return favoriteService.save(favorite);
-    }
-
-    /**
-     * PUT /api/favorites/{id}
-     * Létező bejegyzés frissítése.
-     */
-    @PutMapping("/{id}")
-    public Favorite updateFavorite(@PathVariable Integer id, @RequestBody Favorite updated) {
-        return favoriteService.findById(id)
-                .map(f -> {
-                    f.setUser(updated.getUser());
-                    f.setMedication(updated.getMedication());
-                    return favoriteService.save(f);
-                })
-                .orElse(null);
-    }
-
-    /**
-     * DELETE /api/favorites/{id}
-     * Kedvenc törlése ID alapján.
-     */
     @DeleteMapping("/{id}")
-    public void deleteFavorite(@PathVariable Integer id) {
+    public void deleteFavorite(@PathVariable Long id) {
         favoriteService.deleteById(id);
     }
 }

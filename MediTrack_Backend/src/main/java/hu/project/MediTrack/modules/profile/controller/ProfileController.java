@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediTrack.modules.profile.dto.ProfileDTO;
 import hu.project.MediTrack.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediTrack.modules.profile.entity.Profile;
-import hu.project.MediTrack.modules.profile.entity.ProfileMedication;
 import hu.project.MediTrack.modules.profile.service.ProfileService;
 import hu.project.MediTrack.modules.profile.service.ProfileMedicationService;
 import hu.project.MediTrack.modules.user.entity.User;
+import hu.project.MediTrack.modules.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,23 +22,20 @@ public class ProfileController {
 
     @Autowired
     private ProfileService profileService;
-
     @Autowired
     private ProfileMedicationService medicationService;
-
-    private User getCurrentUser(HttpServletRequest request) {
-        return (User) request.getSession().getAttribute("user");
-    }
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public List<ProfileDTO> getAllProfiles(HttpServletRequest request) {
-        User user = getCurrentUser(request);
+        User user = userService.getCurrentUser(request);
         return profileService.findByUser(user);
     }
 
     @PostMapping
     public ProfileDTO createProfile(@RequestBody Map<String, String> body, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+        User user = userService.getCurrentUser(request);
 
         Profile profile = Profile.builder()
                 .user(user)
