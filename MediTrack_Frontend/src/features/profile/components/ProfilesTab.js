@@ -6,6 +6,7 @@ import AddProfileModal from './profiles/AddProfileModal';
 import EditProfileModal from './profiles/EditProfileModal';
 import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
+import AssignMedicationModal from "./profiles/AssignMedicationModal";
 import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
 import { styles } from './ProfilesTab.style';
 
@@ -19,6 +20,7 @@ export default function ProfilesTab() {
   const [deletingProfile, setDeletingProfile] = useState(null);
   const [medicationToDelete, setMedicationToDelete] = useState(null);
   const [medicationToEdit, setMedicationToEdit] = useState(null);
+  const [assignVisible, setAssignVisible] = useState(false);
 
   useEffect(() => {
     getProfilesForUser()
@@ -92,7 +94,19 @@ export default function ProfilesTab() {
               <View style={styles.medicationsWrapper}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionHeaderText}>Gyógyszerek:</Text>
+                  <TouchableOpacity onPress={() => setAssignVisible(true)} style={styles.addMedicationButton}>
+                    <Text style={styles.addMedicationButtonText}>Gyógyszer hozzáadása</Text>
+                  </TouchableOpacity>
                 </View>
+
+                <AssignMedicationModal
+                  profileId={profile.id}
+                  visible={assignVisible}
+                  onClose={() => setAssignVisible(false)}
+                  onAssigned={(medicationIds) => {
+                    console.log("Hozzáadva:", medicationIds);
+                  }}
+                />
 
                 {(profileMedications[profile.id]?.length ?? 0) === 0 ? (
                   <Text style={styles.noMedicationsText}>Nincsenek gyógyszerek.</Text>
