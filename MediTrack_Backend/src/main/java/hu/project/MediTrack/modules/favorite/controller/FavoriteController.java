@@ -24,12 +24,13 @@ public class FavoriteController {
 
     @GetMapping
     public ResponseEntity<List<FavoriteDTO>> getMyFavorites(HttpServletRequest request) {
-        User currentUser = userService.getCurrentUser(request);
-        List<FavoriteDTO> favorites = favoriteService.findByUserId(currentUser.getId()).stream()
+        Long currentUserId = userService.getCurrentUser(request).getId();
+        List<FavoriteDTO> favorites = favoriteService.findByUserId(currentUserId).stream()
                 .map(fav -> FavoriteDTO.builder()
                         .id(fav.getId())
-                        .userId(fav.getUser().getId())
+                        .userId(currentUserId)
                         .medicationId(fav.getMedication().getId())
+                        .medicationName(fav.getMedication().getName())
                         .build())
                 .toList();
         return ResponseEntity.ok(favorites);
@@ -43,6 +44,7 @@ public class FavoriteController {
                 .id(favorite.getId())
                 .userId(currentUser.getId())
                 .medicationId(favorite.getMedication().getId())
+                .medicationName(favorite.getMedication().getName())
                 .build();
         return ResponseEntity.ok(dto);
     }

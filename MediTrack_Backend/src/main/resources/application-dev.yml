@@ -8,6 +8,17 @@ spring:
       enabled: false
     livereload:
       enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: 96nucu@gmail.com
+    password: "ickt jfev cwum nwwc"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   datasource:
     url: jdbc:postgresql://localhost:5432/meditrack

@@ -9,6 +9,7 @@ import java.util.Base64;
 @Data
 @Builder
 public class UserDTO {
+    private Long id;
     private String name;
     private String email;
     private String phone_number;
@@ -27,6 +28,7 @@ public class UserDTO {
         }
 
         return UserDTO.builder()
+                .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone_number(user.getPhone_number())

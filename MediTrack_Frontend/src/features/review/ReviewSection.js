@@ -48,7 +48,6 @@ export default function ReviewSection({
   const filteredReviews = sortedReviews.filter((rev) => rev.userId !== userId);
 
   const handleSubmit = () => {
-      console.log("⬅️ handleSubmit", { rating, userId, ownReview });
     const payload = { rating, positive, negative, userId };
     if (ownReview) {
       updateReview(payload);
@@ -56,8 +55,6 @@ export default function ReviewSection({
       onSubmit(payload);
     }
   };
-
-  console.log("rendered ReviewSection", { isLoggedIn, userId, rating });
 
   return (
     <View style={styles.reviewSection}>
@@ -94,7 +91,7 @@ export default function ReviewSection({
           <Text style={styles.reviewFormLabel}>Értékelés:</Text>
           <View style={styles.starPicker}>
             {[1, 2, 3, 4, 5].map((val) => (
-              <TouchableOpacity key={val} onPress={() => setRating(val)}>
+              <TouchableOpacity key={val} onPress={() => setRating(val) }>
                 <FontAwesome
                   name={val <= rating ? "star" : "star-o"}
                   size={30}

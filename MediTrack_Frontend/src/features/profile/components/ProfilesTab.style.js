@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { nodeModuleNameResolver } from "typescript";
 
 export const styles = StyleSheet.create({
   // --- Általános konténer ---
@@ -89,7 +90,6 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
   },
   profileCardTitle: {
     fontSize: 17,
@@ -129,7 +129,7 @@ export const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#111827",
-    textDecorationLine: "underline",
+    textDecorationLine: "none",
     cursor: "pointer",
   },
   medicationActions: {
@@ -194,7 +194,7 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   modalContainer: {
-    width: "950%",
+    width: "95%",
     maxWidth: 420,
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -422,5 +422,47 @@ export const styles = StyleSheet.create({
   },
   loadingIndicator: {
     marginVertical: 10,
+  },
+
+  // --- Assing Modal ---
+  assignModalContainer: {
+    width: "95%",
+    maxWidth: 720,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 24,
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+    maxHeight: "90%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  assignList: {
+    maxHeight: 200,
+    paddingHorizontal: 16,
+    marginTop: 12,
+  },
+  assignModalContent: {
+    paddingHorizontal: 24,
+  },
+  assignCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+    marginBottom: 12,
+    width: "100%",
+    maxWidth: 680,
+    elevation: 1,
+  },
+  assignCardSelected: {
+    backgroundColor: "#ECFDF5",
+    borderColor: "#10B981",
+  },
+  assignCardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
   },
 });

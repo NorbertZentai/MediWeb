@@ -296,7 +296,6 @@ export default function MedicationDetailsScreen() {
           isLoggedIn={!!currentUser}
           userId={currentUser?.id}
           onSubmit={async ({ rating, positive, negative }) => {
-            console.log("➡️ onSubmit triggered");
             if (!rating || !currentUser?.id) return;
             setSubmitting(true);
             try {
