@@ -1,17 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 
 export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onDelete }) {
   const handleDelete = async () => {
     try {
       await onDelete();
-      toast.success("Profil törölve.");
     } catch (error) {
       console.error("Hiba a törlés során:", error);
-      toast.error("Nem sikerült törölni a profilt.");
     }
   };
 
