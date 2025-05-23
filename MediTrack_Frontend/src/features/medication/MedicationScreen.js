@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform } from "react-native";
 import { useParams, Link } from "react-router-dom";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { addToFavorites, addMedicationToProfile, getMedicationsForProfile } from "features/profile/profile.api";
+import { addToFavorites, addMedicationToProfile, getMedicationsForProfile, removeFromFavorites } from "features/profile/profile.api";
 import { submitReview, updateReview } from "features/review/review.api";
 import ReviewSection from "features/review/ReviewSection";
 import { useMedicationService } from "./MedicationService";
 import { styles } from "./MedicationScreen.style";
+import { toast } from "react-toastify";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -21,10 +22,12 @@ export default function MedicationDetailsScreen() {
     ratingDistribution,
     currentUser,
     isFavorite,
+    favoriteId,
     profiles,
     loading,
     setIsFavorite,
     fetchReviews,
+    setFavoriteId,
   } = useMedicationService(itemId);
 
   const [submitting, setSubmitting] = useState(false);
@@ -109,10 +112,19 @@ export default function MedicationDetailsScreen() {
                 style={styles.favoriteButton}
                 onPress={async () => {
                   try {
-                    await addToFavorites(itemId);
-                    setIsFavorite((prev) => !prev);
+                    if (isFavorite && favoriteId) {
+                      await removeFromFavorites(favoriteId);
+                      setIsFavorite(false);
+                      setFavoriteId(null);
+                      toast.success("Eltávolítva a kedvencek közül.");
+                    } else {
+                      const res = await addToFavorites(itemId);
+                      setIsFavorite(true);
+                      setFavoriteId(res.id);
+                      toast.success("Hozzáadva a kedvencekhez.");
+                    }
                   } catch (e) {
-                    alert("Nem sikerült módosítani a kedvencek listát.");
+                    toast.error("Nem sikerült módosítani a kedvencek listát.");
                     console.error(e);
                   }
                 }}
@@ -158,11 +170,11 @@ export default function MedicationDetailsScreen() {
                   onPress={async () => {
                     try {
                       await addMedicationToProfile(selectedProfileId, itemId);
-                      alert("Hozzáadva a profilhoz!");
+                      toast.success("Hozzáadva a profilhoz!");
                       setProfileHasMedication(true);
                       setSelectedProfileId(null);
                     } catch (err) {
-                      alert("Hiba történt a profilhoz adáskor.");
+                      toast.error("Hiba történt a profilhoz adáskor.");
                     }
                   }}
                 >
@@ -284,6 +296,7 @@ export default function MedicationDetailsScreen() {
           isLoggedIn={!!currentUser}
           userId={currentUser?.id}
           onSubmit={async ({ rating, positive, negative }) => {
+            console.log("➡️ onSubmit triggered");
             if (!rating || !currentUser?.id) return;
             setSubmitting(true);
             try {

@@ -8,12 +8,11 @@ export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [setMenuOpen] = useState(false);
 
   const navLinks = [
     { to: "/", label: "Főoldal" },
     { to: "/search", label: "Keresés" },
-    { to: "/statistics", label: "Statisztikák" },
     ...(user ? [{ to: "/user", label: "Profil" }] : []),
   ];
 

@@ -48,6 +48,7 @@ export default function ReviewSection({
   const filteredReviews = sortedReviews.filter((rev) => rev.userId !== userId);
 
   const handleSubmit = () => {
+      console.log("⬅️ handleSubmit", { rating, userId, ownReview });
     const payload = { rating, positive, negative, userId };
     if (ownReview) {
       updateReview(payload);
@@ -55,6 +56,8 @@ export default function ReviewSection({
       onSubmit(payload);
     }
   };
+
+  console.log("rendered ReviewSection", { isLoggedIn, userId, rating });
 
   return (
     <View style={styles.reviewSection}>

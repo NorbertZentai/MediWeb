@@ -69,6 +69,12 @@ export const getFavorites = async () => {
   return response.data;
 };
 
+export const removeFromFavorites = async (favoriteId) => {
+  console.log("favoriteId: ", favoriteId);
+  const response = await api.delete(`/api/favorites/${favoriteId}`);
+  return response.data;
+};
+
 // PROFILE ENTITIES
 
 export const getProfilesForUser = async () => {
