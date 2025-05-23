@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity } from "react-native";
 import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 import { updateProfile } from "features/profile/profile.api";
 
-export default function EditMedicationModal({ profile, onClose, onProfileUpdated }) {
+export default function EditProfileModal({ profile, onClose, onProfileUpdated }) {
   const [name, setName] = useState(profile.name || "");
   const [notes, setNotes] = useState(profile.notes || "");
 
@@ -26,34 +26,43 @@ export default function EditMedicationModal({ profile, onClose, onProfileUpdated
   };
 
   return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalBox}>
-        <Text style={styles.modalTitle}>Profil szerkesztése</Text>
+    <Modal
+      visible={true}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Profil szerkesztése</Text>
 
-        <Text style={styles.modalLabel}>Név</Text>
-        <TextInput
-          style={styles.modalInput}
-          value={name}
-          onChangeText={setName}
-        />
+            <Text style={styles.modalLabel}>Név</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={name}
+              onChangeText={setName}
+            />
 
-        <Text style={styles.modalLabel}>Megjegyzés</Text>
-        <TextInput
-          style={styles.modalInput}
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-        />
+            <Text style={styles.modalLabel}>Megjegyzés</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+            />
 
-        <View style={styles.modalActions}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Mégse</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSave}>
-            <Text style={styles.saveButton}>Mentés</Text>
-          </TouchableOpacity>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={onClose}>
+                <Text style={styles.cancelButton}>Mégse</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSave}>
+                <Text style={styles.saveButton}>Mentés</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 }

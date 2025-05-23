@@ -21,11 +21,11 @@ export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onD
         styles.profileCard,
         isSelected && styles.profileCardSelected,
       ]}
+      activeOpacity={0.8}
       onPress={onSelect}
     >
       <View style={styles.profileCardHeader}>
         <Text style={styles.profileCardTitle}>{profile.name}</Text>
-
         <View style={styles.profileCardActions}>
           <TouchableOpacity onPress={() => onEdit(profile)}>
             <FontAwesome5 name="edit" size={16} style={styles.icon} />

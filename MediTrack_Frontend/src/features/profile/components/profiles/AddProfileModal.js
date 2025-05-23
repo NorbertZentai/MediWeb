@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { toast } from "react-toastify";
 import { styles } from "../ProfilesTab.style";
 import { createProfile } from "features/profile/profile.api";
@@ -25,34 +25,41 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
   };
 
   return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalBox}>
-        <Text style={styles.modalTitle}>Új profil létrehozása</Text>
+    <Modal visible={true} transparent={true} animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <ScrollView contentContainerStyle={styles.modalContent}>
+            <Text style={styles.modalTitle}>Új profil létrehozása</Text>
 
-        <TextInput
-          style={styles.modalInput}
-          placeholder="Profil neve"
-          value={name}
-          onChangeText={setName}
-        />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Profil neve"
+              value={name}
+              onChangeText={setName}
+            />
 
-        <TextInput
-          style={styles.modalInput}
-          placeholder="Leírás (opcionális)"
-          value={description}
-          onChangeText={setDescription}
-        />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Leírás (opcionális)"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
+          </ScrollView>
 
-        <View style={styles.modalActions}>
-          <TouchableOpacity onPress={onClose}>
-            <Text style={styles.cancelButton}>Mégse</Text>
-          </TouchableOpacity>
+          <View style={styles.modalFooter}>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={onClose}>
+                <Text style={styles.cancelButton}>Mégse</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleSubmit}>
-            <Text style={styles.saveButton}>Mentés</Text>
-          </TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmit}>
+                <Text style={styles.saveButton}>Mentés</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 }

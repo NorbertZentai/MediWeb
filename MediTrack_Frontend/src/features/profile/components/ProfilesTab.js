@@ -1,141 +1,138 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Button } from 'react-native';
 import { toast } from 'react-toastify';
-
 import ProfileCard from './profiles/ProfileCard';
 import AddProfileModal from './profiles/AddProfileModal';
 import EditProfileModal from './profiles/EditProfileModal';
 import AssignMedicationModal from './profiles/AssignMedicationModal';
 import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
-import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
+import {
+  getProfilesForUser,
+  getMedicationsForProfile,
+  deleteProfile,
+  removeMedicationFromProfile,
+} from 'features/profile/profile.api';
 import { styles } from './ProfilesTab.style';
 
 export default function ProfilesTab() {
   const [profiles, setProfiles] = useState([]);
-  const [selectedProfileId, setSelectedProfileId] = useState(null);
+  const [openProfileIds, setOpenProfileIds] = useState([]);
+  const [profileMedications, setProfileMedications] = useState({});
+  const [activeProfileId, setActiveProfileId] = useState(null);
   const [isAddModalVisible, setAddModalVisible] = useState(false);
   const [isAssignModalVisible, setAssignModalVisible] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null);
   const [deletingProfile, setDeletingProfile] = useState(null);
-  const [medications, setMedications] = useState([]);
   const [medicationToDelete, setMedicationToDelete] = useState(null);
   const [medicationToEdit, setMedicationToEdit] = useState(null);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const data = await getProfilesForUser();
-        setProfiles(data);
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-        toast.error("Nem sikerült betölteni a profilokat.");
-      }
-    };
-    fetchProfiles();
+    getProfilesForUser()
+      .then(setProfiles)
+      .catch(() => toast.error("Nem sikerült betölteni a profilokat."));
   }, []);
 
-  useEffect(() => {
-    const fetchMedications = async () => {
-      if (!selectedProfileId) return;
-      try {
-        const data = await getMedicationsForProfile(selectedProfileId);
-        setMedications(data);
-      } catch (error) {
-        console.error("Gyógyszerek lekérése sikertelen:", error);
-        toast.error("Nem sikerült betölteni a gyógyszereket.");
+  const toggleProfile = async (profileId) => {
+    if (openProfileIds.includes(profileId)) {
+      setOpenProfileIds((prev) => prev.filter((id) => id !== profileId));
+    } else {
+      setOpenProfileIds((prev) => [...prev, profileId]);
+
+      if (!profileMedications[profileId]) {
+        try {
+          const meds = await getMedicationsForProfile(profileId);
+          setProfileMedications((prev) => ({ ...prev, [profileId]: meds }));
+        } catch {
+          toast.error("Nem sikerült betölteni a gyógyszereket.");
+        }
       }
-    };
-    fetchMedications();
-  }, [selectedProfileId]);
-
-  const handleProfileSelect = (id) => {
-    setSelectedProfileId(id);
-  };
-
-  const handleEditProfile = (profile) => {
-    setEditingProfile(profile);
-  };
-
-  const handleDeleteProfile = (profile) => {
-    setDeletingProfile(profile);
+    }
   };
 
   const confirmDeleteProfile = async () => {
     try {
       await deleteProfile(deletingProfile.id);
       setProfiles((prev) => prev.filter((p) => p.id !== deletingProfile.id));
-      toast.success("Profil törölve.");
+      setOpenProfileIds((prev) => prev.filter((id) => id !== deletingProfile.id));
       setDeletingProfile(null);
-      if (selectedProfileId === deletingProfile.id) {
-        setSelectedProfileId(null);
-        setMedications([]);
-      }
-    } catch (error) {
-      console.error("Törlési hiba:", error);
+      toast.success("Profil törölve.");
+    } catch {
       toast.error("Nem sikerült törölni a profilt.");
     }
   };
 
   const confirmDeleteMedication = async () => {
     try {
-      await removeMedicationFromProfile(selectedProfileId, medicationToDelete.medicationId);
-      setMedications((prev) =>
-        prev.filter((m) => m.medicationId !== medicationToDelete.medicationId)
-      );
+      await removeMedicationFromProfile(activeProfileId, medicationToDelete.medicationId);
+      setProfileMedications((prev) => ({
+        ...prev,
+        [activeProfileId]: prev[activeProfileId].filter(
+          (m) => m.medicationId !== medicationToDelete.medicationId
+        ),
+      }));
       toast.success("Gyógyszer törölve.");
       setMedicationToDelete(null);
-    } catch (e) {
-      console.error("Gyógyszer törlése sikertelen:", e);
+    } catch {
       toast.error("Nem sikerült törölni a gyógyszert.");
     }
   };
 
   return (
     <View style={styles.tabContent}>
-      <Button title="Új profil létrehozása" onPress={() => setAddModalVisible(true)} />
+      <TouchableOpacity style={styles.addProfileButton} onPress={() => setAddModalVisible(true)}>
+        <Text style={styles.addProfileButtonText}>+ ÚJ PROFIL</Text>
+      </TouchableOpacity>
 
-      {profiles.length === 0 && (
-        <Text style={styles.noProfilesText}>
-          Nincs még létrehozott profil.
-        </Text>
-      )}
-
-      <ScrollView>
+      <ScrollView contentContainerStyle={styles.profileListWrapper}>
         {profiles.map((profile) => (
-          <ProfileCard
-            key={profile.id}
-            profile={profile}
-            isSelected={selectedProfileId === profile.id}
-            onSelect={() => handleProfileSelect(profile.id)}
-            onEdit={() => handleEditProfile(profile)}
-            onDelete={() => handleDeleteProfile(profile)}
-          />
+          <View key={profile.id} style={{ width: '100%', alignItems: 'center' }}>
+            <ProfileCard
+              profile={profile}
+              isSelected={openProfileIds.includes(profile.id)}
+              onSelect={() => toggleProfile(profile.id)}
+              onEdit={() => setEditingProfile(profile)}
+              onDelete={() => setDeletingProfile(profile)}
+            />
+
+            {openProfileIds.includes(profile.id) && (
+              <View style={styles.medicationsWrapper}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionHeaderText}>Gyógyszerek:</Text>
+                  <TouchableOpacity
+                    style={styles.addMedicationButton}
+                    onPress={() => {
+                      setActiveProfileId(profile.id);
+                      setAssignModalVisible(true);
+                    }}
+                  >
+                    <Text style={styles.addMedicationButtonText}>➕ Hozzáadás</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {(profileMedications[profile.id]?.length ?? 0) === 0 ? (
+                  <Text style={styles.noMedicationsText}>Nincsenek gyógyszerek.</Text>
+                ) : (
+                  profileMedications[profile.id].map((med) => (
+                    <MedicationCard
+                      key={med.medicationId}
+                      medication={med}
+                      onEditNote={() => {
+                        setActiveProfileId(profile.id);
+                        setMedicationToEdit(med);
+                      }}
+                      onDelete={() => {
+                        setActiveProfileId(profile.id);
+                        setMedicationToDelete(med);
+                      }}
+                    />
+                  ))
+                )}
+              </View>
+            )}
+          </View>
         ))}
       </ScrollView>
-
-      {selectedProfileId && (
-        <>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderText}>Gyógyszerek ehhez a profilhoz:</Text>
-            <Button title="Hozzáadás" onPress={() => setAssignModalVisible(true)} />
-          </View>
-
-          {medications.length === 0 ? (
-            <Text style={styles.noMedicationsText}>Nincsenek gyógyszerek.</Text>
-          ) : (
-            medications.map((med) => (
-              <MedicationCard
-                key={med.medicationId}
-                medication={med}
-                onReminder={() => {}}
-                onEditNote={() => setMedicationToEdit(med)}
-                onDelete={() => setMedicationToDelete(med)}
-              />
-            ))
-          )}
-        </>
-      )}
 
       {isAddModalVisible && (
         <AddProfileModal
@@ -148,12 +145,15 @@ export default function ProfilesTab() {
         />
       )}
 
-      {isAssignModalVisible && selectedProfileId && (
+      {isAssignModalVisible && activeProfileId && (
         <AssignMedicationModal
-          profileId={selectedProfileId}
+          profileId={activeProfileId}
           onClose={() => setAssignModalVisible(false)}
           onAssigned={(newMed) => {
-            setMedications((prev) => [...prev, newMed]);
+            setProfileMedications((prev) => ({
+              ...prev,
+              [activeProfileId]: [...(prev[activeProfileId] ?? []), newMed],
+            }));
             toast.success("Gyógyszer hozzárendelve.");
             setAssignModalVisible(false);
           }}
@@ -176,20 +176,26 @@ export default function ProfilesTab() {
 
       {medicationToEdit && (
         <EditMedicationModal
-          profileId={selectedProfileId}
+          profileId={activeProfileId}
           medication={{ ...medicationToEdit, itemId: medicationToEdit.medicationId }}
           onClose={() => setMedicationToEdit(null)}
           onUpdated={(updatedMed) => {
-            setMedications((prev) =>
-              prev.map((m) => (m.medicationId === updatedMed.medicationId ? updatedMed : m))
-            );
+            setProfileMedications((prev) => ({
+              ...prev,
+              [activeProfileId]: prev[activeProfileId].map((m) =>
+                m.medicationId === updatedMed.medicationId ? updatedMed : m
+              ),
+            }));
             toast.success("Gyógyszer frissítve.");
             setMedicationToEdit(null);
           }}
-          onDeleted={(deletedItemId) => {
-            setMedications((prev) =>
-              prev.filter((m) => m.medicationId !== deletedItemId)
-            );
+          onDeleted={(deletedId) => {
+            setProfileMedications((prev) => ({
+              ...prev,
+              [activeProfileId]: prev[activeProfileId].filter(
+                (m) => m.medicationId !== deletedId
+              ),
+            }));
             toast.success("Gyógyszer törölve.");
             setMedicationToEdit(null);
           }}
@@ -200,11 +206,11 @@ export default function ProfilesTab() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" gyógyszert a profilból?
+              Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
             </Text>
             <View style={styles.modalActions}>
               <Button title="Mégse" onPress={() => setDeletingProfile(null)} />
-              <Button title="Törlés" onPress={confirmDeleteProfile} color="#d32f2f" />
+              <Button title="Törlés" color="#d32f2f" onPress={confirmDeleteProfile} />
             </View>
           </View>
         </View>
@@ -214,15 +220,11 @@ export default function ProfilesTab() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>
-              Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert a profilból?
+              Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert?
             </Text>
             <View style={styles.modalActions}>
               <Button title="Mégse" onPress={() => setMedicationToDelete(null)} />
-              <Button
-                title="Törlés"
-                onPress={confirmDeleteMedication}
-                color="#d32f2f"
-              />
+              <Button title="Törlés" color="#d32f2f" onPress={confirmDeleteMedication} />
             </View>
           </View>
         </View>

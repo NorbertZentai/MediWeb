@@ -3,50 +3,87 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   // --- Általános konténer ---
   tabContent: {
-    padding: 20,
-    backgroundColor: "#fff",
     flex: 1,
+    padding: 20,
+    backgroundColor: "#F3F4F6",
+  },
+  profileListWrapper: {
+    width: "100%",
+    alignItems: "center",
+    paddingBottom: 20,
+    gap: 12,
   },
 
+  // --- Általános szövegek ---
   noProfilesText: {
     color: "#9CA3AF",
     marginTop: 16,
     fontSize: 14,
     textAlign: "center",
   },
-
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-  },
-
-  sectionHeaderText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: "#111827",
-  },
-
   noMedicationsText: {
     color: "#6B7280",
     marginTop: 10,
     textAlign: "center",
     fontSize: 14,
+    fontStyle: "italic",
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  sectionHeaderText: {
+    fontWeight: "700",
+    fontSize: 16,
+    color: "#111827",
   },
 
-  // --- Profilkártya (ProfileCard) ---
-  profileCard: {
-    backgroundColor: "#F3F4F6",
-    padding: 16,
-    marginBottom: 12,
+  // --- Gombok ---
+  addProfileButton: {
+    backgroundColor: "#10B981",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: 24,
+    boxShadow: "0 1px 4px rgba(0, 0, 0, 0.15)",
+  },
+  addProfileButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  addMedicationButton: {
+    backgroundColor: "#10B981",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addMedicationButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
+  // --- Profilkártya ---
+  profileCard: {
+    width: "100%",
+    maxWidth: 680,
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
   profileCardSelected: {
-    borderColor: "#10B981",
     backgroundColor: "#ECFDF5",
+    borderColor: "#10B981",
   },
   profileCardHeader: {
     flexDirection: "row",
@@ -55,8 +92,8 @@ export const styles = StyleSheet.create({
     marginBottom: 6,
   },
   profileCardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#111827",
   },
   profileCardActions: {
@@ -66,169 +103,277 @@ export const styles = StyleSheet.create({
   profileCardDescription: {
     fontSize: 14,
     color: "#6B7280",
+    marginTop: 4,
   },
-  profileCard: {
-    backgroundColor: "#F3F4F6",
+
+  // --- Gyógyszerkártya ---
+  medicationCard: {
+    width: "100%",
+    maxWidth: 680,
+    backgroundColor: "#ffffff",
     padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
+    marginBottom: 16,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+    elevation: 1,
   },
-  profileCardSelected: {
-    borderColor: "#10B981",
-    backgroundColor: "#ECFDF5",
-  },
-  profileCardHeader: {
+  medicationHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  profileCardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+  medicationName: {
+    fontSize: 17,
+    fontWeight: "700",
     color: "#111827",
   },
-  profileCardActions: {
+  medicationActions: {
     flexDirection: "row",
     gap: 12,
   },
-  profileCardDescription: {
+  medicationNote: {
     fontSize: 14,
     color: "#6B7280",
+    marginTop: 4,
+    lineHeight: 20,
   },
+  medicationsWrapper: {
+    width: '100%',
+    maxWidth: 680,
+    backgroundColor: '#f9fafb',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+
+  // --- Ikon gombok ---
   icon: {
     marginLeft: 8,
-    color: "#4B5563",
+    color: "#6B7280",
   },
 
-  // --- Modális ablakok (Add/Edit Modal) ---
+  // --- Modális ablak ---
   modalOverlay: {
-    position: "absolute",
+    position: "fixed",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 9999,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 999,
   },
-  modalBox: {
-    width: 320,
+  modalContainer: {
+    width: "950%",
+    maxWidth: 420,
     backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.3)",
-    elevation: 5,
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 0,
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+    maxHeight: "90%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  editMedicationModalContainer: {
+    width: "95%",
+    maxWidth: 720,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingHorizontal: 0,
+    paddingTop: 24,
+    paddingBottom: 0,
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+    maxHeight: "90%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  modalContent: {
+    paddingBottom: 24,
+    paddingLeft: 24,
+    paddingRight:16,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 12,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
     color: "#111827",
+    textAlign: "center",
   },
   modalInput: {
     borderWidth: 1,
     borderColor: "#D1D5DB",
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 12,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    backgroundColor: "#F9FAFB",
     width: "100%",
+    marginBottom: 12,
+  },
+  sectionHeaderTextInModal: {
+    fontWeight: "700",
+    fontSize: 16,
+    color: "#111827",
+    marginBottom: 10,
   },
   modalActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 10,
-    gap: 16,
+    marginTop: 20,
+    gap: 12,
+  },
+  modalFooterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  modalFooterLeft: {
+    flexShrink: 0,
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+  modalFooterRight: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
+  deleteButton: {
+    backgroundColor: "#d32f2f",
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+    textTransform: "uppercase",
   },
   cancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    color: "#374151",
+    fontWeight: "600",
     fontSize: 14,
-    color: "#6B7280",
-    marginRight: 16,
   },
   saveButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    backgroundColor: "#10B981",
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
-    color: "#10B981",
-    fontWeight: "bold",
   },
   disabledButton: {
     opacity: 0.4,
   },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 10,
-    gap: 16,
-  },
-  deleteButtonContainer: {
-    marginTop: 20,
+  modalFooter: {
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
   },
 
-  // --- Ikon gombok (pl. szerkesztés, törlés, csengő) ---
-  icon: {
-    marginLeft: 8,
-    color: "#4B5563",
-  },
-
-  // --- Napválasztó gombok (EditMedicationModal) ---
-  dayButton: {
-    padding: 6,
-    margin: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
-  },
-  dayButtonSelected: {
-    borderColor: "#10B981",
-    backgroundColor: "#D1FAE5",
-  },
-
-  // --- Emlékeztető blokk (EditMedicationModal) ---
+  // --- Emlékeztető rész ---
   reminderGroup: {
-    marginBottom: 16,
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-  deleteReminderText: {
-    color: "#d32f2f",
-    marginTop: 6,
-  },
-  addReminderButton: {
-    color: "#10B981",
-    fontWeight: "600",
-    marginTop: 6,
-  },
-  noRemindersText: {
-    color: "#9CA3AF",
-    fontStyle: "italic",
-    marginBottom: 10,
-  },
-  label: {
-    marginBottom: 4,
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
+  reminderRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    gap: 16,
   },
   dayList: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginBottom: 8,
   },
-  deleteButtonContainer: {
-    marginTop: 20,
+  dayListInline: {
+    flexDirection: "row",
+    gap: 6,
+    flexWrap: "nowrap",
+    marginBottom: 12,
+  },
+  dayButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 6,
+    marginBottom: 6,
+    backgroundColor: "#fff",
+  },
+  dayButtonSelected: {
+    backgroundColor: "#10B981",
+    borderColor: "#10B981",
+  },
+  dayButtonText: {
+    color: "#374151",
+    fontWeight: "500",
+  },
+  dayButtonTextSelected: {
+    color: "#fff",
+  },
+  reminderTimes: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  reminderTimesInline: {
+    flexDirection: "row",
+    gap: 10,
+    flexWrap: "nowrap",
+  },
+  timeInput: {
+    width: 80,
+    padding: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#fff",
+  },
+  deleteReminderText: {
+    color: "#d32f2f",
+    marginTop: 6,
+    fontWeight: "500",
+  },
+  addReminderButton: {
+    color: "#10B981",
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
   },
 
-  // --- Gyógyszer neve címként (EditMedicationModal) ---
+  // --- Listaelemek ---
   medicationTitle: {
     fontWeight: "bold",
-    fontSize: 15,
+    fontSize: 16,
     marginBottom: 10,
     color: "#111827",
+    textAlign: "center",
   },
-
-  // --- Gyógyszer lista elemek (AssignMedicationModal) ---
   medicationListItem: {
     padding: 10,
     backgroundColor: "#ffffff",
@@ -253,35 +398,5 @@ export const styles = StyleSheet.create({
   },
   loadingIndicator: {
     marginVertical: 10,
-  },
-
-  // --- Gyógyszerkártya (MedicationCard) ---
-  medicationCard: {
-    backgroundColor: "#F9FAFB",
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginBottom: 12,
-  },
-  medicationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  medicationName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  medicationActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  medicationNote: {
-    fontSize: 14,
-    color: "#4B5563",
-    lineHeight: 20,
   },
 });
