@@ -4,15 +4,9 @@ import { toast } from 'react-toastify';
 import ProfileCard from './profiles/ProfileCard';
 import AddProfileModal from './profiles/AddProfileModal';
 import EditProfileModal from './profiles/EditProfileModal';
-import AssignMedicationModal from './profiles/AssignMedicationModal';
 import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
-import {
-  getProfilesForUser,
-  getMedicationsForProfile,
-  deleteProfile,
-  removeMedicationFromProfile,
-} from 'features/profile/profile.api';
+import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
 import { styles } from './ProfilesTab.style';
 
 export default function ProfilesTab() {
@@ -21,7 +15,6 @@ export default function ProfilesTab() {
   const [profileMedications, setProfileMedications] = useState({});
   const [activeProfileId, setActiveProfileId] = useState(null);
   const [isAddModalVisible, setAddModalVisible] = useState(false);
-  const [isAssignModalVisible, setAssignModalVisible] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null);
   const [deletingProfile, setDeletingProfile] = useState(null);
   const [medicationToDelete, setMedicationToDelete] = useState(null);
@@ -99,15 +92,6 @@ export default function ProfilesTab() {
               <View style={styles.medicationsWrapper}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionHeaderText}>Gyógyszerek:</Text>
-                  <TouchableOpacity
-                    style={styles.addMedicationButton}
-                    onPress={() => {
-                      setActiveProfileId(profile.id);
-                      setAssignModalVisible(true);
-                    }}
-                  >
-                    <Text style={styles.addMedicationButtonText}>➕ Hozzáadás</Text>
-                  </TouchableOpacity>
                 </View>
 
                 {(profileMedications[profile.id]?.length ?? 0) === 0 ? (
@@ -141,21 +125,6 @@ export default function ProfilesTab() {
             setProfiles((prev) => [...prev, newProfile]);
             toast.success("Profil sikeresen létrehozva.");
             setAddModalVisible(false);
-          }}
-        />
-      )}
-
-      {isAssignModalVisible && activeProfileId && (
-        <AssignMedicationModal
-          profileId={activeProfileId}
-          onClose={() => setAssignModalVisible(false)}
-          onAssigned={(newMed) => {
-            setProfileMedications((prev) => ({
-              ...prev,
-              [activeProfileId]: [...(prev[activeProfileId] ?? []), newMed],
-            }));
-            toast.success("Gyógyszer hozzárendelve.");
-            setAssignModalVisible(false);
           }}
         />
       )}
