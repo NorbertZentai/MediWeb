@@ -107,12 +107,3 @@ export const updateMedicationForProfile = async (profileId, medicationId, data) 
   const response = await api.put(`/api/profiles/${profileId}/medications/${medicationId}`, data);
   return response.data;
 };
-
-// SEARCH
-
-export const searchMedicationsByName = async (query) => {
-  const response = await api.get(
-    `/api/medications/search?query=${encodeURIComponent(query)}`
-  );
-  return response.data;
-};
