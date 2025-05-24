@@ -8,6 +8,7 @@ export const styles = StyleSheet.create ({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    minHeight: '85vh',
   },
   card: {
     width: '100%',
