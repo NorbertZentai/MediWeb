@@ -82,3 +82,13 @@ CREATE TABLE IF NOT EXISTS public.reviews (
     created_at TIMESTAMP NOT NULL,
     CONSTRAINT unique_user_review UNIQUE (user_id, item_id)
 );
+
+CREATE TABLE IF NOT EXISTS public.medication_intake_log (
+    id SERIAL PRIMARY KEY,
+    profile_medication_id INTEGER NOT NULL REFERENCES public.profile_medications(id) ON DELETE CASCADE,
+    intake_date DATE NOT NULL,
+    intake_time TIME NOT NULL,
+    taken BOOLEAN NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (profile_medication_id, intake_date, intake_time)
+);
