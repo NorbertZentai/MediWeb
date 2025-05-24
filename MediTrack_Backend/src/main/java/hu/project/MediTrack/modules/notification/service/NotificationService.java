@@ -1,7 +1,5 @@
 package hu.project.MediTrack.modules.notification.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediTrack.modules.profile.dto.MultiDayReminderGroup;
 import hu.project.MediTrack.modules.profile.entity.ProfileMedication;
 import hu.project.MediTrack.modules.profile.repository.ProfileMedicationRepository;
@@ -16,6 +14,8 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static hu.project.MediTrack.modules.notification.utils.ReminderUtils.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,6 @@ public class NotificationService {
 
     private final ProfileMedicationRepository profileMedicationRepository;
     private final JavaMailSender mailSender;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
     @Scheduled(cron = "0 * * * * *")
@@ -35,7 +34,7 @@ public class NotificationService {
 
         for (ProfileMedication med : allProfileMedications) {
             try {
-                List<MultiDayReminderGroup> groups = objectMapper.readValue(med.getReminders(), new TypeReference<>() {});
+                List<MultiDayReminderGroup> groups = parseReminders(med.getReminders());
                 if (groups.isEmpty()) continue;
 
                 for (MultiDayReminderGroup group : groups) {
@@ -56,18 +55,6 @@ public class NotificationService {
                 log.error("Hiba történt a reminder feldolgozása során", e);
             }
         }
-    }
-
-    private String getDayCode(DayOfWeek day) {
-        return switch (day) {
-            case MONDAY -> "H";
-            case TUESDAY -> "K";
-            case WEDNESDAY -> "Sze";
-            case THURSDAY -> "Cs";
-            case FRIDAY -> "P";
-            case SATURDAY -> "Szo";
-            case SUNDAY -> "V";
-        };
     }
 
     private void sendEmail(String to, String medicationName) {

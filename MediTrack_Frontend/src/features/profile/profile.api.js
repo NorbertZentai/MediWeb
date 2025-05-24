@@ -113,3 +113,14 @@ export const updateMedicationForProfile = async (profileId, medicationId, data) 
   const response = await api.put(`/api/profiles/${profileId}/medications/${medicationId}`, data);
   return response.data;
 };
+
+// INTAKE for Profile
+
+export const getTodaysMedications = async (profileId) => {
+  const res = await api.get(`/api/intake/today/${profileId}`);
+  return res.data;
+};
+
+export const submitIntake = async ({ profileMedicationId, time, taken }) => {
+  return api.post("/api/intake", { profileMedicationId, time, taken });
+};

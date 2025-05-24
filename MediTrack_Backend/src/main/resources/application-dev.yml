@@ -29,6 +29,7 @@ spring:
     hibernate:
       ddl-auto: update
     properties:
+      hibernate.jdbc.lob.non_contextual_creation: true
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true

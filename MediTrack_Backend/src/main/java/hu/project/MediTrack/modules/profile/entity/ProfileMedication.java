@@ -35,7 +35,7 @@ public class ProfileMedication {
 
     private String notes;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "TEXT")
     private String reminders;
 
     @Builder.Default

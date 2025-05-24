@@ -5,6 +5,7 @@ import { styles } from "../ProfileScreen.style";
 const tabs = [
   { key: "profiles", label: "Profilok" },
   { key: "favorites", label: "Kedvencek" },
+  { key: "intake", label: "Bevitel" },
   { key: "settings", label: "Beállítások" },
 ];
 
