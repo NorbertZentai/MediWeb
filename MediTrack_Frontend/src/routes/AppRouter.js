@@ -17,7 +17,6 @@ import { AuthContext } from "contexts/AuthContext";
 export default function AppRouter() {
   const { loading } = useContext(AuthContext);
 
-  // Betöltés alatti spinner
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -78,6 +77,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
+    height: "85vh",
   },
   errorText: {
     fontSize: 18,

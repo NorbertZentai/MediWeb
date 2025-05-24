@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { AuthContext } from "contexts/AuthContext";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { styles } from "./Navbar.styles";
@@ -7,8 +7,8 @@ import { styles } from "./Navbar.styles";
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const [setMenuOpen] = useState(false);
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
     { to: "/", label: "Főoldal" },
@@ -26,61 +26,61 @@ export default function Navbar() {
     handleNav("/");
   };
 
-  const getLinkStyle = (to, extraStyle = {}) => {
-    const isActive = pathname === to;
-    return {
-      ...styles.navLink,
-      ...(isActive ? styles.activeLink : {}),
-      ...extraStyle,
-    };
-  };
-
   return (
     <div style={styles.navbar}>
-      <Link to="/" style={styles.logo} onClick={() => handleNav("/")}>
+      <NavLink to="/" style={styles.logo} onClick={() => handleNav("/")}>
         MediTrack Web
-      </Link>
+      </NavLink>
 
       <div style={styles.menu}>
         {navLinks.map(({ to, label }) => (
-          <Link
+          <NavLink
             key={to}
             to={to}
-            style={getLinkStyle(to)}
+            style={({ isActive }) => ({
+              ...styles.navLink,
+              ...(isActive ? styles.activeLink : {}),
+            })}
             onClick={() => handleNav(to)}
           >
             {label}
-          </Link>
+          </NavLink>
         ))}
 
         {!user ? (
           <>
-            <Link
+            <NavLink
               to="/login"
-              style={getLinkStyle("/login")}
+              style={({ isActive }) => ({
+                ...styles.navLink,
+                ...(isActive ? styles.activeLink : {}),
+              })}
               onClick={() => handleNav("/login")}
             >
               Bejelentkezés
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/register"
-              style={getLinkStyle("/register")}
+              style={({ isActive }) => ({
+                ...styles.navLink,
+                ...(isActive ? styles.activeLink : {}),
+              })}
               onClick={() => handleNav("/register")}
             >
               Regisztráció
-            </Link>
+            </NavLink>
           </>
         ) : (
           <button
             onClick={handleLogout}
-            style={getLinkStyle(null, styles.logoutLink)}
+            style={{ ...styles.navLink, ...styles.logoutLink }}
           >
             Kijelentkezés
           </button>
         )}
       </div>
 
-      <button style={styles.hamburger} onClick={() => setMenuOpen((o) => !o)}>
+      <button style={styles.hamburger} onClick={() => setMenuOpen((prev) => !prev)}>
         <FontAwesome5 name="bars" size={20} />
       </button>
     </div>
