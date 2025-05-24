@@ -40,29 +40,33 @@ public class MedicationDetailsMapper {
         }
     }
 
-    public static MedicationDetailsResponse toDto(Medication e) throws JsonProcessingException {
-        return MedicationDetailsResponse.builder()
-                .name(e.getName())
-                .imageUrl(e.getImageUrl())
-                .registrationNumber(e.getRegistrationNumber())
-                .substance(e.getSubstance())
-                .atcCode(e.getAtcCode())
-                .company(e.getCompany())
-                .legalBasis(e.getLegalBasis())
-                .status(e.getStatus())
-                .authorizationDate(e.getAuthorizationDate())
-                .narcotic(e.getNarcotic())
-                .patientInfoUrl(e.getPatientInfoUrl())
-                .smpcUrl(e.getSmpcUrl())
-                .labelUrl(e.getLabelUrl())
-                .containsLactose(e.isContainsLactose())
-                .containsGluten(e.isContainsGluten())
-                .containsBenzoate(e.isContainsBenzoate())
-                .packages(mapper.readValue(e.getPackagesJson(), new TypeReference<>() {}))
-                .substitutes(mapper.readValue(e.getSubstitutesJson(), new TypeReference<>() {}))
-                .finalSamples(mapper.readValue(e.getFinalSamplesJson(), new TypeReference<>() {}))
-                .defectiveForms(mapper.readValue(e.getDefectiveFormsJson(), new TypeReference<>() {}))
-                .hazipatikaInfo(mapper.readValue(e.getHazipatikaJson(), new TypeReference<>() {}))
-                .build();
+    public static MedicationDetailsResponse toDto(Medication e) {
+        try {
+            return MedicationDetailsResponse.builder()
+                    .name(e.getName())
+                    .imageUrl(e.getImageUrl())
+                    .registrationNumber(e.getRegistrationNumber())
+                    .substance(e.getSubstance())
+                    .atcCode(e.getAtcCode())
+                    .company(e.getCompany())
+                    .legalBasis(e.getLegalBasis())
+                    .status(e.getStatus())
+                    .authorizationDate(e.getAuthorizationDate())
+                    .narcotic(e.getNarcotic())
+                    .patientInfoUrl(e.getPatientInfoUrl())
+                    .smpcUrl(e.getSmpcUrl())
+                    .labelUrl(e.getLabelUrl())
+                    .containsLactose(e.isContainsLactose())
+                    .containsGluten(e.isContainsGluten())
+                    .containsBenzoate(e.isContainsBenzoate())
+                    .packages(mapper.readValue(e.getPackagesJson(), new TypeReference<>() {}))
+                    .substitutes(mapper.readValue(e.getSubstitutesJson(), new TypeReference<>() {}))
+                    .finalSamples(mapper.readValue(e.getFinalSamplesJson(), new TypeReference<>() {}))
+                    .defectiveForms(mapper.readValue(e.getDefectiveFormsJson(), new TypeReference<>() {}))
+                    .hazipatikaInfo(mapper.readValue(e.getHazipatikaJson(), new TypeReference<>() {}))
+                    .build();
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException("Hiba Entity-ből DTO konvertálás közben", ex);
+        }
     }
 }

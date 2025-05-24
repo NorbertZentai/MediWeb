@@ -59,3 +59,9 @@ server:
         secure: true
         http-only: true
         same-site: Strict
+
+push:
+  vapid:
+    public-key: "BIL6J5Na_R5qzpqEENhz7bHHQ47M9pyiC9SkPHgAqIQQxhvvUL_nQDsGUehKy5Tt0VDnIfj_1hCdu3W2soV2MkU"
+    private-key: "zhKoIjhZ9bEXWZV06fEaMyR7V47Fo1UzKyhdgxE-Z5U"
+    subject: "mailto:admin@localhost"

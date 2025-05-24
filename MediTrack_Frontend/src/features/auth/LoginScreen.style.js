@@ -1,31 +1,32 @@
-import { StyleSheet } from "react-native";
+import { theme } from 'styles/theme';
 
-export const styles = StyleSheet.create({
+export const styles = {
   container: {
     flex: 1,
-    backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    minHeight: '85vh',
   },
-  form: {
+  card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderRadius: 10,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
     alignItems: 'center',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#2E7D32',
     marginBottom: 20,
+    textAlign: 'center',
   },
   input: {
     width: '100%',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
@@ -54,6 +55,5 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     textDecorationLine: 'underline',
-    transition: 'color 0.3s',
   }
-});
+};

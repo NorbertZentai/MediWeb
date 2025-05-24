@@ -3,6 +3,8 @@ package hu.project.MediTrack.modules.user.service;
 import hu.project.MediTrack.modules.user.entity.User;
 import hu.project.MediTrack.modules.user.enums.UserRole;
 import hu.project.MediTrack.modules.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,8 +61,11 @@ public class AuthService {
         }
     }
 
-    public User getCurrentUser(String email) {
-        return userRepository.findByName(email)
-                .orElseThrow(() -> new RuntimeException("Error: User not found."));
+    public User getCurrentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nincs bejelentkezve.");
+        }
+        return (User) session.getAttribute("user");
     }
 }

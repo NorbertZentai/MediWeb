@@ -1,40 +1,42 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from 'contexts/AuthContext';
 import { styles } from './LoginScreen.style';
+import { toast } from 'react-toastify';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
   const navigate = useNavigate();
+  const from = location.state?.from?.pathname || "/";
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Hiba', 'Kérlek, töltsd ki az összes mezőt.');
+      toast.error('Kérlek, töltsd ki az összes mezőt.');
       return;
     }
 
     try {
       await login({ email, password });
-      Alert.alert('Siker', 'Sikeresen bejelentkeztél.');
+      toast.success('Sikeresen bejelentkeztél.');
       navigate(from, { replace: true });
     } catch (error) {
-      Alert.alert('Hiba', error);
+      const errorMsg = error?.response?.data?.message || 'Hibás bejelentkezés.';
+      toast.error(errorMsg);
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.form}>
+      <View style={styles.card}>
         <Text style={styles.title}>Bejelentkezés</Text>
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder="Felhasználónév"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"

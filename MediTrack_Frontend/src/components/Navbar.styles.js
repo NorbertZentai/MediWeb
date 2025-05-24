@@ -1,14 +1,15 @@
-import { StyleSheet } from "react-native";
-
 export const styles = {
   navbar: {
     width: "100%",
     height: 60,
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: "0 24px",
     backgroundColor: "#fff",
     boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+    overflow: "hidden",
+    boxSizing: "border-box",
   },
   logo: {
     fontSize: 20,
@@ -20,11 +21,12 @@ export const styles = {
   menu: {
     display: "flex",
     alignItems: "center",
-    marginLeft: "auto",
+    gap: "12px",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
   },
   navLink: {
     display: "inline-block",
-    margin: "0 12px",
     padding: "6px 10px",
     fontSize: 14,
     fontWeight: "500",
@@ -44,7 +46,6 @@ export const styles = {
     border: "none",
     cursor: "pointer",
     padding: "6px 10px",
-    margin: "0 12px",
     fontSize: 14,
     fontWeight: "500",
     borderRadius: 4,
@@ -53,5 +54,6 @@ export const styles = {
     background: "none",
     border: "none",
     cursor: "pointer",
+    display: "none",
   },
 };

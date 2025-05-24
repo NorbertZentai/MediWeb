@@ -1,9 +1,9 @@
 import { StyleSheet } from "react-native";
+import { theme } from 'styles/theme';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   form: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     padding: 20,
     borderRadius: 10,
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   },
   input: {
     width: '100%',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     marginHorizontal: 4,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E0E0E0',

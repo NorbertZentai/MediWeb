@@ -61,7 +61,9 @@ public class AuthController {
     public ResponseEntity<UserDTO> getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
-
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
         return ResponseEntity.ok(UserDTO.from(user));
     }
 }
