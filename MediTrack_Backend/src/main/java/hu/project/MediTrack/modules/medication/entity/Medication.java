@@ -55,19 +55,19 @@ public class Medication {
     private boolean containsGluten;
     private boolean containsBenzoate;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String packagesJson;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String substitutesJson;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String finalSamplesJson;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String defectiveFormsJson;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String hazipatikaJson;
 
     @Column(length = 100)

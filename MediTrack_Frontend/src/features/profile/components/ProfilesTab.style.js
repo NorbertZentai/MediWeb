@@ -465,4 +465,121 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#111827",
   },
+
+  // --- Intake Tab ---
+
+  intakeTabContent: {
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    flexGrow: 1,
+  },
+  intakeHeaderText: {
+    fontWeight: "700",
+    fontSize: 18,
+    color: "#111827",
+    marginBottom: 16,
+  },
+
+  intakeCard: {
+    width: "100%",
+    maxWidth: 680,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 12,
+    alignSelf: "center",
+    border: "1px solid #E5E7EB",
+    boxShadow: "0px 3px 8px rgba(0, 0, 0, 0.06)",
+  },
+
+  intakeCardTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 20,
+    color: "#1F2937",
+    textAlign: "center",
+  },
+
+  intakeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: "#F9FAFB",
+    marginBottom: 8,
+  },
+
+  intakeTime: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1F2937",
+    width: 60,
+  },
+
+  takenText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#10B981",
+    flex: 1,
+  },
+
+  notTakenText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#EF4444",
+    flex: 1,
+  },
+
+  intakeButton: {
+    backgroundColor: "#10B981",
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+  },
+
+  intakeButtonText: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+
+  intakeButtonProfile: {
+    minWidth: 80,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    backgroundColor: "#F9FAFB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    transitionDuration: "150ms",
+  },
+
+  intakeButtonProfileSelected: {
+    backgroundColor: "#10B981",
+    borderColor: "#10B981",
+  },
+
+  intakeButtonTextProfile: {
+    color: "#374151",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+
+  intakeButtonTextProfileSelected: {
+    color: "#fff",
+  },
 });
