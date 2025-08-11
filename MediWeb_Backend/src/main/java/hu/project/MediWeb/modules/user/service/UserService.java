@@ -40,7 +40,7 @@ public class UserService {
 
     @Transactional
     public Optional<User> findUserByEmail(String email) {
-        return userRepository.findByName(email);
+        return userRepository.findByEmail(email);
     }
 
     @Transactional
