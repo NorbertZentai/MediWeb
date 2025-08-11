@@ -1,21 +1,4 @@
-# Multi-stage build for production
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
-COPY . .
-
-# Build for production
-RUN npm run build || npm run web:build || echo "Build command not available, using start"
-
-# Production stage
+# Simple single-stage build for Expo
 FROM node:18-alpine
 
 WORKDIR /app
@@ -23,15 +6,18 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies
+RUN npm install
 
-# Copy built application
-COPY --from=builder /app .
+# Copy source code
+COPY . .
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
+
+# Change ownership of app directory
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
@@ -40,8 +26,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
-
-CMD ["npm", "start"]
+# Use the existing start script
+CMD ["npm", "run", "web"]
