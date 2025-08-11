@@ -66,7 +66,8 @@ public class AuthService {
             org.springframework.security.core.userdetails.User userDetails =
                     (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
 
-            return userRepository.findByName(userDetails.getUsername())
+            // Use email instead of name since CustomUserDetailsService returns email as username
+            return userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("User not found"));
         } catch (Exception ex) {
             System.err.println("❌ Login failed: " + ex.getMessage());
