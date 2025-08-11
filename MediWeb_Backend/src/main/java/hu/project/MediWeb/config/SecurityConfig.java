@@ -30,9 +30,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/api/**", "/api/medication/**", "/api/intake/**", "/api/search/**").permitAll()
+                        .requestMatchers("/auth/**", "/api/**", "/api/medication/**", "/api/intake/**", "/api/search/**", "/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/review/**").authenticated()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(logout -> logout
