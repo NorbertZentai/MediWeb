@@ -1,0 +1,57 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: meditrack-database
+    env: docker
+    plan: free
+    region: frankfurt
+    
+  # Spring Boot Backend
+  - type: web
+    name: meditrack-backend
+    env: docker
+    plan: free
+    region: frankfurt
+    buildCommand: ""
+    startCommand: ""
+    dockerfilePath: ./MediWeb_Backend/Dockerfile
+    dockerContext: ./MediWeb_Backend
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: meditrack-database
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: meditrack-database
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: meditrack-database
+          property: password
+      - key: GOOGLE_API_KEY
+        value: ""  # Add your Google API key
+      - key: GOOGLE_CX
+        value: ""  # Add your Google Custom Search Engine ID
+    domains:
+      - meditrack-api.onrender.com
+
+  # React/Expo Frontend
+  - type: web
+    name: meditrack-frontend
+    env: docker
+    plan: free
+    region: frankfurt
+    buildCommand: ""
+    startCommand: ""
+    dockerfilePath: ./MediWeb_Frontend/Dockerfile
+    dockerContext: ./MediWeb_Frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REACT_APP_API_URL
+        value: https://meditrack-api.onrender.com
+    domains:
+      - meditrack-app.onrender.com
