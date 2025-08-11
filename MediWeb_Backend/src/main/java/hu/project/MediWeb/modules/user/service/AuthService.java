@@ -29,17 +29,30 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public User register(User user) {
+        System.out.println("🚀 Registration attempt for email: " + user.getEmail());
+        
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            System.out.println("❌ Email already exists: " + user.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Email is already in use!");
         }
 
+        // Check if name is unique too
+        if (userRepository.findByName(user.getName()).isPresent()) {
+            System.out.println("❌ Name already exists: " + user.getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Name is already in use!");
+        }
+
+        System.out.println("✅ Email and name are unique, proceeding with registration");
+        
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(UserRole.USER);
         user.setRegistration_date(java.time.LocalDateTime.now());
         user.setLast_login(java.time.LocalDateTime.now());
         user.setIs_active(true);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        System.out.println("✅ User registered successfully with ID: " + savedUser.getId());
+        return savedUser;
     }
 
     public User login(String username, String password) {
