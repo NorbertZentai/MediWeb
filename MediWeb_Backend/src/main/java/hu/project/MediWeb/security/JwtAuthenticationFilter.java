@@ -1,6 +1,5 @@
 package hu.project.MediWeb.security;
 
-import hu.project.MediWeb.modules.user.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
