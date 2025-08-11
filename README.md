@@ -2,6 +2,8 @@
 
 Egészségügyi gyógyszerszedési szokások (saját és családi) követésére készült webes alkalmazás. A projekt egy monorepo: Spring Boot alapú backend és Expo/React Native (web) frontend, Postgres adatbázissal.
 
+> Updated: 2025-08-11 - Database migration fixes deployed
+
 ## Könyvtárstruktúra
 
 - `MediWeb_Backend/` – Spring Boot 3 (Java 17, Maven Wrapper), PostgreSQL
