@@ -4,7 +4,7 @@ services:
   # DB service
   db:
     image: postgres:15
-    container_name: meditrack_db
+    container_name: mediweb_db
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -18,8 +18,8 @@ services:
   # BE service 
   backend:
     build:
-      context: ./MediTrack_Backend
-    container_name: meditrack_backend
+      context: ./MediWeb_Backend
+    container_name: mediweb_backend
     depends_on:
       - db
     environment:
@@ -32,18 +32,18 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./MediTrack_Backend:/app
+      - ./MediWeb_Backend:/app
     working_dir: /app
     command: ./mvnw spring-boot:run
 
   # FE service
   frontend:
     build:
-      context: ./MediTrack_Frontend
-    container_name: meditrack_frontend
+      context: ./MediWeb_Frontend
+    container_name: mediweb_frontend
     working_dir: /app
     volumes:
-      - ./MediTrack_Frontend:/app
+      - ./MediWeb_Frontend:/app
     ports:
       - "3000:3000"
     environment:
