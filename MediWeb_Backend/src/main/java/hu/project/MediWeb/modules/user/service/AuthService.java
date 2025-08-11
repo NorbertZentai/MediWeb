@@ -29,7 +29,7 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public User register(User user) {
-        if (userRepository.findByName(user.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Email is already in use!");
         }
 
