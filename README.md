@@ -1,11 +1,11 @@
-# MediTrack
+# MediWeb
 
 Egészségügyi gyógyszerszedési szokások (saját és családi) követésére készült webes alkalmazás. A projekt egy monorepo: Spring Boot alapú backend és Expo/React Native (web) frontend, Postgres adatbázissal.
 
 ## Könyvtárstruktúra
 
-- `MediTrack_Backend/` – Spring Boot 3 (Java 17, Maven Wrapper), PostgreSQL
-- `MediTrack_Frontend/` – Expo + React Native Web (Node.js, npm)
+- `MediWeb_Backend/` – Spring Boot 3 (Java 17, Maven Wrapper), PostgreSQL
+- `MediWeb_Frontend/` – Expo + React Native Web (Node.js, npm)
 - `docker-compose.dev.yml` – fejlesztői környezet (csak DB)
 - `docker-compose.prod.yml` – produkciós stack (DB + backend + frontend)
 - `.env` – produkciós compose-hoz szükséges környezeti változók
@@ -22,15 +22,15 @@ Egészségügyi gyógyszerszedési szokások (saját és családi) követésére
 A `docker-compose.prod.yml` ezeket várja a gyökérben lévő `.env` fájlban:
 
 ```
-POSTGRES_DB=meditrack
+POSTGRES_DB=mediweb
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/meditrack
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mediweb
 GOOGLE_API_KEY=<sajat_google_api_kulcs>
 GOOGLE_CX=<sajat_google_cx>
 ```
 
-Megjegyzés: fejlesztői módban a frontend a `http://localhost:8080` címre hív (lásd `MediTrack_Frontend/src/api/config.js`).
+Megjegyzés: fejlesztői módban a frontend a `http://localhost:8080` címre hív (lásd `MediWeb_Frontend/src/api/config.js`).
 
 ## Fejlesztői futtatás (ajánlott)
 
@@ -43,7 +43,7 @@ docker compose -f docker-compose.dev.yml up -d
 2) Backend (Spring Boot, dev profil):
 
 ```
-./MediTrack_Backend/mvnw spring-boot:run
+./MediWeb_Backend/mvnw spring-boot:run
 ```
 
 Alapértelmezett port: 8080
@@ -51,7 +51,7 @@ Alapértelmezett port: 8080
 3) Frontend (Expo Web):
 
 ```
-cd MediTrack_Frontend
+cd MediWeb_Frontend
 npm install
 npm run web
 ```
@@ -77,13 +77,13 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 - Backend:
 
 ```
-./MediTrack_Backend/mvnw test
+./MediWeb_Backend/mvnw test
 ```
 
 - Frontend (Jest + jest-expo):
 
 ```
-cd MediTrack_Frontend
+cd MediWeb_Frontend
 npx jest
 ```
 
@@ -96,7 +96,7 @@ npx jest
 ## Hibaelhárítás
 
 - Portütközés (3000/8080/5432): állíts le más folyamatot vagy módosíts portot.
-- Frontend nem éri el a backendet: ellenőrizd, hogy a backend a 8080-as porton fut-e, és a `MediTrack_Frontend/src/api/config.js` `baseURL` megfelelő-e.
+- Frontend nem éri el a backendet: ellenőrizd, hogy a backend a 8080-as porton fut-e, és a `MediWeb_Frontend/src/api/config.js` `baseURL` megfelelő-e.
 - Maven/JDK gond: ellenőrizd a JDK 17 telepítést és futtasd a wrapperrel: `./mvnw`.
 
 ## Funkcionalitás
@@ -121,26 +121,26 @@ npx jest
 ## Backend futtatás és konfiguráció
 
 - Dev profil: `SPRING_PROFILES_ACTIVE=dev` (alapértelmezett a helyi futtatáshoz)
-- Helyi JDBC példa, ha a DB a gépen fut: `jdbc:postgresql://localhost:5432/meditrack`
+- Helyi JDBC példa, ha a DB a gépen fut: `jdbc:postgresql://localhost:5432/mediweb`
 - Dockeres DB esetén (dev compose): `localhost:5432`, user: `postgres`, pass: `postgres`
 - Build:
-  - Tesztek: `./MediTrack_Backend/mvnw test`
-  - Csomagolás: `./MediTrack_Backend/mvnw clean package`
-  - Futás JAR-ból: `java -jar MediTrack_Backend/target/MediTrack-0.0.1-SNAPSHOT.jar`
+  - Tesztek: `./MediWeb_Backend/mvnw test`
+  - Csomagolás: `./MediWeb_Backend/mvnw clean package`
+  - Futás JAR-ból: `java -jar MediWeb_Backend/target/MediWeb-0.0.1-SNAPSHOT.jar`
 
 Megjegyzés: a konfigurációs fájlok nevei `application-*.yml` legyenek. Ha elgépelés (pl. `applicaition.yml`) van, javítani szükséges.
 
 ## Frontend futtatás és tippek
 
 - Telepítés és futtatás (web):
-  - `cd MediTrack_Frontend && npm install`
+  - `cd MediWeb_Frontend && npm install`
   - `npm run web` (vagy `npm start` cache törléssel)
 - API elérési alap: `http://localhost:8080` (lásd `src/api/config.js`)
 - Tesztek: `npx jest`
 
 ## Build és release (áttekintés)
 
-- Backend: Docker image a `MediTrack_Backend/Dockerfile` alapján vagy JAR
+- Backend: Docker image a `MediWeb_Backend/Dockerfile` alapján vagy JAR
 - Frontend: jelenleg a compose a fejlesztői szervert indítja. Production buildhez érdemes statikus web buildet készíteni (pl. `npx expo export --platform web`) és egy statikus szerverrel kiszolgálni.
 
 ## Docker tippek
