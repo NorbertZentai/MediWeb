@@ -49,15 +49,16 @@ public class AuthController {
         boolean isProduction = "https".equals(request.getScheme()) || 
                               request.getHeader("X-Forwarded-Proto") != null;
 
-        ResponseCookie cookie = ResponseCookie.from("Session", sessionId)
+        ResponseCookie cookie = ResponseCookie.from("JSESSIONID", sessionId)
                 .httpOnly(true)
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None") // Changed to None for cross-site cookies
                 .secure(isProduction) // Use secure cookies in production
                 .maxAge(24 * 60 * 60) // 24 hours
                 .build();
 
         System.out.println("🍪 Setting session cookie for user: " + user.getEmail() + ", sessionId: " + sessionId);
+        System.out.println("🔧 Cookie settings - secure: " + isProduction + ", sameSite: None");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -68,6 +69,16 @@ public class AuthController {
     public ResponseEntity<UserDTO> getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         System.out.println("🔍 /me endpoint - Session exists: " + (session != null));
+        
+        // Debug cookie information
+        if (request.getCookies() != null) {
+            System.out.println("🍪 Received cookies:");
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                System.out.println("   " + cookie.getName() + " = " + cookie.getValue());
+            }
+        } else {
+            System.out.println("🍪 No cookies received!");
+        }
         
         if (session != null) {
             System.out.println("🔍 Session ID: " + session.getId());
