@@ -4,9 +4,10 @@ import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.modules.user.service.UserService;
 import hu.project.MediWeb.modules.user.dto.PasswordChangeRequest;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,8 +22,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private User getCurrentUser(HttpServletRequest request) {
-        return (User) request.getSession().getAttribute("user");
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || 
+            "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        String email = authentication.getName();
+        Optional<User> userOptional = userService.findUserByEmail(email);
+        return userOptional.orElse(null);
     }
 
     @GetMapping
@@ -37,24 +47,33 @@ public class UserController {
 
 
     @PutMapping("/username")
-    public ResponseEntity<String> updateUsername(@RequestBody String username, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+    public ResponseEntity<String> updateUsername(@RequestBody String username) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nem vagy bejelentkezve.");
+        }
         user.setName(username);
         userService.saveUser(user);
         return ResponseEntity.ok(username);
     }
 
     @PutMapping("/email")
-    public ResponseEntity<String> updateEmail(@RequestBody String email, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+    public ResponseEntity<String> updateEmail(@RequestBody String email) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nem vagy bejelentkezve.");
+        }
         user.setEmail(email);
         userService.saveUser(user);
         return ResponseEntity.ok(email);
     }
 
     @PutMapping("/password")
-    public ResponseEntity<?> updatePassword(@RequestBody PasswordChangeRequest requestBody, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+    public ResponseEntity<?> updatePassword(@RequestBody PasswordChangeRequest requestBody) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nem vagy bejelentkezve.");
+        }
         boolean success = userService.changePassword(user, requestBody);
 
         if (success) {
@@ -65,16 +84,22 @@ public class UserController {
     }
 
     @PutMapping("/phone")
-    public ResponseEntity<String> updatePhoneNumber(@RequestBody String phoneNumber, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+    public ResponseEntity<String> updatePhoneNumber(@RequestBody String phoneNumber) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nem vagy bejelentkezve.");
+        }
         user.setPhone_number(phoneNumber);
         userService.saveUser(user);
         return ResponseEntity.ok(phoneNumber);
     }
 
     @PutMapping("/image")
-    public ResponseEntity<String> updateProfileImage(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        User user = getCurrentUser(request);
+    public ResponseEntity<String> updateProfileImage(@RequestParam("file") MultipartFile file) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nem vagy bejelentkezve.");
+        }
         userService.updateProfilePicture(user, file);
         return ResponseEntity.ok("Siker");
     }
