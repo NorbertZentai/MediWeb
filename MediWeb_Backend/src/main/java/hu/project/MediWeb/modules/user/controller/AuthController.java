@@ -45,23 +45,13 @@ public class AuthController {
         session.setAttribute("user", user);
         String sessionId = session.getId();
 
-        // Check if we're in production (HTTPS) environment
-        boolean isProduction = "https".equals(request.getScheme()) || 
-                              request.getHeader("X-Forwarded-Proto") != null;
-
-        ResponseCookie cookie = ResponseCookie.from("JSESSIONID", sessionId)
-                .httpOnly(true)
-                .path("/")
-                .sameSite("None") // Changed to None for cross-site cookies
-                .secure(isProduction) // Use secure cookies in production
-                .maxAge(24 * 60 * 60) // 24 hours
-                .build();
-
+        // For debugging - let's try both session cookie approaches
         System.out.println("🍪 Setting session cookie for user: " + user.getEmail() + ", sessionId: " + sessionId);
-        System.out.println("🔧 Cookie settings - secure: " + isProduction + ", sameSite: None");
+        System.out.println("🔧 Request scheme: " + request.getScheme() + ", X-Forwarded-Proto: " + request.getHeader("X-Forwarded-Proto"));
 
+        // Return user data with session info directly in response instead of relying on cookies
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header("X-Session-ID", sessionId) // Custom header for debugging
                 .body(user);
     }
 
