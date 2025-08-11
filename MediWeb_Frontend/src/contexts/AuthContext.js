@@ -18,6 +18,10 @@ export const AuthProvider = ({ children }) => {
         await apiLogin(credentials);
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
+        // Store login state in localStorage
+        if (currentUser) {
+            localStorage.setItem('isLoggedIn', 'true');
+        }
     };
 
     const register = async (userData) => {
@@ -31,14 +35,50 @@ export const AuthProvider = ({ children }) => {
             console.error("Logout failed:", error.response?.data || error.message);
         } finally {
             setUser(null);
+            // Remove login state from localStorage
+            localStorage.removeItem('isLoggedIn');
         }
     };
 
     useEffect(() => {
         const loadUser = async () => {
-            const currentUser = await fetchCurrentUser();
-            setUser(currentUser);
-            setLoading(false);
+            // Check localStorage first to avoid unnecessary API calls
+            const wasLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            
+            if (!wasLoggedIn) {
+                // User was never logged in, skip API call
+                setUser(null);
+                setLoading(false);
+                return;
+            }
+
+            // Check if there's a session cookie before making API call
+            const hasSessionCookie = document.cookie.includes('Session=') || 
+                                    document.cookie.includes('JSESSIONID=');
+            
+            if (!hasSessionCookie) {
+                // No session cookie but localStorage says logged in - session expired
+                localStorage.removeItem('isLoggedIn');
+                setUser(null);
+                setLoading(false);
+                return;
+            }
+
+            // Only make API call if localStorage and cookies suggest user might be logged in
+            try {
+                const currentUser = await fetchCurrentUser(true); // Silent mode
+                setUser(currentUser);
+                if (!currentUser) {
+                    // API returned null, clear localStorage
+                    localStorage.removeItem('isLoggedIn');
+                }
+            } catch (error) {
+                // If fetchCurrentUser fails, user is not logged in
+                localStorage.removeItem('isLoggedIn');
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
         };
         loadUser();
     }, []);

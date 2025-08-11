@@ -2,15 +2,22 @@ import api from "api/config";
 
 // AUTHENTICATION
 
-export const fetchCurrentUser = async () => {
+export const fetchCurrentUser = async (silent = false) => {
   try {
-    const response = await api.get("/auth/me");
+    const response = await api.get("/auth/me", {
+      // Add silent flag to suppress network errors in browser dev tools
+      metadata: { silent }
+    });
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
       return null;
     }
-    throw error;
+    // Only throw error if not in silent mode
+    if (!silent) {
+      throw error;
+    }
+    return null;
   }
 };
 
