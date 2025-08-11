@@ -55,6 +55,11 @@ public class AuthService {
         return savedUser;
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElse(null);
+    }
+
     public User login(String username, String password) {
         try {
             System.out.println("🔐 Login attempt: " + username);
