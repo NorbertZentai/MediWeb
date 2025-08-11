@@ -3,10 +3,10 @@ version: '3.8'
 services:
   db:
     image: postgres:15
-    container_name: meditrack_db
+    container_name: mediweb_db
     restart: always
     environment:
-      POSTGRES_DB: meditrack
+      POSTGRES_DB: mediweb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:

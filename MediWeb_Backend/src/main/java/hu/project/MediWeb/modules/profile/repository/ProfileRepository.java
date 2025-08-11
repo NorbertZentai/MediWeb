@@ -1,0 +1,11 @@
+package hu.project.MediWeb.modules.profile.repository;
+
+import hu.project.MediWeb.modules.profile.entity.Profile;
+import hu.project.MediWeb.modules.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface ProfileRepository extends JpaRepository<Profile, Long> {
+    List<Profile> findAllByUser(User user);
+}
