@@ -15,7 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 @Configuration
 @EnableMethodSecurity
@@ -30,7 +31,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/api/**", "/api/medication/**", "/api/intake/**", "/api/search/**", "/actuator/**").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login", "/api/**", "/api/medication/**", "/api/intake/**", "/api/search/**", "/actuator/**").permitAll()
+                        .requestMatchers("/auth/me", "/auth/logout").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/review/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -42,6 +44,8 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .sessionRegistry(sessionRegistry())
                 );
         return http.build();
     }
@@ -54,5 +58,10 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 }
