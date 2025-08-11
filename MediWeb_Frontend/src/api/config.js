@@ -12,7 +12,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false, // Changed to false for cross-origin requests
+  withCredentials: true, // Enable credentials for session-based authentication
 });
 
 // Request interceptor for debugging
