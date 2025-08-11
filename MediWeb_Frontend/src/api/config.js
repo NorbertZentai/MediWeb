@@ -15,12 +15,18 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enable credentials for session-based authentication
+  // Remove withCredentials for JWT authentication
 });
 
-// Request interceptor for debugging
+// Request interceptor for JWT token and debugging
 api.interceptors.request.use(
   (config) => {
+    // Add JWT token to Authorization header if available
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     // Only log API requests in development mode
     if (process.env.NODE_ENV === 'development') {
       console.log("API Request:", config.baseURL + config.url);
