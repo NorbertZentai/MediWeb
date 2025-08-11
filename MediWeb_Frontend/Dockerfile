@@ -12,8 +12,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the web application
-RUN npm run build
+# Build the web application in development mode for better error messages
+RUN npm run build:dev
 
 # Production stage
 FROM node:18-alpine AS runner
