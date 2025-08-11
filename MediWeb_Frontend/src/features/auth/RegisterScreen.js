@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from 'contexts/AuthContext';
+import { toast } from 'react-toastify';
 import { styles } from './RegisterScreen.style';
 
 export default function RegisterScreen({ navigation }) {
@@ -20,7 +21,7 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (!name || !email || !password || !gender || !dateOfBirth || !address || !phoneNumber) {
-      Alert.alert('Hiba', 'Kérlek, töltsd ki az összes kötelező mezőt.');
+      toast.error('Kérlek, töltsd ki az összes kötelező mezőt!');
       return;
     }
 
@@ -34,10 +35,10 @@ export default function RegisterScreen({ navigation }) {
         address, 
         phone_number: phoneNumber 
       });
-      Alert.alert('Siker', 'Sikeresen regisztráltál.');
+      toast.success('Sikeresen regisztráltál!');
       navigate(from, { replace: true });
     } catch (error) {
-      Alert.alert('Hiba', error);
+      toast.error(error.message || 'Regisztrációs hiba történt!');
     }
   };
 

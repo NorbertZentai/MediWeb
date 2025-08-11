@@ -33,13 +33,13 @@ public class AuthService {
         
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             System.out.println("❌ Email already exists: " + user.getEmail());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Email is already in use!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ez az email cím már használatban van!");
         }
 
         // Check if name is unique too
         if (userRepository.findByName(user.getName()).isPresent()) {
             System.out.println("❌ Name already exists: " + user.getName());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Name is already in use!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ez a felhasználónév már használatban van!");
         }
 
         System.out.println("✅ Email and name are unique, proceeding with registration");
