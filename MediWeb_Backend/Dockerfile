@@ -18,12 +18,8 @@ RUN mvn clean package -DskipTests
 # Expose port
 EXPOSE 8080
 
-# Create startup script to handle DATABASE_URL conversion
-RUN echo '#!/bin/bash\n\
-if [ ! -z "$DATABASE_URL" ] && [ -z "$SPRING_DATASOURCE_URL" ]; then\n\
-  export SPRING_DATASOURCE_URL="jdbc:$DATABASE_URL"\n\
-fi\n\
-java -jar target/*.jar' > start.sh && chmod +x start.sh
-
-# Run the application
-CMD ["./start.sh"]
+# Run the application with hardcoded database URL
+CMD java -Dspring.datasource.url="jdbc:postgresql://mediweb_user:8C0GeWooZ8sjiBoRtZyjkZoJqXBpduGd@dpg-d2cu8qre5dus73dtiv90-a/mediweb_db" \
+         -Dspring.datasource.username="mediweb_user" \
+         -Dspring.datasource.password="8C0GeWooZ8sjiBoRtZyjkZoJqXBpduGd" \
+         -jar target/*.jar
