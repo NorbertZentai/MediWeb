@@ -4,7 +4,15 @@ import { subscribeToPush } from "./push.api";
 import { AuthContext } from "contexts/AuthContext";
 
 export function usePushNotifications() {
-  const { user } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+  
+  // Safety check: if context is not available, exit early
+  if (!authContext) {
+    console.warn("AuthContext not available for push notifications");
+    return;
+  }
+
+  const { user } = authContext;
 
   useEffect(() => {
     // Only try to subscribe if user is logged in
