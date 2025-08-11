@@ -1,17 +1,13 @@
-# Multi-stage build for production
+# Use OpenJDK 17 for production
 FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /app
 
-# Copy maven wrapper and pom.xml
-COPY mvnw pom.xml ./
-COPY .mvn .mvn
+# Copy all files first
+COPY . .
 
-# Download dependencies (cached layer)
-RUN chmod +x mvnw && ./mvnw dependency:resolve
-
-# Copy source code
-COPY src src
+# Make maven wrapper executable
+RUN chmod +x mvnw
 
 # Build the application
 RUN ./mvnw clean package -DskipTests
