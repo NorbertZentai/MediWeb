@@ -2,7 +2,13 @@ import React, { createContext, useState, useEffect } from 'react';
 import { fetchCurrentUser } from 'features/profile/profile.api';
 import { login as apiLogin, register as apiRegister,logout as apiLogout,  } from 'features/auth/auth.api';
 
-export const AuthContext = createContext();
+export const AuthContext = createContext({
+    user: null,
+    loading: true,
+    login: () => {},
+    register: () => {},
+    logout: () => {}
+});
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
