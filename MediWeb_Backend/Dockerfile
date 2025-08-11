@@ -18,5 +18,12 @@ RUN mvn clean package -DskipTests
 # Expose port
 EXPOSE 8080
 
-# Run the application (find jar dynamically)
-CMD ["sh", "-c", "java -jar target/*.jar"]
+# Create startup script to handle DATABASE_URL conversion
+RUN echo '#!/bin/bash\n\
+if [ ! -z "$DATABASE_URL" ] && [ -z "$SPRING_DATASOURCE_URL" ]; then\n\
+  export SPRING_DATASOURCE_URL="jdbc:$DATABASE_URL"\n\
+fi\n\
+java -jar target/*.jar' > start.sh && chmod +x start.sh
+
+# Run the application
+CMD ["./start.sh"]
