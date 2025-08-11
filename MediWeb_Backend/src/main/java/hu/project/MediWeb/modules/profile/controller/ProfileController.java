@@ -8,13 +8,16 @@ import hu.project.MediWeb.modules.profile.service.ProfileService;
 import hu.project.MediWeb.modules.profile.service.ProfileMedicationService;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/profiles")
@@ -27,15 +30,35 @@ public class ProfileController {
     @Autowired
     private UserService userService;
 
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || 
+            "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        String email = authentication.getName();
+        Optional<User> userOptional = userService.findUserByEmail(email);
+        return userOptional.orElse(null);
+    }
+
     @GetMapping
-    public List<ProfileDTO> getAllProfiles(HttpServletRequest request) {
-        User user = userService.getCurrentUser(request);
-        return profileService.findByUser(user);
+    public ResponseEntity<List<ProfileDTO>> getAllProfiles() {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<ProfileDTO> profiles = profileService.findByUser(user);
+        return ResponseEntity.ok(profiles);
     }
 
     @PostMapping
-    public ProfileDTO createProfile(@RequestBody Map<String, String> body, HttpServletRequest request) {
-        User user = userService.getCurrentUser(request);
+    public ResponseEntity<ProfileDTO> createProfile(@RequestBody Map<String, String> body) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         Profile profile = Profile.builder()
                 .user(user)
@@ -43,7 +66,8 @@ public class ProfileController {
                 .notes(body.get("notes"))
                 .build();
 
-        return profileService.saveProfile(profile);
+        ProfileDTO created = profileService.saveProfile(profile);
+        return ResponseEntity.ok(created);
     }
 
     @GetMapping("/{profileId}/medications")

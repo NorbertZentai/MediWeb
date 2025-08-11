@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS public.medications (
     final_samples_json TEXT,
     defective_forms_json TEXT,
     hazipatika_json TEXT,
+    packaging VARCHAR(100),
+    release_date DATE,
+    description TEXT,
+    manufacturer VARCHAR(200),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -91,4 +95,13 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
     taken BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (profile_medication_id, intake_date, intake_time)
+);
+
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    endpoint TEXT NOT NULL,
+    p256dh VARCHAR(255),
+    auth VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
