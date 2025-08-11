@@ -26,7 +26,7 @@ export default function AppRouter() {
   }
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <View style={styles.container}>
         <View style={styles.navbarWrapper}>
           <Navbar />

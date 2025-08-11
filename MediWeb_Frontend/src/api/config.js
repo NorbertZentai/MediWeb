@@ -32,7 +32,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+    // Don't log 401 errors as they are expected when not logged in
+    if (error.response?.status !== 401) {
+      console.error("API Error:", error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );
