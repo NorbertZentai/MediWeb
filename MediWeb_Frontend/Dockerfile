@@ -1,5 +1,5 @@
-# Simple single-stage build for Expo
-FROM node:18-alpine
+# Multi-stage build for production Expo web
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -7,16 +7,30 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production
 
 # Copy source code
 COPY . .
+
+# Build the web application
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+# Install a simple web server
+RUN npm install -g serve
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Change ownership of app directory
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Change ownership
 RUN chown -R nextjs:nodejs /app
 
 USER nextjs
@@ -26,5 +40,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Use the existing start script
-CMD ["npm", "run", "web"]
+# Serve the built application
+CMD ["serve", "-s", "dist", "-l", "3000"]
