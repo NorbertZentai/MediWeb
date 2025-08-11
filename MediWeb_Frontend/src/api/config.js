@@ -5,7 +5,10 @@ const API_BASE_URL = process.env.REACT_APP_API_URL ||
                      process.env.EXPO_PUBLIC_API_URL || 
                      "https://mediweb-backend.onrender.com";
 
-console.log("API Base URL:", API_BASE_URL);
+// Only log API Base URL in development mode
+if (process.env.NODE_ENV === 'development') {
+  console.log("API Base URL:", API_BASE_URL);
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -18,7 +21,10 @@ const api = axios.create({
 // Request interceptor for debugging
 api.interceptors.request.use(
   (config) => {
-    console.log("API Request:", config.baseURL + config.url);
+    // Only log API requests in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.log("API Request:", config.baseURL + config.url);
+    }
     return config;
   },
   (error) => {

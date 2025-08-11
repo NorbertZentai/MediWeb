@@ -8,7 +8,10 @@ export function usePushNotifications() {
   
   // Safety check: if context is not available, exit early
   if (!authContext) {
-    console.warn("AuthContext not available for push notifications");
+    // Only warn in development mode
+    if (process.env.NODE_ENV === 'development') {
+      console.warn("AuthContext not available for push notifications");
+    }
     return;
   }
 
@@ -24,9 +27,15 @@ export function usePushNotifications() {
       try {
         const registration = await registerServiceWorker();
         await subscribeToPush(registration);
-        console.log("✅ Push feliratkozás sikeres");
+        // Only log success in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log("✅ Push feliratkozás sikeres");
+        }
       } catch (err) {
-        console.error("❌ Hiba push regisztráció közben:", err);
+        // Only log errors in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.error("❌ Hiba push regisztráció közben:", err);
+        }
       }
     };
 
