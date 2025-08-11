@@ -3,14 +3,15 @@ package hu.project.MediWeb.modules.user.controller;
 import hu.project.MediWeb.modules.user.dto.UserDTO;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.AuthService;
+import hu.project.MediWeb.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -18,10 +19,12 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/logout")
@@ -36,52 +39,39 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> loginUser(@RequestBody Map<String, String> credentials, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> loginUser(@RequestBody Map<String, String> credentials) {
         String username = credentials.get("email");
         String password = credentials.get("password");
 
         User user = authService.login(username, password);
-        HttpSession session = request.getSession(true);
-        session.setAttribute("user", user);
-        String sessionId = session.getId();
+        String jwtToken = jwtUtil.generateJwtToken(user.getEmail());
 
-        // For debugging - let's try both session cookie approaches
-        System.out.println("🍪 Setting session cookie for user: " + user.getEmail() + ", sessionId: " + sessionId);
-        System.out.println("🔧 Request scheme: " + request.getScheme() + ", X-Forwarded-Proto: " + request.getHeader("X-Forwarded-Proto"));
+        // Create response with user data and JWT token
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", user);
+        response.put("token", jwtToken);
+        response.put("type", "Bearer");
 
-        // Return user data with session info directly in response instead of relying on cookies
-        return ResponseEntity.ok()
-                .header("X-Session-ID", sessionId) // Custom header for debugging
-                .body(user);
+        System.out.println("� JWT token generated for user: " + user.getEmail());
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        System.out.println("🔍 /me endpoint - Session exists: " + (session != null));
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
-        // Debug cookie information
-        if (request.getCookies() != null) {
-            System.out.println("🍪 Received cookies:");
-            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
-                System.out.println("   " + cookie.getName() + " = " + cookie.getValue());
-            }
-        } else {
-            System.out.println("🍪 No cookies received!");
-        }
-        
-        if (session != null) {
-            System.out.println("🔍 Session ID: " + session.getId());
-            Object userAttr = session.getAttribute("user");
-            System.out.println("🔍 User in session: " + (userAttr != null));
-            if (userAttr != null) {
-                User user = (User) userAttr;
-                System.out.println("🔍 User email: " + user.getEmail());
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            System.out.println("🔍 JWT authenticated user: " + email);
+            
+            User user = authService.findByEmail(email);
+            if (user != null) {
                 return ResponseEntity.ok(UserDTO.from(user));
             }
         }
         
-        System.out.println("❌ No valid session found");
+        System.out.println("❌ No valid JWT authentication found");
         return ResponseEntity.status(401).build();
     }
 }
