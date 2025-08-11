@@ -9,11 +9,11 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>hu.project</groupId>
-	<artifactId>MediTrack</artifactId>
+	<artifactId>MediWeb</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>MediTrack</name>
+	<name>MediWeb</name>
 	<description>This is a web application for tracking personal and family-related medicine routine.</description>
-	<url>https://github.com/NorbertZentai/MediTrack</url>
+	<url>https://github.com/NorbertZentai/MediWeb</url>
 	<licenses>
 		<license>
 			<name>MIT License</name>
@@ -27,9 +27,9 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/NorbertZentai/MediTrack.git</connection>
-		<developerConnection>scm:git:ssh://github.com:NorbertZentai/MediTrack.git</developerConnection>
-		<url>https://github.com/NorbertZentai/MediTrack</url>
+		<connection>scm:git:git://github.com/NorbertZentai/MediWeb.git</connection>
+		<developerConnection>scm:git:ssh://github.com:NorbertZentai/MediWeb.git</developerConnection>
+		<url>https://github.com/NorbertZentai/MediWeb</url>
 	</scm>
 	<properties>
 		<java.version>17</java.version>
