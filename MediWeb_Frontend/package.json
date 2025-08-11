@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "npx expo start --web --port 3000 -c",
-    "web": "npx expo start --web --port 3000"
+    "web": "npx expo start --web --port 3000",
+    "build": "npx expo export --platform web",
+    "web:build": "npx expo export --platform web"
   },
   "jest": {
     "preset": "jest-expo"
