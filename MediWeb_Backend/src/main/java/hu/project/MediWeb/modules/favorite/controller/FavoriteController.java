@@ -5,12 +5,15 @@ import hu.project.MediWeb.modules.favorite.entity.Favorite;
 import hu.project.MediWeb.modules.favorite.service.FavoriteService;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/favorites")
@@ -22,9 +25,27 @@ public class FavoriteController {
     @Autowired
     private UserService userService;
 
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated() || 
+            "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        String email = authentication.getName();
+        Optional<User> userOptional = userService.findUserByEmail(email);
+        return userOptional.orElse(null);
+    }
+
     @GetMapping
-    public ResponseEntity<List<FavoriteDTO>> getMyFavorites(HttpServletRequest request) {
-        Long currentUserId = userService.getCurrentUser(request).getId();
+    public ResponseEntity<List<FavoriteDTO>> getMyFavorites() {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long currentUserId = currentUser.getId();
         List<FavoriteDTO> favorites = favoriteService.findByUserId(currentUserId).stream()
                 .map(fav -> FavoriteDTO.builder()
                         .id(fav.getId())
@@ -37,8 +58,12 @@ public class FavoriteController {
     }
 
     @PostMapping("/{medicationId}")
-    public ResponseEntity<FavoriteDTO> addToFavorites(@PathVariable Long medicationId, HttpServletRequest request) {
-        User currentUser = userService.getCurrentUser(request);
+    public ResponseEntity<FavoriteDTO> addToFavorites(@PathVariable Long medicationId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         Favorite favorite = favoriteService.addFavorite(currentUser, medicationId);
         FavoriteDTO dto = FavoriteDTO.builder()
                 .id(favorite.getId())
