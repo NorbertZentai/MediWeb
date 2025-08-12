@@ -24,6 +24,14 @@ public class GoogleImageService {
     }
 
     public Mono<GoogleImageResult> searchImages(String query) {
+        // Check if Google API credentials are configured
+        if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty() ||
+            googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
+            System.out.println("🔍 [GOOGLE-IMG] API credentials not configured, skipping image search for: " + query);
+            return Mono.just(null);
+        }
+
+        System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + query);
         return webClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
@@ -37,11 +45,18 @@ public class GoogleImageService {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(GoogleSearchResponse.class)
-                .map(resp -> resp.items().stream()
-                        .map(item -> new GoogleImageResult(item.title(), item.link()))
-                        .max(Comparator.comparingInt(image -> score(query, image)))
-                        .orElse(null)
-                );
+                .map(resp -> {
+                    System.out.println("✅ [GOOGLE-IMG] Successfully found images for: " + query);
+                    return resp.items().stream()
+                            .map(item -> new GoogleImageResult(item.title(), item.link()))
+                            .max(Comparator.comparingInt(image -> score(query, image)))
+                            .orElse(null);
+                })
+                .onErrorResume(error -> {
+                    System.err.println("❌ [GOOGLE-IMG] Error searching images for: " + query);
+                    System.err.println("❌ [GOOGLE-IMG] Error: " + error.getMessage());
+                    return Mono.just(null);
+                });
     }
 
     private int score(String query, GoogleImageResult image) {
