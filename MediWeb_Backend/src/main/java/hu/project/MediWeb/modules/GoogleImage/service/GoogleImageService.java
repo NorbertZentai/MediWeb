@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Comparator;
 
 @Service
@@ -23,11 +24,47 @@ public class GoogleImageService {
                 .build();
     }
 
+    @PostConstruct
+    public void init() {
+        System.out.println("🚀 [GOOGLE-IMG] === Service Initialization ===");
+        googleConfig.logConfiguration();
+        System.out.println("🚀 [GOOGLE-IMG] Google API Key configured: " + (googleConfig.getKey() != null && !googleConfig.getKey().isEmpty()));
+        System.out.println("🚀 [GOOGLE-IMG] Google CX configured: " + (googleConfig.getCx() != null && !googleConfig.getCx().isEmpty()));
+        if (googleConfig.getKey() != null && !googleConfig.getKey().isEmpty()) {
+            System.out.println("🚀 [GOOGLE-IMG] API Key starts with: " + googleConfig.getKey().substring(0, Math.min(10, googleConfig.getKey().length())) + "...");
+        } else {
+            System.out.println("🚀 [GOOGLE-IMG] API Key is null or empty");
+        }
+        if (googleConfig.getCx() != null && !googleConfig.getCx().isEmpty()) {
+            System.out.println("🚀 [GOOGLE-IMG] CX value: " + googleConfig.getCx());
+        } else {
+            System.out.println("🚀 [GOOGLE-IMG] CX is null or empty");
+        }
+        System.out.println("🚀 [GOOGLE-IMG] === End Initialization ===");
+    }
+
     public Mono<GoogleImageResult> searchImages(String query) {
+        // Detailed logging for Google API credentials debugging
+        System.out.println("🔍 [GOOGLE-IMG] === Google API Configuration Debug ===");
+        System.out.println("🔍 [GOOGLE-IMG] Query: " + query);
+        System.out.println("🔍 [GOOGLE-IMG] API Key present: " + (googleConfig.getKey() != null));
+        System.out.println("🔍 [GOOGLE-IMG] API Key length: " + (googleConfig.getKey() != null ? googleConfig.getKey().length() : 0));
+        System.out.println("🔍 [GOOGLE-IMG] API Key starts with: " + (googleConfig.getKey() != null && googleConfig.getKey().length() > 10 ? googleConfig.getKey().substring(0, 10) + "..." : "null"));
+        System.out.println("🔍 [GOOGLE-IMG] CX present: " + (googleConfig.getCx() != null));
+        System.out.println("🔍 [GOOGLE-IMG] CX length: " + (googleConfig.getCx() != null ? googleConfig.getCx().length() : 0));
+        System.out.println("🔍 [GOOGLE-IMG] CX value: " + (googleConfig.getCx() != null ? googleConfig.getCx() : "null"));
+        System.out.println("🔍 [GOOGLE-IMG] === End Debug ===");
+        
         // Check if Google API credentials are configured
         if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty() ||
             googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
-            System.out.println("🔍 [GOOGLE-IMG] API credentials not configured, skipping image search for: " + query);
+            System.out.println("❌ [GOOGLE-IMG] API credentials not configured, skipping image search for: " + query);
+            if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty()) {
+                System.out.println("❌ [GOOGLE-IMG] Missing or empty API Key");
+            }
+            if (googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
+                System.out.println("❌ [GOOGLE-IMG] Missing or empty Search Engine CX");
+            }
             return Mono.empty();
         }
 
