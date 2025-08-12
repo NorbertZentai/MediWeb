@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.medication.entity.Medication;
+import java.util.ArrayList;
 
 public class MedicationDetailsMapper {
 
@@ -29,13 +30,15 @@ public class MedicationDetailsMapper {
                     .containsLactose(dto.isContainsLactose())
                     .containsGluten(dto.isContainsGluten())
                     .containsBenzoate(dto.isContainsBenzoate())
-                    .packagesJson(mapper.writeValueAsString(dto.getPackages()))
-                    .substitutesJson(mapper.writeValueAsString(dto.getSubstitutes()))
-                    .finalSamplesJson(mapper.writeValueAsString(dto.getFinalSamples()))
-                    .defectiveFormsJson(mapper.writeValueAsString(dto.getDefectiveForms()))
+                    .packagesJson(mapper.writeValueAsString(dto.getPackages() != null ? dto.getPackages() : new ArrayList<>()))
+                    .substitutesJson(mapper.writeValueAsString(dto.getSubstitutes() != null ? dto.getSubstitutes() : new ArrayList<>()))
+                    .finalSamplesJson(mapper.writeValueAsString(dto.getFinalSamples() != null ? dto.getFinalSamples() : new ArrayList<>()))
+                    .defectiveFormsJson(mapper.writeValueAsString(dto.getDefectiveForms() != null ? dto.getDefectiveForms() : new ArrayList<>()))
                     .hazipatikaJson(mapper.writeValueAsString(dto.getHazipatikaInfo()))
                     .build();
         } catch (JsonProcessingException e) {
+            System.err.println("❌ [MAPPER] Error converting DTO to Entity: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Hiba DTO-ból Entity konvertálás közben", e);
         }
     }
