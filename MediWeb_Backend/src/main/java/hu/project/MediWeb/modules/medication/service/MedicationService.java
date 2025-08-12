@@ -142,7 +142,8 @@ public class MedicationService {
         String imageUrl = googleImageService
                 .searchImages(name)
                 .map(result -> result != null ? result.link() : null)
-                .block();
+                .blockOptional()
+                .orElse(null);
 
         HazipatikaResponse hazipatikaInfo = hazipatikaSearchService.searchMedication(name);
 

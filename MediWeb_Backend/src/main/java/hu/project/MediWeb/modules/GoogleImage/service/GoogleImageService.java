@@ -28,7 +28,7 @@ public class GoogleImageService {
         if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty() ||
             googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
             System.out.println("🔍 [GOOGLE-IMG] API credentials not configured, skipping image search for: " + query);
-            return Mono.just(null);
+            return Mono.empty();
         }
 
         System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + query);
@@ -55,7 +55,7 @@ public class GoogleImageService {
                 .onErrorResume(error -> {
                     System.err.println("❌ [GOOGLE-IMG] Error searching images for: " + query);
                     System.err.println("❌ [GOOGLE-IMG] Error: " + error.getMessage());
-                    return Mono.just(null);
+                    return Mono.empty();
                 });
     }
 
