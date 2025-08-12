@@ -26,23 +26,39 @@ public class MedicationService {
     private final HazipatikaSearchService hazipatikaSearchService;
 
     public MedicationDetailsResponse getMedicationDetails(Long itemId) throws Exception {
-        Optional<Medication> optional = medicationRepository.findById(itemId);
-        if (optional.isPresent()) {
-            Medication medication = optional.get();
+        System.out.println("🔍 [MED-SERVICE] Starting getMedicationDetails for ID: " + itemId);
+        
+        try {
+            System.out.println("📊 [MED-SERVICE] Checking database for existing medication with ID: " + itemId);
+            Optional<Medication> optional = medicationRepository.findById(itemId);
+            
+            if (optional.isPresent()) {
+                System.out.println("✅ [MED-SERVICE] Found existing medication in database for ID: " + itemId);
+                Medication medication = optional.get();
 
-            if (medication.getLastUpdated() != null && medication.getLastUpdated().isAfter(LocalDate.now().minusDays(7))) {
-                return MedicationDetailsMapper.toDto(medication);
+                if (medication.getLastUpdated() != null && medication.getLastUpdated().isAfter(LocalDate.now().minusDays(7))) {
+                    System.out.println("✅ [MED-SERVICE] Medication is fresh (< 7 days), returning cached data for ID: " + itemId);
+                    return MedicationDetailsMapper.toDto(medication);
+                }
+
+                System.out.println("🗑️ [MED-SERVICE] Medication is stale (>= 7 days), deleting and re-fetching for ID: " + itemId);
+                medicationRepository.deleteById(itemId);
+            } else {
+                System.out.println("❌ [MED-SERVICE] No existing medication found in database for ID: " + itemId);
             }
 
-            medicationRepository.deleteById(itemId);
-        }
+            System.out.println("🌐 [MED-SERVICE] Fetching fresh data from OGYEI website for ID: " + itemId);
+            String url = "https://ogyei.gov.hu/gyogyszeradatbazis&action=show_details&item=" + itemId;
+            System.out.println("🔗 [MED-SERVICE] URL: " + url);
+            
+            Document doc = Jsoup.connect(url).get();
+            System.out.println("✅ [MED-SERVICE] Successfully fetched HTML from OGYEI for ID: " + itemId);
 
-        String url = "https://ogyei.gov.hu/gyogyszeradatbazis&action=show_details&item=" + itemId;
-        Document doc = Jsoup.connect(url).get();
+            String name = doc.selectFirst("h3.gy-content__title").text();
+            System.out.println("📝 [MED-SERVICE] Extracted medication name: " + name + " for ID: " + itemId);
 
-        String name = doc.selectFirst("h3.gy-content__title").text();
-
-        Element topTable = doc.selectFirst(".gy-content__top-table");
+            Element topTable = doc.selectFirst(".gy-content__top-table");
+            System.out.println("📋 [MED-SERVICE] Processing medication details table for ID: " + itemId);
 
         String regNum = textFromTitle(topTable, "Nyilvántartási szám");
         String substance = textFromTitle(topTable, "Hatóanyag");
@@ -129,18 +145,40 @@ public class MedicationService {
                 .build();
 
         Medication entity = MedicationDetailsMapper.toEntity(itemId, response);
+        System.out.println("💾 [MED-SERVICE] Attempting to save medication entity to database for ID: " + itemId);
         saveIfNotExists(entity);
+        System.out.println("✅ [MED-SERVICE] Successfully completed getMedicationDetails for ID: " + itemId);
 
         return response;
+    } catch (Exception e) {
+        System.err.println("❌ [MED-SERVICE] Exception in getMedicationDetails for ID: " + itemId);
+        System.err.println("❌ [MED-SERVICE] Exception type: " + e.getClass().getSimpleName());
+        System.err.println("❌ [MED-SERVICE] Exception message: " + e.getMessage());
+        e.printStackTrace();
+        throw e;
+    }
     }
 
     @Transactional
     public void saveIfNotExists(Medication medication) {
-        if (!medicationRepository.existsById(medication.getId())) {
-            if (medication.getLastUpdated() == null) {
-                medication.setLastUpdated(LocalDate.now());
+        System.out.println("💾 [MED-SERVICE] saveIfNotExists called for medication ID: " + medication.getId());
+        try {
+            if (!medicationRepository.existsById(medication.getId())) {
+                System.out.println("💾 [MED-SERVICE] Medication does not exist, saving new record for ID: " + medication.getId());
+                if (medication.getLastUpdated() == null) {
+                    medication.setLastUpdated(LocalDate.now());
+                }
+                medicationRepository.save(medication);
+                System.out.println("✅ [MED-SERVICE] Successfully saved medication to database for ID: " + medication.getId());
+            } else {
+                System.out.println("ℹ️ [MED-SERVICE] Medication already exists, skipping save for ID: " + medication.getId());
             }
-            medicationRepository.save(medication);
+        } catch (Exception e) {
+            System.err.println("❌ [MED-SERVICE] Error saving medication for ID: " + medication.getId());
+            System.err.println("❌ [MED-SERVICE] Save error type: " + e.getClass().getSimpleName());
+            System.err.println("❌ [MED-SERVICE] Save error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
