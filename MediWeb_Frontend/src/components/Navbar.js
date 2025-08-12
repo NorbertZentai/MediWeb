@@ -29,7 +29,7 @@ export default function Navbar() {
   return (
     <div style={styles.navbar}>
       <NavLink to="/" style={styles.logo} onClick={() => handleNav("/")}>
-        MediWeb Web
+        MediWeb
       </NavLink>
 
       <div style={styles.menu}>
