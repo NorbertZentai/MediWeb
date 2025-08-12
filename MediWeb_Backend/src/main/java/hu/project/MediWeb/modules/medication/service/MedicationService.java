@@ -78,31 +78,57 @@ public class MedicationService {
         String smpcUrl = getDocUrl(topTable, "alkalmazási előírás");
         String labelUrl = getDocUrl(topTable, "cimkeszöveg");
 
+        System.out.println("🔍 [MED-SERVICE] Processing substitutes section for ID: " + itemId);
         List<SubstituteMedication> substitutes = doc.select("#substitution .table__line.line").stream()
                 .map(line -> {
-                    String substituteMedicationName = line.select("div.cell").get(0).text();
-                    String substituteMedicationRegNum = line.select("div.cell").get(1).ownText();
-                    Element link = line.selectFirst("a[href*=item=]");
-                    int id = 0;
-                    if (link != null) {
-                        String href = link.attr("href");
-                        String substituteMedicationItemId = href.replaceAll(".*item=(\\d+).*", "$1");
-                        id = Integer.parseInt(substituteMedicationItemId);
+                    try {
+                        var cells = line.select("div.cell");
+                        if (cells.size() < 2) {
+                            System.out.println("⚠️ [MED-SERVICE] Not enough cells in substitute line, skipping");
+                            return null;
+                        }
+                        
+                        String substituteMedicationName = cells.get(0).text();
+                        String substituteMedicationRegNum = cells.get(1).ownText();
+                        Element link = line.selectFirst("a[href*=item=]");
+                        int id = 0;
+                        if (link != null) {
+                            String href = link.attr("href");
+                            String substituteMedicationItemId = href.replaceAll(".*item=(\\d+).*", "$1");
+                            id = Integer.parseInt(substituteMedicationItemId);
+                        }
+                        return new SubstituteMedication(substituteMedicationName, substituteMedicationRegNum, id);
+                    } catch (Exception e) {
+                        System.err.println("❌ [MED-SERVICE] Error processing substitute line: " + e.getMessage());
+                        return null;
                     }
-                    return new SubstituteMedication(substituteMedicationName, substituteMedicationRegNum, id);
-                }).toList();
+                })
+                .filter(substitute -> substitute != null)
+                .toList();
 
+        System.out.println("🔍 [MED-SERVICE] Processing packages section for ID: " + itemId);
         List<PackageInfo> packages = doc.select("#packsizes .table__line.line").stream()
                 .map(line -> {
-                    List<Element> cells = line.select(".cell");
-                    return new PackageInfo(
-                            cells.get(0).text(),
-                            cells.get(1).text(),
-                            cells.get(2).text(),
-                            cells.get(3).text(),
-                            cells.get(4).text()
-                    );
-                }).toList();
+                    try {
+                        List<Element> cells = line.select(".cell");
+                        if (cells.size() < 5) {
+                            System.out.println("⚠️ [MED-SERVICE] Not enough cells in package line, skipping");
+                            return null;
+                        }
+                        return new PackageInfo(
+                                cells.get(0).text(),
+                                cells.get(1).text(),
+                                cells.get(2).text(),
+                                cells.get(3).text(),
+                                cells.get(4).text()
+                        );
+                    } catch (Exception e) {
+                        System.err.println("❌ [MED-SERVICE] Error processing package line: " + e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(pkg -> pkg != null)
+                .toList();
 
         Element datasheetTable = doc.select(".gy-content__datasheet").first();
 
@@ -144,13 +170,6 @@ public class MedicationService {
                 .hazipatikaInfo(hazipatikaInfo)
                 .build();
 
-        System.out.println("🔄 [MED-SERVICE] Converting response to entity for ID: " + itemId);
-        System.out.println("🔄 [MED-SERVICE] Response data - name: " + (response.getName() != null ? response.getName().length() + " chars" : "null"));
-        System.out.println("🔄 [MED-SERVICE] Response data - packages: " + (response.getPackages() != null ? response.getPackages().size() + " items" : "null"));
-        System.out.println("🔄 [MED-SERVICE] Response data - substitutes: " + (response.getSubstitutes() != null ? response.getSubstitutes().size() + " items" : "null"));
-        System.out.println("🔄 [MED-SERVICE] Response data - finalSamples: " + (response.getFinalSamples() != null ? response.getFinalSamples().size() + " items" : "null"));
-        System.out.println("🔄 [MED-SERVICE] Response data - defectiveForms: " + (response.getDefectiveForms() != null ? response.getDefectiveForms().size() + " items" : "null"));
-        System.out.println("🔄 [MED-SERVICE] Response data - hazipatikaInfo: " + (response.getHazipatikaInfo() != null ? "present" : "null"));
         Medication entity = MedicationDetailsMapper.toEntity(itemId, response);
         System.out.println("💾 [MED-SERVICE] Attempting to save medication entity to database for ID: " + itemId);
         saveIfNotExists(entity);
