@@ -144,6 +144,13 @@ public class MedicationService {
                 .hazipatikaInfo(hazipatikaInfo)
                 .build();
 
+        System.out.println("🔄 [MED-SERVICE] Converting response to entity for ID: " + itemId);
+        System.out.println("🔄 [MED-SERVICE] Response data - name: " + (response.getName() != null ? response.getName().length() + " chars" : "null"));
+        System.out.println("🔄 [MED-SERVICE] Response data - packages: " + (response.getPackages() != null ? response.getPackages().size() + " items" : "null"));
+        System.out.println("🔄 [MED-SERVICE] Response data - substitutes: " + (response.getSubstitutes() != null ? response.getSubstitutes().size() + " items" : "null"));
+        System.out.println("🔄 [MED-SERVICE] Response data - finalSamples: " + (response.getFinalSamples() != null ? response.getFinalSamples().size() + " items" : "null"));
+        System.out.println("🔄 [MED-SERVICE] Response data - defectiveForms: " + (response.getDefectiveForms() != null ? response.getDefectiveForms().size() + " items" : "null"));
+        System.out.println("🔄 [MED-SERVICE] Response data - hazipatikaInfo: " + (response.getHazipatikaInfo() != null ? "present" : "null"));
         Medication entity = MedicationDetailsMapper.toEntity(itemId, response);
         System.out.println("💾 [MED-SERVICE] Attempting to save medication entity to database for ID: " + itemId);
         saveIfNotExists(entity);
