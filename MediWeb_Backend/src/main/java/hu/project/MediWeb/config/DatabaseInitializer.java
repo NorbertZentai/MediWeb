@@ -63,9 +63,58 @@ public class DatabaseInitializer implements CommandLineRunner {
             } else {
                 System.out.println("✅ Database tables already exist");
             }
+
+            ensureEmailNotificationsColumn();
+            ensureMedicationExtraColumns();
         } catch (Exception e) {
             System.err.println("❌ Database initialization error: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void ensureEmailNotificationsColumn() {
+        try {
+            Integer columnCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'email_notifications_enabled'",
+                    Integer.class
+            );
+
+            if (columnCount == null || columnCount == 0) {
+                System.out.println("🛠️ Adding email_notifications_enabled column to users table...");
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN email_notifications_enabled BOOLEAN DEFAULT TRUE");
+                jdbcTemplate.execute("UPDATE users SET email_notifications_enabled = TRUE WHERE email_notifications_enabled IS NULL");
+                jdbcTemplate.execute("ALTER TABLE users ALTER COLUMN email_notifications_enabled SET DEFAULT TRUE");
+                jdbcTemplate.execute("ALTER TABLE users ALTER COLUMN email_notifications_enabled SET NOT NULL");
+                System.out.println("✅ email_notifications_enabled column ensured on users table");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to ensure email_notifications_enabled column: " + e.getMessage());
+        }
+    }
+
+    private void ensureMedicationExtraColumns() {
+        try {
+            addColumnIfMissing("medications", "packaging", "ALTER TABLE medications ADD COLUMN packaging VARCHAR(100)");
+            addColumnIfMissing("medications", "release_date", "ALTER TABLE medications ADD COLUMN release_date DATE");
+            addColumnIfMissing("medications", "description", "ALTER TABLE medications ADD COLUMN description TEXT");
+            addColumnIfMissing("medications", "manufacturer", "ALTER TABLE medications ADD COLUMN manufacturer VARCHAR(200)");
+        } catch (Exception e) {
+            System.err.println("⚠️ Failed to ensure medication extra columns: " + e.getMessage());
+        }
+    }
+
+    private void addColumnIfMissing(String tableName, String columnName, String alterStatement) {
+        Integer columnCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND column_name = ?",
+                Integer.class,
+                tableName,
+                columnName
+        );
+
+        if (columnCount == null || columnCount == 0) {
+            System.out.println("🛠️ Adding column " + columnName + " to table " + tableName + "...");
+            jdbcTemplate.execute(alterStatement);
+            System.out.println("✅ Column " + columnName + " added to table " + tableName);
         }
     }
 }

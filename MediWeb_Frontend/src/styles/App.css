@@ -11,6 +11,10 @@ html, body, * {
   -ms-user-select: text;
 }
 
+body {
+  background-color: #E8F5E9;
+}
+
 :root {
   --primary-color: #66BB6A;
   --accent-color: #0077cc;
