@@ -24,9 +24,6 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             addColumnIfNotExists("medications", "description", "TEXT");
             addColumnIfNotExists("medications", "manufacturer", "VARCHAR(200)");
             
-            // Create push_subscriptions table if not exists
-            createPushSubscriptionsTable();
-            
             System.out.println("✅ Database migration completed successfully!");
             
         } catch (Exception e) {
@@ -54,30 +51,4 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
         }
     }
     
-    private void createPushSubscriptionsTable() {
-        try {
-            String checkTableSql = "SELECT to_regclass('push_subscriptions')";
-            String result = jdbcTemplate.queryForObject(checkTableSql, String.class);
-            
-            if (result == null) {
-                String createTableSql = """
-                    CREATE TABLE push_subscriptions (
-                        id SERIAL PRIMARY KEY,
-                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                        endpoint TEXT NOT NULL,
-                        p256dh VARCHAR(255),
-                        auth VARCHAR(255),
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                    """;
-                    
-                jdbcTemplate.execute(createTableSql);
-                System.out.println("✅ Created table: push_subscriptions");
-            } else {
-                System.out.println("ℹ️ Table already exists: push_subscriptions");
-            }
-        } catch (Exception e) {
-            System.err.println("❌ Failed to create push_subscriptions table: " + e.getMessage());
-        }
-    }
 }

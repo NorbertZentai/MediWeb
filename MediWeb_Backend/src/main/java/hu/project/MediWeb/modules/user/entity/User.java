@@ -50,6 +50,10 @@ public class User {
 
     private Boolean is_active = true;
 
+    @Builder.Default
+    @Column(name = "email_notifications_enabled", nullable = false)
+    private Boolean emailNotificationsEnabled = true;
+
     @Column(length=10)
     private String language = "hu";
 
