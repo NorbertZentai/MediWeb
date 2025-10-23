@@ -2,21 +2,26 @@
 -- Automatically runs on application startup
 -- Updated: 2025-08-11 22:25 - FORCE EXECUTION
 
--- Drop and recreate push_subscriptions table to ensure it exists
+-- Remove legacy push_subscriptions table now that web push support has been retired
 DROP TABLE IF EXISTS push_subscriptions CASCADE;
-
-CREATE TABLE push_subscriptions (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    endpoint TEXT NOT NULL,
-    p256dh VARCHAR(255),
-    auth VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 -- Add missing columns to medications table (PostgreSQL supports ADD COLUMN IF NOT EXISTS since version 9.6)
 DO $$
 BEGIN
+    -- Ensure email notification preference column exists
+    BEGIN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email_notifications_enabled BOOLEAN DEFAULT TRUE;
+        UPDATE users
+        SET email_notifications_enabled = TRUE
+        WHERE email_notifications_enabled IS NULL;
+        ALTER TABLE users ALTER COLUMN email_notifications_enabled SET DEFAULT TRUE;
+        ALTER TABLE users ALTER COLUMN email_notifications_enabled SET NOT NULL;
+        RAISE NOTICE 'Ensured email_notifications_enabled column exists on users table';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Skipped email_notifications_enabled migration: %', SQLERRM;
+    END;
+
     -- Add packaging column
     BEGIN
         ALTER TABLE medications ADD COLUMN packaging VARCHAR(100);
