@@ -36,7 +36,7 @@ export default function LoginScreen() {
         <Text style={styles.title}>Bejelentkezés</Text>
         <TextInput
           style={styles.input}
-          placeholder="Felhasználónév"
+          placeholder="Email cím"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
