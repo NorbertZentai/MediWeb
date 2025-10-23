@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     profile_picture BYTEA,
     role VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     language VARCHAR(10) DEFAULT 'hu',
     deleted_at TIMESTAMP,
     CONSTRAINT unique_user_name_email UNIQUE (name, email)
@@ -99,13 +100,4 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
     taken BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (profile_medication_id, intake_date, intake_time)
-);
-
-CREATE TABLE IF NOT EXISTS public.push_subscriptions (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    endpoint TEXT NOT NULL,
-    p256dh VARCHAR(255),
-    auth VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
