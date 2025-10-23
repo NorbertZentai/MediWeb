@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     width: "70%",
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.background,
     padding: 16,
     paddingHorizontal: 16,
     paddingTop: 0,
