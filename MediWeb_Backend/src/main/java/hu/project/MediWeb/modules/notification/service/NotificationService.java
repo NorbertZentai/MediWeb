@@ -17,7 +17,7 @@ import java.util.List;
 import static hu.project.MediWeb.modules.notification.utils.ReminderUtils.*;
 
 @Slf4j
-//@Service
+@Service
 @RequiredArgsConstructor
 public class NotificationService {
 
