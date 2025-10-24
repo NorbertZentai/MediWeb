@@ -179,6 +179,10 @@ export const styles = StyleSheet.create({
     color: "#aaa",
     marginTop: 2,
   },
+  inactiveStatus: {
+    color: "#c62828",
+    fontWeight: "600",
+  },
   loadMoreButton: {
     marginTop: 20,
     padding: 10,
@@ -189,5 +193,12 @@ export const styles = StyleSheet.create({
   loadMoreText: {
     fontSize: 16,
     color: "#333",
+  },
+  emptyState: {
+    marginTop: 24,
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    width: "100%",
   }
 });

@@ -76,6 +76,26 @@ export const styles = StyleSheet.create({
     color: "#444",
     padding: "10px",
   },
+  inactiveBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fdecea",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#f5c6cb",
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  inactiveBannerText: {
+    color: "#c62828",
+    fontWeight: "600",
+    fontSize: 14,
+    flex: 1,
+  },
+  inactiveBannerIcon: {
+    marginRight: 8,
+  },
   topSection: {
     marginBottom: 32,
   },

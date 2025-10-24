@@ -1,42 +1,37 @@
 import { useState, useEffect, useCallback } from "react";
-import { searchMedications, getFilterOptions } from "./search.api";
-import { debounce } from "lodash";
+import { searchMedications } from "./search.api";
 
 export function useSearchService() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
-    registrationNumber: "",
     atcCode: "",
-    dosageForm: 0,
-    activeSubstance: 0,
-    marketingAuthorisation: 0,
-    dicPrescription: 0,
-    lactose: false,
-    gluten: false,
-    benzoate: false,
-    kpBesorolas: false,
-    fokozottFelugyelet: false,
-    authorisationDateFrom: "",
-    authorisationDateTo: "",
-    revokeDateFrom: "",
-    revokeDateTo: "",
-  });
-  const [dropdownOptions, setDropdownOptions] = useState({
-    dosageForms: [],
-    activeSubstances: [],
-    marketingAuthorisations: [],
-    dicPrescriptions: [],
+    lactoseFree: false,
+    glutenFree: false,
+    benzoateFree: false,
+    narcoticOnly: false,
   });
   const [results, setResults] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [viewMode, setViewMode] = useState("list");
-  const [isMobile, setIsMobile] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
-  const extractItemId = (url) => {
-    const match = url.match(/item=(\d+)/);
-    return match ? match[1] : null;
-  };
+  const hasActiveFilters = useCallback(() => (
+    Boolean(filters.atcCode?.trim())
+    || filters.lactoseFree
+    || filters.glutenFree
+    || filters.benzoateFree
+    || filters.narcoticOnly
+  ), [filters]);
+
+  const resetState = useCallback(() => {
+    setResults([]);
+    setTotalCount(0);
+    setHasMore(false);
+    setPage(0);
+  }, []);
 
   const handleFilterChange = (field, value) => {
     setFilters((prev) => ({
@@ -45,51 +40,66 @@ export function useSearchService() {
     }));
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim() && Object.values(filters).every(v => v === "" || v === false || v === 0)) {
-      setResults([]);
+  const fetchPage = useCallback(async (targetPage = 0, append = false) => {
+    const trimmedQuery = searchQuery.trim();
+    const hasQuery = trimmedQuery.length > 0;
+    const filtersActive = hasActiveFilters();
+
+    if (!hasQuery && !filtersActive) {
+      resetState();
       return;
     }
+
+    if (!append && targetPage === 0) {
+      setResults([]);
+      setTotalCount(0);
+      setHasMore(false);
+      setPage(0);
+    }
+
     setLoading(true);
     try {
-      const params = { freetext: searchQuery, ...filters };
+      const params = {
+  q: hasQuery ? trimmedQuery : undefined,
+  atc: filters.atcCode?.trim() || undefined,
+        lactoseFree: filters.lactoseFree || undefined,
+        glutenFree: filters.glutenFree || undefined,
+        benzoateFree: filters.benzoateFree || undefined,
+        narcoticOnly: filters.narcoticOnly || undefined,
+        page: targetPage,
+        size: 40,
+      };
+
       const data = await searchMedications(params);
-      setResults(data);
+      const content = data?.content ?? [];
+      setResults((prev) => (append ? [...prev, ...content] : content));
+      setTotalCount(data?.totalElements ?? content.length);
+  setPage(targetPage);
+      setHasMore(!(data?.last ?? true));
     } catch (error) {
       console.error("Keresés sikertelen:", error);
-      setResults([]);
-    }
-    setLoading(false);
-  };
-
-  const debouncedSearch = useCallback(debounce(handleSearch, 500), [searchQuery, filters]);
-
-  useEffect(() => {
-    const loadDropdowns = async () => {
-      try {
-        const [dosageForms, activeSubstances, marketingAuthorisations, dicPrescriptions] = await Promise.all([
-          getFilterOptions("dosage_form"),
-          getFilterOptions("active_substance"),
-          getFilterOptions("marketing_authorisation"),
-          getFilterOptions("dic_prescription"),
-        ]);
-        setDropdownOptions({
-          dosageForms,
-          activeSubstances,
-          marketingAuthorisations,
-          dicPrescriptions,
-        });
-      } catch (error) {
-        console.error("Hiba a szűrők betöltésekor:", error);
+      if (!append) {
+        resetState();
       }
-    };
-    loadDropdowns();
-  }, []);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, hasActiveFilters, resetState, searchQuery]);
+
+  const handleSearch = useCallback(async () => {
+    await fetchPage(0, false);
+  }, [fetchPage]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loading) {
+      return;
+    }
+    await fetchPage(page + 1, true);
+  }, [fetchPage, hasMore, loading, page]);
 
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 600;
-      setIsMobile(mobile);
       if (mobile) setViewMode("list");
     };
     window.addEventListener("resize", handleResize);
@@ -98,28 +108,39 @@ export function useSearchService() {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.length >= 3) {
-      debouncedSearch();
-    } else {
-      setResults([]);
+    const trimmedLength = searchQuery.trim().length;
+    const filtersActive = hasActiveFilters();
+
+    if (trimmedLength === 0 && !filtersActive) {
+      resetState();
+      return;
     }
-    return debouncedSearch.cancel;
-  }, [searchQuery, filters, debouncedSearch]);
+
+    if (trimmedLength < 3 && !filtersActive) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      fetchPage(0, false);
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [fetchPage, hasActiveFilters, resetState, searchQuery]);
 
   return {
     searchQuery,
     setSearchQuery,
     filters,
     handleFilterChange,
-    dropdownOptions,
     results,
+    totalCount,
     handleSearch,
     loading,
     filtersExpanded,
     setFiltersExpanded,
     viewMode,
     setViewMode,
-    isMobile,
-    extractItemId,
+    loadMore,
+    hasMore,
   };
 }

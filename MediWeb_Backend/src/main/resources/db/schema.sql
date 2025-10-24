@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS public.medications (
     company VARCHAR(255),
     legal_basis VARCHAR(100),
     status VARCHAR(100),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     authorization_date DATE,
     narcotic VARCHAR(100),
     patient_info_url TEXT,
@@ -61,7 +62,8 @@ CREATE TABLE IF NOT EXISTS public.medications (
     release_date DATE,
     description TEXT,
     manufacturer VARCHAR(200),
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_reviewed TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS public.profile_medications (

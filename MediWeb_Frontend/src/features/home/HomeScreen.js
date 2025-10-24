@@ -12,6 +12,7 @@ import { AuthContext } from 'contexts/AuthContext';
 import { styles } from './HomeScreen.style';
 import { theme } from 'styles/theme';
 import { getHomeDashboard, getPopularMedications } from './home.api';
+import { getMedicationSyncStatus } from 'features/medication/medication.api';
 
 const DEFAULT_DASHBOARD_TEMPLATE = {
   summary: {
@@ -25,12 +26,33 @@ const DEFAULT_DASHBOARD_TEMPLATE = {
   todaysMedications: [],
 };
 
-const createDefaultDashboard = () => ({
-  summary: { ...DEFAULT_DASHBOARD_TEMPLATE.summary },
-  upcomingReminder: null,
-  popularMedications: [],
-  todaysMedications: [],
-});
+const createDefaultDashboard = () => {
+  return {
+    summary: { ...DEFAULT_DASHBOARD_TEMPLATE.summary },
+    upcomingReminder: null,
+    popularMedications: [],
+    todaysMedications: [],
+  };
+};
+
+const DEFAULT_SYNC_STATUS = {
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  discovered: 0,
+  processed: 0,
+  succeeded: 0,
+  failed: 0,
+  skipped: 0,
+  totalKnown: 0,
+  averageSecondsPerItem: 10,
+  parallelism: 1,
+  estimatedTotalSeconds: 0,
+  estimatedRemainingSeconds: 0,
+  phase: 'IDLE',
+  discoveryCompleted: true,
+  lastMessage: null,
+};
 
 export default function HomeScreen() {
   const { user, loading } = useContext(AuthContext);
@@ -40,12 +62,31 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [syncStatus, setSyncStatus] = useState(DEFAULT_SYNC_STATUS);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  const fetchSyncStatus = useCallback(async () => {
+    try {
+      const status = await getMedicationSyncStatus();
+      if (status && typeof status === 'object') {
+        setSyncStatus({
+          ...DEFAULT_SYNC_STATUS,
+          ...status,
+        });
+        return status;
+      }
+    } catch (statusError) {
+      console.error('Gyógyszer adatbázis szinkron státusz lekérdezési hiba:', statusError);
+    }
+    return null;
+  }, []);
 
   const loadDashboard = useCallback(
     async (isManualRefresh = false) => {
       if (!user) {
         setDashboard(createDefaultDashboard());
         setErrorMessage(null);
+        setSyncStatus({ ...DEFAULT_SYNC_STATUS });
         return;
       }
 
@@ -81,6 +122,7 @@ export default function HomeScreen() {
           todaysMedications: data.todaysMedications ?? [],
         });
         setErrorMessage(null);
+        await fetchSyncStatus();
       } catch (dashboardError) {
         console.error('Dashboard betöltési hiba:', dashboardError);
         setDashboard(createDefaultDashboard());
@@ -93,7 +135,7 @@ export default function HomeScreen() {
         }
       }
     },
-    [user]
+    [user, fetchSyncStatus]
   );
 
   useEffect(() => {
@@ -101,6 +143,52 @@ export default function HomeScreen() {
       loadDashboard(false);
     }
   }, [loading, loadDashboard]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      fetchSyncStatus();
+    } else if (!user) {
+      setSyncStatus({ ...DEFAULT_SYNC_STATUS });
+    }
+  }, [loading, user, fetchSyncStatus]);
+
+  useEffect(() => {
+    if (!syncStatus.running) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      fetchSyncStatus();
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [syncStatus.running, fetchSyncStatus]);
+
+  useEffect(() => {
+    if (!syncStatus.running || !syncStatus.discoveryCompleted) {
+      setRemainingSeconds(0);
+      return;
+    }
+
+    const estimated = Number.isFinite(syncStatus.estimatedRemainingSeconds)
+      ? Math.max(Math.round(syncStatus.estimatedRemainingSeconds), 0)
+      : 0;
+    setRemainingSeconds(estimated);
+  }, [syncStatus.running, syncStatus.estimatedRemainingSeconds]);
+
+  useEffect(() => {
+    if (!syncStatus.running || !syncStatus.discoveryCompleted) {
+      return undefined;
+    }
+
+    const ticker = setInterval(() => {
+      setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(ticker);
+  }, [syncStatus.running, syncStatus.discoveryCompleted]);
+
+  const isDiscoveryPhase = syncStatus.running && syncStatus.phase === 'ID_DISCOVERY';
 
   const quickActions = useMemo(
     () => [
@@ -157,7 +245,75 @@ export default function HomeScreen() {
       return;
     }
     loadDashboard(true);
-  }, [loadDashboard, user]);
+    fetchSyncStatus();
+  }, [loadDashboard, user, fetchSyncStatus]);
+
+  const syncProgressText = useMemo(() => {
+    const denominator = syncStatus.totalKnown || syncStatus.discovered || Math.max(syncStatus.processed, syncStatus.succeeded, 0);
+    const denomValue = denominator > 0 ? denominator : null;
+    const numerator = syncStatus.processed ?? 0;
+    return denomValue === null ? `${numerator} / —` : `${numerator} / ${denomValue}`;
+  }, [syncStatus.processed, syncStatus.discovered, syncStatus.succeeded, syncStatus.totalKnown]);
+
+  const syncSuccessText = useMemo(() => {
+    const denominator = syncStatus.totalKnown || syncStatus.discovered || Math.max(syncStatus.succeeded, 0);
+    const denomValue = denominator > 0 ? denominator : null;
+    const numerator = syncStatus.succeeded ?? 0;
+    return denomValue === null ? `${numerator} / —` : `${numerator} / ${denomValue}`;
+  }, [syncStatus.succeeded, syncStatus.discovered, syncStatus.totalKnown]);
+
+  const formatSeconds = useCallback((seconds) => {
+    if (!Number.isFinite(seconds) || seconds < 0) {
+      return '—';
+    }
+    const total = Math.max(Math.round(seconds), 0);
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    const parts = [];
+    if (hours > 0) {
+      parts.push(`${hours} óra`);
+    }
+    if (minutes > 0 || hours > 0) {
+      parts.push(`${minutes} perc`);
+    }
+    parts.push(`${secs} mp`);
+    return parts.join(' ');
+  }, []);
+
+  const estimatedTotalDurationText = useMemo(
+    () => formatSeconds(syncStatus.estimatedTotalSeconds),
+    [syncStatus.estimatedTotalSeconds, formatSeconds]
+  );
+
+  const estimatedRemainingDurationText = useMemo(
+    () => formatSeconds(remainingSeconds),
+    [remainingSeconds, formatSeconds]
+  );
+
+  const idleRemainingDurationText = useMemo(
+    () => formatSeconds(syncStatus.estimatedRemainingSeconds),
+    [syncStatus.estimatedRemainingSeconds, formatSeconds]
+  );
+
+  const averageSecondsText = useMemo(() => {
+    const value = syncStatus.averageSecondsPerItem;
+    if (!Number.isFinite(value) || value <= 0) {
+      return '—';
+    }
+    return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+  }, [syncStatus.averageSecondsPerItem]);
+
+  const syncFinishedAtText = useMemo(() => {
+    if (!syncStatus.finishedAt) {
+      return null;
+    }
+    try {
+      return new Date(syncStatus.finishedAt).toLocaleString('hu-HU');
+    } catch (error) {
+      return syncStatus.finishedAt;
+    }
+  }, [syncStatus.finishedAt]);
 
   if (!user) {
     return (
@@ -223,6 +379,48 @@ export default function HomeScreen() {
             </View>
           )}
 
+          {syncStatus.running && (
+            <View style={styles.syncBanner}>
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.primary}
+                style={styles.syncSpinner}
+              />
+              <View style={styles.syncTextWrapper}>
+                <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
+                {isDiscoveryPhase ? (
+                  <>
+                    <Text style={styles.syncSubtitle}>{`Azonosítók kigyűjtése: ${syncStatus.discovered}`}</Text>
+                    <Text style={styles.syncMeta}>{`Aktuális becslés: ${syncStatus.totalKnown || syncStatus.discovered || '—'} tétel • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
+                    <Text style={styles.syncMeta}>{`Állapot: gyógyszer ID-k összegyűjtése folyamatban…`}</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Sikeres: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Sikertelen: ${syncStatus.failed}`}</Text>
+                    <Text style={styles.syncMeta}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} tétel • Átlag: ${averageSecondsText}s/elem • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
+                    <Text style={styles.syncMeta}>{`Hátralévő idő: ${estimatedRemainingDurationText} • Várható teljes idő: ${estimatedTotalDurationText}`}</Text>
+                  </>
+                )}
+              </View>
+            </View>
+          )}
+
+          {!syncStatus.running && syncStatus.finishedAt && (
+            <View style={styles.syncBannerIdle}>
+              <Text style={styles.syncIdleTitle}>Legutóbbi gyógyszer frissítés lezárva</Text>
+              <Text style={styles.syncIdleSubtitle}>{`Összesen: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Hibás: ${syncStatus.failed}`}</Text>
+              <Text style={styles.syncMetaSecondary}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x • Becsült teljes idő: ${estimatedTotalDurationText}`}</Text>
+              <Text style={styles.syncMetaSecondary}>{`Átlag: ${averageSecondsText}s/elem`}</Text>
+              {syncStatus.estimatedRemainingSeconds > 0 ? (
+                <Text style={styles.syncMetaSecondary}>{`Becsült hátralévő idő: ${idleRemainingDurationText}`}</Text>
+              ) : null}
+              {syncFinishedAtText ? (
+                <Text style={styles.syncMetaSecondary}>{`Befejezve: ${syncFinishedAtText}`}</Text>
+              ) : null}
+            </View>
+          )}
+
           {isLoading ? (
             <View style={styles.loadingState}>
               <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -253,11 +451,12 @@ export default function HomeScreen() {
                           <TouchableOpacity
                             key={medication.itemId || medication.id || medication.registrationNumber}
                             style={styles.popularCard}
-                            onPress={() =>
-                              medication.itemId || medication.id
-                                ? navigate(`/medication/${medication.itemId || medication.id}`)
-                                : undefined
-                            }
+                            onPress={() => {
+                              const identifier = medication.itemId || medication.id;
+                              if (identifier) {
+                                navigate(`/medication/${identifier}`);
+                              }
+                            }}
                           >
                             <Text style={styles.popularCardTitle}>{medication.name}</Text>
                             {medication.searchCount !== undefined && (
