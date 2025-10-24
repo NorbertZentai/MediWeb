@@ -42,7 +42,7 @@ public class EmailNotificationService {
             if (properties.getFrom() != null && !properties.getFrom().isBlank()) {
                 helper.setFrom(properties.getFrom());
             }
-            helper.setSubject("MediTrack – gyógyszer emlékeztető");
+            helper.setSubject("MediWeb – gyógyszer emlékeztető");
 
             Context context = new Context();
             context.setVariable("userName", user.getName());
@@ -59,7 +59,7 @@ public class EmailNotificationService {
 
             String supportEmail = properties.getSupportEmail();
             if (supportEmail == null || supportEmail.isBlank()) {
-                supportEmail = "support@meditrack.app";
+                supportEmail = "support@mediweb.app";
             }
             context.setVariable("supportEmail", supportEmail);
             context.setVariable("supportEmailLink", "mailto:" + supportEmail);
