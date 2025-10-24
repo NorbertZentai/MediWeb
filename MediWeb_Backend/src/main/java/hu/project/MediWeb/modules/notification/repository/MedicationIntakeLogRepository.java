@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface MedicationIntakeLogRepository extends JpaRepository<MedicationIntakeLog, Long> {
@@ -14,5 +15,11 @@ public interface MedicationIntakeLogRepository extends JpaRepository<MedicationI
             ProfileMedication profileMedication,
             LocalDate intakeDate,
             LocalTime intakeTime
+    );
+
+    List<MedicationIntakeLog> findByProfileMedicationProfileUserIdAndIntakeDateBetweenOrderByIntakeDateAsc(
+        Long userId,
+        LocalDate startDate,
+        LocalDate endDate
     );
 }
