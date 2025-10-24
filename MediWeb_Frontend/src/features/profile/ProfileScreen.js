@@ -5,6 +5,7 @@ import ProfileTabs from "./components/ProfileTabs";
 import ProfilesTab from "./components/ProfilesTab";
 import FavoritesTab from "./components/FavoritesTab";
 import IntakeTab from "./components/IntakeTab";
+import StatisticsTab from "./components/StatisticsTab";
 import SettingsTab from "./components/SettingsTab";
 import { styles } from "./ProfileScreen.style";
 
@@ -17,6 +18,8 @@ export default function ProfileScreen() {
         return <FavoritesTab />;
       case "settings":
         return <SettingsTab />;
+      case "statistics":
+        return <StatisticsTab />;
       case "intake":
         return <IntakeTab />;
       default:

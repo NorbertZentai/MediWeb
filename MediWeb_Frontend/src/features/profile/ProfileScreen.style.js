@@ -117,6 +117,16 @@ export const styles = StyleSheet.create({
     color: "#059669",
   },
 
+  tabLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#374151",
+  },
+
+  tabLabelActive: {
+    color: "#059669",
+  },
+
   // --- Modal stílusok ---
   modalOverlay: {
     position: "absolute",
