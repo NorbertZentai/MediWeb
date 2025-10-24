@@ -14,7 +14,6 @@ import hu.project.MediWeb.modules.profile.repository.projection.PopularMedicatio
 
 public interface ProfileMedicationRepository extends JpaRepository<ProfileMedication, Long> {
     List<ProfileMedication> findByProfileId(Long profileId);
-    List<ProfileMedication> findByProfileUserId(Long userId);
     Optional<ProfileMedication> findByProfileIdAndMedicationId(Long profileId, Long medicationId);
     void deleteByProfileIdAndMedicationId(Long profileId, Long medicationId);
 

@@ -22,7 +22,6 @@ import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -103,16 +102,9 @@ public class StatisticsAggregationService {
     LocalDate start = period.startDate(end);
     List<MedicationIntakeLog> logs = loadIntakeLogs(user.getId(), start, end);
 
-    Map<Long, ProfileMedication> uniqueMedications = logs.stream()
+    Map<String, Long> counts = logs.stream()
         .map(MedicationIntakeLog::getProfileMedication)
         .filter(pm -> pm != null && pm.getMedication() != null)
-        .collect(Collectors.toMap(
-            ProfileMedication::getId,
-            pm -> pm,
-            (left, right) -> left
-        ));
-
-    Map<String, Long> counts = uniqueMedications.values().stream()
         .collect(Collectors.groupingBy(
             this::resolveCategory,
             Collectors.counting()
@@ -121,7 +113,7 @@ public class StatisticsAggregationService {
     List<CategoryBreakdownItem> items = counts.entrySet().stream()
         .filter(entry -> entry.getValue() > 0)
         .map(entry -> new CategoryBreakdownItem(entry.getKey(), entry.getValue()))
-        .sorted(Comparator.comparingLong(CategoryBreakdownItem::value).reversed())
+        .sorted((a, b) -> Long.compare(b.value(), a.value()))
         .toList();
 
     return new CategoryStatisticsResponse(items);

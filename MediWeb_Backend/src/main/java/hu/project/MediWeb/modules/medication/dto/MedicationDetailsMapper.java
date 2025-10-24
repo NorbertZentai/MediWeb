@@ -22,6 +22,7 @@ public class MedicationDetailsMapper {
                     .company(dto.getCompany())
                     .legalBasis(dto.getLegalBasis())
                     .status(dto.getStatus())
+                    .active(dto.isActive())
                     .authorizationDate(dto.getAuthorizationDate())
                     .narcotic(dto.getNarcotic())
                     .patientInfoUrl(dto.getPatientInfoUrl())
@@ -67,6 +68,7 @@ public class MedicationDetailsMapper {
                     .finalSamples(mapper.readValue(e.getFinalSamplesJson(), new TypeReference<>() {}))
                     .defectiveForms(mapper.readValue(e.getDefectiveFormsJson(), new TypeReference<>() {}))
                     .hazipatikaInfo(mapper.readValue(e.getHazipatikaJson(), new TypeReference<>() {}))
+                    .active(e.isActive())
                     .build();
         } catch (JsonProcessingException ex) {
             throw new RuntimeException("Hiba Entity-ből DTO konvertálás közben", ex);

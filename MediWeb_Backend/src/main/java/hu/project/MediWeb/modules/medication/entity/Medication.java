@@ -2,10 +2,10 @@ package hu.project.MediWeb.modules.medication.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "medications")
@@ -41,6 +41,10 @@ public class Medication {
 
     @Column(length = 100)
     private String status;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private boolean active = true;
 
     private LocalDate authorizationDate;
 
@@ -86,6 +90,8 @@ public class Medication {
     private String manufacturer;
 
     @Column(name = "last_updated")
-    @CreationTimestamp
-    private LocalDate lastUpdated;
+    private LocalDateTime lastUpdated;
+
+    @Column(name = "last_reviewed")
+    private LocalDateTime lastReviewedAt;
 }

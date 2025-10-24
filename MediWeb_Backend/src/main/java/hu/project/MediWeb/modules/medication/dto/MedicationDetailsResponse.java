@@ -22,6 +22,7 @@ public class MedicationDetailsResponse {
     private String company;
     private String legalBasis;
     private String status;
+    private boolean active;
     private LocalDate authorizationDate;
     private String narcotic;
 

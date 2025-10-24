@@ -6,16 +6,26 @@ import hu.project.MediWeb.modules.GoogleImage.dto.GoogleSearchResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import jakarta.annotation.PostConstruct;
+import java.time.Duration;
 import java.util.Comparator;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class GoogleImageService {
 
     private final WebClient webClient;
     private final GoogleConfig googleConfig;
+    private final ReentrantLock rateLimitLock = new ReentrantLock();
+    private final ReentrantLock quotaLock = new ReentrantLock();
+    private volatile long lastRequestAtMs = 0L;
+    private volatile long minuteWindowStartMs = 0L;
+    private volatile int minuteRequestCount = 0;
+    private volatile long dayWindowStartMs = 0L;
+    private volatile int dayRequestCount = 0;
 
     public GoogleImageService(GoogleConfig googleConfig) {
         this.googleConfig = googleConfig;
@@ -69,7 +79,12 @@ public class GoogleImageService {
         }
 
         System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + query);
-        return webClient.get()
+    return Mono.defer(() -> {
+            if (!reserveQuota(query)) {
+                return Mono.empty();
+            }
+            enforceRateLimit();
+            return webClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .queryParam("key", googleConfig.getKey())
@@ -92,8 +107,13 @@ public class GoogleImageService {
                 .onErrorResume(error -> {
                     System.err.println("❌ [GOOGLE-IMG] Error searching images for: " + query);
                     System.err.println("❌ [GOOGLE-IMG] Error: " + error.getMessage());
+                    if (error instanceof WebClientResponseException tooManyRequests && tooManyRequests.getStatusCode().value() == 429) {
+                        applyThrottleBackoff();
+                    }
+                    releaseQuotaOnFailure();
                     return Mono.empty();
                 });
+        });
     }
 
     private int score(String query, GoogleImageResult image) {
@@ -113,5 +133,95 @@ public class GoogleImageService {
         if (lowerTitle.contains("szuszpenzió")) score += 3;
 
         return score;
+    }
+
+    private void enforceRateLimit() {
+        long minDelay = Math.max(googleConfig.getRequestDelayMs(), 0L);
+        if (minDelay <= 0) {
+            return;
+        }
+
+        rateLimitLock.lock();
+        try {
+            long now = System.currentTimeMillis();
+            long waitUntil = lastRequestAtMs + minDelay;
+            if (waitUntil > now) {
+                long sleepMs = waitUntil - now;
+                try {
+                    Thread.sleep(sleepMs);
+                } catch (InterruptedException interruptedException) {
+                    Thread.currentThread().interrupt();
+                }
+                now = System.currentTimeMillis();
+            }
+            lastRequestAtMs = now;
+        } finally {
+            rateLimitLock.unlock();
+        }
+    }
+
+    private void applyThrottleBackoff() {
+        long baseDelay = Math.max(googleConfig.getRequestDelayMs(), 0L);
+        long backoff = Math.max(baseDelay * 4, 1000L);
+        rateLimitLock.lock();
+        try {
+            lastRequestAtMs = System.currentTimeMillis() + backoff;
+        } finally {
+            rateLimitLock.unlock();
+        }
+        System.err.println("⏳ [GOOGLE-IMG] Too many requests detected, applying backoff of " + backoff + " ms");
+    }
+
+    private boolean reserveQuota(String query) {
+        int perMinuteLimit = googleConfig.getMaxRequestsPerMinute();
+        int perDayLimit = googleConfig.getMaxRequestsPerDay();
+        long now = System.currentTimeMillis();
+
+        quotaLock.lock();
+        try {
+            if (perMinuteLimit > 0) {
+                long minuteWindow = Duration.ofMinutes(1).toMillis();
+                if (now - minuteWindowStartMs >= minuteWindow) {
+                    minuteWindowStartMs = now;
+                    minuteRequestCount = 0;
+                }
+                if (minuteRequestCount >= perMinuteLimit) {
+                    System.err.println("⏳ [GOOGLE-IMG] Per-minute kvóta elérve, kihagyjuk a keresést: " + query);
+                    return false;
+                }
+            }
+
+            if (perDayLimit > 0) {
+                long dayWindow = Duration.ofDays(1).toMillis();
+                if (now - dayWindowStartMs >= dayWindow) {
+                    dayWindowStartMs = now;
+                    dayRequestCount = 0;
+                }
+                if (dayRequestCount >= perDayLimit) {
+                    System.err.println("⏳ [GOOGLE-IMG] Napi kvóta elérve, kihagyjuk a keresést: " + query);
+                    return false;
+                }
+            }
+
+            minuteRequestCount++;
+            dayRequestCount++;
+            return true;
+        } finally {
+            quotaLock.unlock();
+        }
+    }
+
+    private void releaseQuotaOnFailure() {
+        quotaLock.lock();
+        try {
+            if (minuteRequestCount > 0) {
+                minuteRequestCount--;
+            }
+            if (dayRequestCount > 0) {
+                dayRequestCount--;
+            }
+        } finally {
+            quotaLock.unlock();
+        }
     }
 }
