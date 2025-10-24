@@ -53,6 +53,7 @@ public class OgyeiRequestHelper {
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .header("Accept-Language", "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7")
                 .header("DNT", "1")
+        .timeout(60_000)
                 .cookie("PHPSESSID", phpsessid)
                 .cookie("cookieSetup", "true")
                 .execute()

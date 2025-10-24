@@ -106,6 +106,15 @@ export default function MedicationDetailsScreen() {
               Hatóanyag: {data.substance} • ATC: {data.atcCode}
             </Text>
 
+            {data.active === false && (
+              <View style={styles.inactiveBanner}>
+                <FontAwesome5 name="exclamation-triangle" size={18} color="#c62828" style={styles.inactiveBannerIcon} />
+                <Text style={styles.inactiveBannerText}>
+                  A legutóbbi szinkron óta ez a készítmény inaktívnak jelölődött.
+                </Text>
+              </View>
+            )}
+
             <View style={styles.actionRow}>
               {/* Kedvencekhez adás gomb */}
               <TouchableOpacity
