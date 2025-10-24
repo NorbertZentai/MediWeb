@@ -160,3 +160,30 @@ export const requestAccountDeletion = async () => {
   const response = await api.post(`/api/users/account-deletion`);
   return response.data;
 };
+
+// STATISTICS
+
+export const getComplianceStatistics = async (params = {}) => {
+  const response = await api.get(`/api/statistics/compliance`, { params });
+  return response.data;
+};
+
+export const getTrendStatistics = async (params = {}) => {
+  const response = await api.get(`/api/statistics/trends`, { params });
+  return response.data;
+};
+
+export const getCategoryStatistics = async (params = {}) => {
+  const response = await api.get(`/api/statistics/categories`, { params });
+  return response.data;
+};
+
+export const getMissedDoseStatistics = async (params = {}) => {
+  const response = await api.get(`/api/statistics/missed-doses`, { params });
+  return response.data;
+};
+
+export const getPeakIntakeTimes = async (params = {}) => {
+  const response = await api.get(`/api/statistics/peak-times`, { params });
+  return response.data;
+};
