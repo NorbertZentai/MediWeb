@@ -76,10 +76,22 @@ export default function ProfilesTab() {
   return (
     <View style={styles.tabContent}>
       <TouchableOpacity style={styles.addProfileButton} onPress={() => setAddModalVisible(true)}>
-        <Text style={styles.addProfileButtonText}>+ ÚJ PROFIL</Text>
+        <Text style={styles.addProfileButtonText}>ÚJ PROFIL</Text>
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.profileListWrapper}>
+        {profiles.length === 0 && (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateCard}>
+              <Text style={styles.emptyStateEmoji}>👥</Text>
+              <Text style={styles.emptyStateTitle}>Még nincs profilod</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                Adj hozzá egy profilt az ÚJ PROFIL gombbal, hogy követni tudd a gyógyszereket.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {profiles.map((profile) => (
           <View key={profile.id} style={{ width: '100%', alignItems: 'center' }}>
             <ProfileCard

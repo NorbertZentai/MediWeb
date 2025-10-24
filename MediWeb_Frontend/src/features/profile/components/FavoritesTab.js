@@ -55,31 +55,39 @@ export default function FavoritesTab() {
     );
   }
 
-  if (favorites.length === 0) {
-    return <Text style={styles.noProfilesText}>Nincsenek kedvenc gyógyszerek.</Text>;
-  }
-
   return (
     <>
       <ScrollView contentContainerStyle={styles.tabContent}>
-        <View style={styles.profileListWrapper}>
-          {favorites.map((fav, index) => (
-            <View key={fav.id} style={styles.profileCard}>
-              <View style={styles.profileCardHeader}>
-                <TouchableOpacity onPress={() => window.open(`/medication/${fav.medicationId}`, "_blank")}>
-                  <Text style={styles.medicationName}>
-                    {index + 1}. {fav.medicationName}
-                  </Text>
-                </TouchableOpacity>
-                <View style={styles.profileCardActions}>
-                  <TouchableOpacity onPress={() => confirmDelete(fav)}>
-                    <FontAwesome5 name="trash-alt" size={18} style={styles.icon} />
+        {favorites.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateCard}>
+              <Text style={styles.emptyStateEmoji}>⭐️</Text>
+              <Text style={styles.emptyStateTitle}>Még nincs kedvenc gyógyszer</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                A gyógyszer adatlapján a szív ikonra kattintva felveheted a gyorsan elérhető listádba.
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.profileListWrapper}>
+            {favorites.map((fav, index) => (
+              <View key={fav.id} style={styles.profileCard}>
+                <View style={styles.profileCardHeader}>
+                  <TouchableOpacity onPress={() => window.open(`/medication/${fav.medicationId}`, "_blank")}>
+                    <Text style={styles.medicationName}>
+                      {index + 1}. {fav.medicationName}
+                    </Text>
                   </TouchableOpacity>
+                  <View style={styles.profileCardActions}>
+                    <TouchableOpacity onPress={() => confirmDelete(fav)}>
+                      <FontAwesome5 name="trash-alt" size={18} style={styles.icon} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {/* Modal törlés megerősítéshez */}
