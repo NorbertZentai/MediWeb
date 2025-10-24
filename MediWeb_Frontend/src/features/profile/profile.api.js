@@ -138,3 +138,25 @@ export const getTodaysMedications = async (profileId) => {
 export const submitIntake = async ({ profileMedicationId, time, taken }) => {
   return api.post("/api/intake", { profileMedicationId, time, taken });
 };
+
+// SETTINGS
+
+export const fetchUserPreferences = async () => {
+  const response = await api.get(`/api/users/preferences`);
+  return response.data;
+};
+
+export const updateUserPreferences = async (preferences) => {
+  const response = await api.put(`/api/users/preferences`, preferences);
+  return response.data;
+};
+
+export const requestDataExport = async () => {
+  const response = await api.post(`/api/users/data-export`);
+  return response.data;
+};
+
+export const requestAccountDeletion = async () => {
+  const response = await api.post(`/api/users/account-deletion`);
+  return response.data;
+};

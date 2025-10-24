@@ -101,3 +101,20 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (profile_medication_id, intake_date, intake_time)
 );
+
+CREATE TABLE IF NOT EXISTS public.user_preferences (
+    user_id INTEGER PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
+    preferences_payload TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.user_data_requests (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    request_type VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    metadata TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP
+);
