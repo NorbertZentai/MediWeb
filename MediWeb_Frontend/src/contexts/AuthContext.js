@@ -1,13 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
+import storage from "utils/storage";
 import { fetchCurrentUser } from 'features/profile/profile.api';
-import { login as apiLogin, register as apiRegister,logout as apiLogout,  } from 'features/auth/auth.api';
+import { login as apiLogin, register as apiRegister, logout as apiLogout, } from 'features/auth/auth.api';
 
 export const AuthContext = createContext({
     user: null,
     loading: true,
-    login: () => {},
-    register: () => {},
-    logout: () => {}
+    login: () => { },
+    register: () => { },
+    logout: () => { }
 });
 
 export const AuthProvider = ({ children }) => {
@@ -16,13 +17,13 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         const loginResponse = await apiLogin(credentials);
-        
+
         // Save JWT token from login response
         if (loginResponse.token) {
-            localStorage.setItem('authToken', loginResponse.token);
-            localStorage.setItem('isLoggedIn', 'true');
+            await storage.setItem('authToken', loginResponse.token);
+            await storage.setItem('isLoggedIn', 'true');
         }
-        
+
         // Fetch current user data using the new token
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     const register = async (userData) => {
         await apiRegister(userData);
     };
-    
+
     const logout = async () => {
         try {
             await apiLogout();
@@ -39,18 +40,19 @@ export const AuthProvider = ({ children }) => {
             console.error("Logout failed:", error.response?.data || error.message);
         } finally {
             setUser(null);
-            // Remove both JWT token and login state from localStorage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('isLoggedIn');
+            // Remove both JWT token and login state from storage
+            await storage.removeItem('authToken');
+            await storage.removeItem('isLoggedIn');
         }
     };
 
     useEffect(() => {
         const loadUser = async () => {
-            // Check if JWT token exists in localStorage
-            const token = localStorage.getItem('authToken');
-            const wasLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            
+            // Check if JWT token exists in storage
+            const token = await storage.getItem('authToken');
+            const isLoggedIn = await storage.getItem('isLoggedIn');
+            const wasLoggedIn = isLoggedIn === 'true';
+
             if (!token || !wasLoggedIn) {
                 // No token or user was never logged in, skip API call
                 setUser(null);
@@ -63,14 +65,14 @@ export const AuthProvider = ({ children }) => {
                 const currentUser = await fetchCurrentUser(true); // Silent mode
                 setUser(currentUser);
                 if (!currentUser) {
-                    // API returned null, clear localStorage
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('isLoggedIn');
+                    // API returned null, clear storage
+                    await storage.removeItem('authToken');
+                    await storage.removeItem('isLoggedIn');
                 }
             } catch (error) {
                 // If fetchCurrentUser fails, user is not logged in
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('isLoggedIn');
+                await storage.removeItem('authToken');
+                await storage.removeItem('isLoggedIn');
                 setUser(null);
             } finally {
                 setLoading(false);

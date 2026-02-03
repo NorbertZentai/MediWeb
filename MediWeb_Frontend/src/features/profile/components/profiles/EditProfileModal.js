@@ -26,11 +26,12 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
     <Modal
       visible={true}
       transparent={true}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
+          <View style={styles.modalHandle} />
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Profil szerkesztése</Text>
 

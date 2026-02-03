@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -52,7 +53,10 @@ public class MedicationController {
     }
 
     @PostMapping("/sync/start")
-    public ResponseEntity<Map<String, Object>> startSync(@RequestParam(value = "force", defaultValue = "false") boolean force) {
+    public ResponseEntity<Map<String, Object>> startSync(
+        @RequestParam(value = "force", defaultValue = "false") boolean force,
+        @RequestParam(value = "limit", required = false) Integer limit
+    ) {
         if (medicationSyncStatusTracker.isRunning()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of(
@@ -61,14 +65,52 @@ public class MedicationController {
                     ));
         }
 
-    CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshAllMedications(force));
+    CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshAllMedications(force, limit));
 
-        return ResponseEntity.accepted()
-                .body(Map.of(
-                        "message", "A szinkronizáció elindult",
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", "A szinkronizáció elindult");
+    body.put("running", true);
+    body.put("force", force);
+    if (limit != null && limit > 0) {
+        body.put("limit", limit);
+    }
+
+    return ResponseEntity.accepted().body(body);
+    }
+
+    @PostMapping("/sync/stop")
+    public ResponseEntity<Map<String, Object>> stopSync() {
+    if (!medicationSyncStatusTracker.isRunning()) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(Map.of(
+                "message", "Jelenleg nincs futó szinkronizáció",
+                "running", false
+            ));
+    }
+
+    if (medicationSyncStatusTracker.isCancellationRequested()) {
+        return ResponseEntity.ok(Map.of(
+            "message", "A leállítás már folyamatban van",
             "running", true,
-            "force", force
-                ));
+            "stopping", true
+        ));
+    }
+
+    boolean accepted = medicationBatchProcessor.requestStop();
+    if (!accepted) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(Map.of(
+                "message", "Nem sikerült leállítani a szinkronizációt",
+                "running", medicationSyncStatusTracker.isRunning()
+            ));
+    }
+
+    return ResponseEntity.accepted()
+        .body(Map.of(
+            "message", "A szinkronizáció leállítása kezdeményezve",
+            "running", true,
+            "stopping", true
+        ));
     }
 
     @GetMapping("/{itemId}")

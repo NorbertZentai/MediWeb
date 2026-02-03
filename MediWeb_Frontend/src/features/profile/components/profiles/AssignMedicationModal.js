@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, View, Text, ScrollView, TouchableOpacity, Pressable } from "react-native";
-import { toast } from "react-toastify";
+import { toast } from 'utils/toast';
 import { getFavorites, addMedicationToProfile, getMedicationsForProfile } from "features/profile/profile.api";
 import { styles } from "../ProfilesTab.style";
 
@@ -17,20 +17,20 @@ export default function AssignMedicationModal({ profileId, visible, onClose, onA
 
   const fetchFavorites = async () => {
     try {
-        const [favoritesRes, profileMedsRes] = await Promise.all([
+      const [favoritesRes, profileMedsRes] = await Promise.all([
         getFavorites(),
         getMedicationsForProfile(profileId),
-        ]);
+      ]);
 
-        const assignedIds = profileMedsRes.map((med) => med.medicationId);
+      const assignedIds = profileMedsRes.map((med) => med.medicationId);
 
-        const filteredFavorites = favoritesRes.filter(
+      const filteredFavorites = favoritesRes.filter(
         (fav) => !assignedIds.includes(fav.medicationId)
-        );
+      );
 
-        setFavorites(filteredFavorites);
+      setFavorites(filteredFavorites);
     } catch (error) {
-        console.error("Hiba a kedvencek vagy profil gyógyszerek betöltésekor:", error);
+      console.error("Hiba a kedvencek vagy profil gyógyszerek betöltésekor:", error);
     }
   };
 
@@ -63,11 +63,12 @@ export default function AssignMedicationModal({ profileId, visible, onClose, onA
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.assignModalContainer}>
+          <View style={styles.modalHandle} />
           <View style={styles.assignModalContent}>
             <Text style={styles.modalTitle}>Kedvenc gyógyszerek</Text>
             <ScrollView style={styles.assignList}>
@@ -78,7 +79,7 @@ export default function AssignMedicationModal({ profileId, visible, onClose, onA
                   style={[
                     styles.assignCard,
                     selectedIds.includes(med.medicationId) &&
-                      styles.assignCardSelected,
+                    styles.assignCardSelected,
                   ]}
                 >
                   <Text style={styles.assignCardTitle}>
