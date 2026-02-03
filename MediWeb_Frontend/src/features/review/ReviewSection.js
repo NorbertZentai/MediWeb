@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-import { Link } from "react-router-dom";
+import { Link } from "expo-router";
 import { renderStars } from "./ReviewStars";
 import { styles } from "./ReviewSection.style";
 
@@ -91,7 +91,7 @@ export default function ReviewSection({
           <Text style={styles.reviewFormLabel}>Értékelés:</Text>
           <View style={styles.starPicker}>
             {[1, 2, 3, 4, 5].map((val) => (
-              <TouchableOpacity key={val} onPress={() => setRating(val) }>
+              <TouchableOpacity key={val} onPress={() => setRating(val)}>
                 <FontAwesome
                   name={val <= rating ? "star" : "star-o"}
                   size={30}
@@ -192,7 +192,7 @@ export default function ReviewSection({
             {!isLoggedIn && (
               <Text style={styles.loginPrompt}>
                 <Text>Bejelentkezés után tudsz értékelést írni. </Text>
-                <Link to="/login" style={styles.loginLink}>Bejelentkezés</Link>
+                <Link href="/login" style={styles.loginLink}><Text>Bejelentkezés</Text></Link>
               </Text>
             )}
           </View>

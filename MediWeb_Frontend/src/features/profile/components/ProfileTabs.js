@@ -1,34 +1,44 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { styles } from "../ProfileScreen.style";
 
 const tabs = [
-  { key: "profiles", label: "Profilok" },
-  { key: "favorites", label: "Kedvencek" },
-  { key: "intake", label: "Bevitel" },
-  { key: "statistics", label: "Statisztikák" },
-  { key: "settings", label: "Beállítások" },
+  { key: "profiles", label: "Profilok", icon: "user-friends" },
+  { key: "favorites", label: "Kedvencek", icon: "star" },
+  { key: "intake", label: "Bevitel", icon: "pills" },
+  { key: "statistics", label: "Statisztikák", icon: "chart-bar" },
+  { key: "settings", label: "Beállítások", icon: "cog" },
 ];
 
 export default function ProfileTabs({ selectedTab, onTabChange }) {
   return (
-    <View style={styles.tabs}>
-      {tabs.map((tab) => (
-        <TouchableOpacity
-          key={tab.key}
-          style={[
-            styles.tabButton,
-            selectedTab === tab.key && styles.tabButtonActive,
-          ]}
-          onPress={() => onTabChange(tab.key)}
-        >
-          <Text
-            style={[styles.tabLabel, selectedTab === tab.key && styles.tabLabelActive]}
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.tabs}
+      style={styles.tabsScrollView}
+    >
+      {tabs.map((tab) => {
+        const isActive = selectedTab === tab.key;
+        return (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tabButton, isActive && styles.tabButtonActive]}
+            onPress={() => onTabChange(tab.key)}
+            activeOpacity={0.7}
           >
-            {tab.label}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
+            <FontAwesome5
+              name={tab.icon}
+              size={14}
+              color={isActive ? "#2E7D32" : "#9CA3AF"}
+            />
+            <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
   );
 }

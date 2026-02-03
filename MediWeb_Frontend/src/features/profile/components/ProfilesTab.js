@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { toast } from 'react-toastify';
+import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import { toast } from 'utils/toast';
 import ProfileCard from './profiles/ProfileCard';
 import AddProfileModal from './profiles/AddProfileModal';
 import EditProfileModal from './profiles/EditProfileModal';
@@ -79,7 +79,7 @@ export default function ProfilesTab() {
         <Text style={styles.addProfileButtonText}>ÚJ PROFIL</Text>
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.profileListWrapper}>
+      <View style={styles.profileListWrapper}>
         {profiles.length === 0 && (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCard}>
@@ -142,7 +142,7 @@ export default function ProfilesTab() {
             )}
           </View>
         ))}
-      </ScrollView>
+      </View>
 
       {isAddModalVisible && (
         <AddProfileModal
@@ -221,11 +221,12 @@ export default function ProfilesTab() {
         <Modal
           visible={true}
           transparent={true}
-          animationType="fade"
+          animationType="slide"
           onRequestClose={() => setDeletingProfile(null)}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalDeleteContainer}>
+              <View style={styles.modalHandle} />
               <Text style={styles.modalDeleteTitle}>
                 Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
               </Text>
@@ -246,11 +247,12 @@ export default function ProfilesTab() {
         <Modal
           visible={true}
           transparent={true}
-          animationType="fade"
+          animationType="slide"
           onRequestClose={() => setMedicationToDelete(null)}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalDeleteContainer}>
+              <View style={styles.modalHandle} />
               <Text style={styles.modalDeleteTitle}>
                 Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert?
               </Text>

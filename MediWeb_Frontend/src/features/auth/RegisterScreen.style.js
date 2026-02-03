@@ -4,6 +4,10 @@ import { theme } from 'styles/theme';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  contentWrapper: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,

@@ -3,24 +3,35 @@ package hu.project.MediWeb.modules.GoogleImage.service;
 import hu.project.MediWeb.modules.GoogleImage.config.GoogleConfig;
 import hu.project.MediWeb.modules.GoogleImage.dto.GoogleImageResult;
 import hu.project.MediWeb.modules.GoogleImage.dto.GoogleSearchResponse;
+import jakarta.annotation.PostConstruct;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
-import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.Comparator;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class GoogleImageService {
 
+    private static final long MIN_DELAY_MS = 1000L;
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(45);
+
     private final WebClient webClient;
     private final GoogleConfig googleConfig;
     private final ReentrantLock rateLimitLock = new ReentrantLock();
     private final ReentrantLock quotaLock = new ReentrantLock();
+    private final Semaphore inFlightSemaphore = new Semaphore(1, true);
     private volatile long lastRequestAtMs = 0L;
     private volatile long minuteWindowStartMs = 0L;
     private volatile int minuteRequestCount = 0;
@@ -29,8 +40,17 @@ public class GoogleImageService {
 
     public GoogleImageService(GoogleConfig googleConfig) {
         this.googleConfig = googleConfig;
+
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(DEFAULT_TIMEOUT)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10_000)
+                .doOnConnected(conn -> conn
+                        .addHandlerLast(new ReadTimeoutHandler((int) DEFAULT_TIMEOUT.toSeconds()))
+                        .addHandlerLast(new WriteTimeoutHandler((int) DEFAULT_TIMEOUT.toSeconds())));
+
         this.webClient = WebClient.builder()
                 .baseUrl("https://www.googleapis.com/customsearch/v1")
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
 
@@ -79,11 +99,25 @@ public class GoogleImageService {
         }
 
         System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + query);
-    return Mono.defer(() -> {
-            if (!reserveQuota(query)) {
+        return Mono.defer(() -> {
+            final AtomicBoolean permitAcquired = new AtomicBoolean(false);
+            try {
+                inFlightSemaphore.acquire();
+                permitAcquired.set(true);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
                 return Mono.empty();
             }
+
+            if (!reserveQuota(query)) {
+                if (permitAcquired.get()) {
+                    inFlightSemaphore.release();
+                }
+                return Mono.empty();
+            }
+
             enforceRateLimit();
+
             return webClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
@@ -112,6 +146,11 @@ public class GoogleImageService {
                     }
                     releaseQuotaOnFailure();
                     return Mono.empty();
+                })
+                .doFinally(signalType -> {
+                    if (permitAcquired.get()) {
+                        inFlightSemaphore.release();
+                    }
                 });
         });
     }
@@ -136,7 +175,8 @@ public class GoogleImageService {
     }
 
     private void enforceRateLimit() {
-        long minDelay = Math.max(googleConfig.getRequestDelayMs(), 0L);
+        long configuredDelay = Math.max(googleConfig.getRequestDelayMs(), 0L);
+        long minDelay = Math.max(configuredDelay, MIN_DELAY_MS);
         if (minDelay <= 0) {
             return;
         }

@@ -1,20 +1,24 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
+import { FontAwesome5 } from "@expo/vector-icons";
 import {
   fetchUserPreferences,
   requestAccountDeletion,
   requestDataExport,
   updateUserPreferences,
 } from "features/profile/profile.api";
+import { AuthContext } from "contexts/AuthContext";
 import { styles } from "./SettingsTab.style";
 
 const DEFAULT_PREFERENCES = {
@@ -64,6 +68,8 @@ const mergePreferences = (incoming) => ({
 });
 
 export default function SettingsTab() {
+  const { logout } = useContext(AuthContext);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -291,169 +297,200 @@ export default function SettingsTab() {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Értesítési beállítások</Text>
-            <Text style={styles.sectionSubtitle}>
-              Állítsd be, hogyan szeretnél értesítéseket kapni a gyógyszereidről és
-              az egészségeddel kapcsolatos teendőkről.
-            </Text>
-          </View>
-          {renderToggleRow(
-            "Gyógyszer emlékeztetők",
-            "Email értesítések a közelgő gyógyszerbevételekről.",
-            "notifications",
-            "medicationReminders"
-          )}
-          {renderToggleRow(
-            "Heti email összefoglaló",
-            "Vasárnap délben elküldött összegző email a heti gyógyszerhasználatról.",
-            "notifications",
-            "summaryEmails"
-          )}
-          {renderToggleRow(
-            "Recept megújítás",
-            "Értesítés, amikor közeledik egy recept megújításának határideje.",
-            "notifications",
-            "refillAlerts"
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Általános beállítások</Text>
-            <Text style={styles.sectionSubtitle}>
-              Testreszabhatod az app megjelenését és alapvető működését.
-            </Text>
-          </View>
-          {renderPillGroup(
-            "Alkalmazás nyelve",
-            "A felület fő nyelve.",
-            LANGUAGE_OPTIONS,
-            "general",
-            "language",
-            {
-              infoText: "Angol nyelv hamarosan érkezik.",
-            }
-          )}
-          {renderPillGroup(
-            "Téma mód",
-            "Válaszd ki a számodra kényelmes megjelenést.",
-            THEME_OPTIONS,
-            "general",
-            "theme",
-            {
-              disabled: true,
-              infoText: "A téma mód beállítás hamarosan elérhető.",
-            }
-          )}
-          {renderPillGroup(
-            "Időzóna",
-            "Az értesítések és összefoglalók időzítéséhez használjuk.",
-            TIMEZONE_OPTIONS,
-            "general",
-            "timezone"
-          )}
-          <View style={styles.inlineInputs}>
-            <View style={styles.inlineInputWrapper}>
-              <Text style={styles.inlineLabel}>Napi összefoglaló ideje</Text>
-              <TextInput
-                style={styles.textInput}
-                value={preferences.general.dailyDigestHour}
-                onChangeText={(text) => handleInputChange("general", "dailyDigestHour", text)}
-                placeholder="08:00"
-                keyboardType="numbers-and-punctuation"
-                maxLength={5}
-              />
-              <Text style={styles.fieldHelper}>
-                Melyik időpontban kapj napi összefoglaló értesítést.
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Értesítési beállítások</Text>
+              <Text style={styles.sectionSubtitle}>
+                Állítsd be, hogyan szeretnél értesítéseket kapni a gyógyszereidről és
+                az egészségeddel kapcsolatos teendőkről.
               </Text>
             </View>
+            {renderToggleRow(
+              "Gyógyszer emlékeztetők",
+              "Email értesítések a közelgő gyógyszerbevételekről.",
+              "notifications",
+              "medicationReminders"
+            )}
+            {renderToggleRow(
+              "Heti email összefoglaló",
+              "Vasárnap délben elküldött összegző email a heti gyógyszerhasználatról.",
+              "notifications",
+              "summaryEmails"
+            )}
+            {renderToggleRow(
+              "Recept megújítás",
+              "Értesítés, amikor közeledik egy recept megújításának határideje.",
+              "notifications",
+              "refillAlerts"
+            )}
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Adatkezelés</Text>
-            <Text style={styles.sectionSubtitle}>
-              Szabályozd, hogyan kezeljük és használjuk fel az adataidat.
-            </Text>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Általános beállítások</Text>
+              <Text style={styles.sectionSubtitle}>
+                Testreszabhatod az app megjelenését és alapvető működését.
+              </Text>
+            </View>
+            {renderPillGroup(
+              "Alkalmazás nyelve",
+              "A felület fő nyelve.",
+              LANGUAGE_OPTIONS,
+              "general",
+              "language",
+              {
+                infoText: "Angol nyelv hamarosan érkezik.",
+              }
+            )}
+            {renderPillGroup(
+              "Téma mód",
+              "Válaszd ki a számodra kényelmes megjelenést.",
+              THEME_OPTIONS,
+              "general",
+              "theme",
+              {
+                disabled: true,
+                infoText: "A téma mód beállítás hamarosan elérhető.",
+              }
+            )}
+            {renderPillGroup(
+              "Időzóna",
+              "Az értesítések és összefoglalók időzítéséhez használjuk.",
+              TIMEZONE_OPTIONS,
+              "general",
+              "timezone"
+            )}
+            <View style={styles.inlineInputs}>
+              <View style={styles.inlineInputWrapper}>
+                <Text style={styles.inlineLabel}>Napi összefoglaló ideje</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={preferences.general.dailyDigestHour}
+                  onChangeText={(text) => handleInputChange("general", "dailyDigestHour", text)}
+                  placeholder="08:00"
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                <Text style={styles.fieldHelper}>
+                  Melyik időpontban kapj napi összefoglaló értesítést.
+                </Text>
+              </View>
+            </View>
           </View>
-          {renderToggleRow(
-            "Anonimizált analitikák engedélyezése",
-            "Segíts nekünk a szolgáltatás fejlesztésében névtelen statisztikák megosztásával.",
-            "data",
-            "anonymizedAnalytics"
-          )}
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Fiókműveletek</Text>
-            <Text style={styles.sectionSubtitle}>
-              Itt tudod kikérni az adataidat vagy kérvényezni a fiókod törlését. A műveletek végrehajtása előtt emailben értesítünk.
-            </Text>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Adatkezelés</Text>
+              <Text style={styles.sectionSubtitle}>
+                Szabályozd, hogyan kezeljük és használjuk fel az adataidat.
+              </Text>
+            </View>
+            {renderToggleRow(
+              "Anonimizált analitikák engedélyezése",
+              "Segíts nekünk a szolgáltatás fejlesztésében névtelen statisztikák megosztásával.",
+              "data",
+              "anonymizedAnalytics"
+            )}
           </View>
-          <View style={styles.fieldColumn}>
-            <TouchableOpacity
-              style={[styles.actionButton, exporting && styles.actionButtonDisabled]}
-              onPress={handleDataExport}
-              disabled={exporting}
-            >
-              {exporting ? (
-                <ActivityIndicator color="#047857" />
-              ) : (
-                <Text style={styles.actionButtonText}>Adatok exportálása</Text>
-              )}
-            </TouchableOpacity>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Fiókműveletek</Text>
+              <Text style={styles.sectionSubtitle}>
+                Itt tudod kikérni az adataidat vagy kérvényezni a fiókod törlését. A műveletek végrehajtása előtt emailben értesítünk.
+              </Text>
+            </View>
+            <View style={styles.fieldColumn}>
+              <TouchableOpacity
+                style={[styles.actionButton, exporting && styles.actionButtonDisabled]}
+                onPress={handleDataExport}
+                disabled={exporting}
+              >
+                {exporting ? (
+                  <ActivityIndicator color="#047857" />
+                ) : (
+                  <Text style={styles.actionButtonText}>Adatok exportálása</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  styles.dangerButton,
+                  deleting && styles.actionButtonDisabled,
+                ]}
+                onPress={handleAccountDeletion}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator color="#B91C1C" />
+                ) : (
+                  <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
+                    Fiók törlése
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            {lastSavedAt ? (
+              <Text style={styles.lastSavedText}>
+                Utoljára mentve: {lastSavedAt.toLocaleString("hu-HU")}
+              </Text>
+            ) : null}
             <TouchableOpacity
               style={[
-                styles.actionButton,
-                styles.dangerButton,
-                deleting && styles.actionButtonDisabled,
+                styles.saveButton,
+                (!hasChanges || saving) && styles.saveButtonDisabled,
               ]}
-              onPress={handleAccountDeletion}
-              disabled={deleting}
+              onPress={handleSave}
+              disabled={!hasChanges || saving}
             >
-              {deleting ? (
-                <ActivityIndicator color="#B91C1C" />
+              {saving ? (
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
-                  Fiók törlése
-                </Text>
+                <Text style={styles.saveButtonText}>Beállítások mentése</Text>
               )}
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.footer}>
-          {lastSavedAt ? (
-            <Text style={styles.lastSavedText}>
-              Utoljára mentve: {lastSavedAt.toLocaleString("hu-HU")}
-            </Text>
-          ) : null}
-          <TouchableOpacity
-            style={[
-              styles.saveButton,
-              (!hasChanges || saving) && styles.saveButtonDisabled,
-            ]}
-            onPress={handleSave}
-            disabled={!hasChanges || saving}
-          >
-            {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveButtonText}>Beállítások mentése</Text>
-            )}
-          </TouchableOpacity>
+          {/* Logout Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Fiók</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={() => {
+                Alert.alert(
+                  "Kijelentkezés",
+                  "Biztosan ki szeretnél jelentkezni?",
+                  [
+                    { text: "Mégse", style: "cancel" },
+                    {
+                      text: "Kijelentkezés",
+                      style: "destructive",
+                      onPress: () => {
+                        logout();
+                        router.replace("/");
+                      },
+                    },
+                  ]
+                );
+              }}
+            >
+              <FontAwesome5 name="sign-out-alt" size={18} color="#EF4444" />
+              <Text style={styles.logoutButtonText}>Kijelentkezés</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

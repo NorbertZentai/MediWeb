@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Modal, Pressable } from "react-native";
+import { View, Text, ActivityIndicator, TouchableOpacity, Modal, Pressable } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { getFavorites, removeFromFavorites } from "features/profile/profile.api";
-import { toast } from "react-toastify";
+import { toast } from 'utils/toast';
 import { styles } from "./ProfilesTab.style";
 
 export default function FavoritesTab() {
@@ -57,7 +57,7 @@ export default function FavoritesTab() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.tabContent}>
+      <View style={styles.tabContent}>
         {favorites.length === 0 ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateCard}>
@@ -88,7 +88,7 @@ export default function FavoritesTab() {
             ))}
           </View>
         )}
-      </ScrollView>
+      </View>
 
       {/* Modal törlés megerősítéshez */}
       <Modal

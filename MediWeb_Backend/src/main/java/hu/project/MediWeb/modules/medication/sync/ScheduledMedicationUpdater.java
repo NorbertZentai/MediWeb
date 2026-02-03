@@ -17,8 +17,8 @@ public class ScheduledMedicationUpdater {
     @Value("${medication.sync.enabled:true}")
     private boolean schedulingEnabled;
 
-    @Scheduled(cron = "${medication.sync.cron:0 0 2 * * SUN}")
-    public void weeklyMedicationDataUpdate() {
+    @Scheduled(cron = "${medication.sync.cron:0 0 2 1 * ?}")
+    public void scheduledMedicationDataUpdate() {
         if (!schedulingEnabled) {
             log.debug("Medication sync scheduling disabled");
             return;
@@ -27,7 +27,7 @@ public class ScheduledMedicationUpdater {
             log.warn("Medication sync already in progress, skipping scheduled run");
             return;
         }
-        log.info("Indul a gyógyszer adatbázis frissítése");
+        log.info("Időzített gyógyszer adatbázis frissítés indul");
         batchProcessor.refreshAllMedications();
     }
 }

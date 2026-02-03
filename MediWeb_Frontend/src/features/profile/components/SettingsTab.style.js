@@ -168,4 +168,20 @@ export const styles = StyleSheet.create({
   dangerButtonText: {
     color: "#B91C1C",
   },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    backgroundColor: "#FEF2F2",
+    borderRadius: 12,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#EF4444",
+  },
 });

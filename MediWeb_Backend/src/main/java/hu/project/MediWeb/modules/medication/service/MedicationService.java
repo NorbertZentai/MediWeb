@@ -120,6 +120,10 @@ public class MedicationService {
         return medicationRepository.findById(itemId);
     }
 
+    public int countStoredMedications() {
+        return Math.toIntExact(medicationRepository.count());
+    }
+
     @Transactional
     public void updateLastReviewed(Collection<Long> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -265,16 +269,31 @@ public class MedicationService {
             return existing != null ? existing.getImageUrl() : null;
         }
 
-        String fetched = googleImageService
-                .searchImages(medicationName)
-                .map(result -> result != null ? result.link() : null)
-                .blockOptional()
-                .orElse(null);
+        try {
+            String fetched = googleImageService
+                    .searchImages(medicationName)
+                    .map(result -> result != null ? result.link() : null)
+                    .blockOptional()
+                    .orElse(null);
 
-        if (!StringUtils.hasText(fetched) && existing != null) {
-            return existing.getImageUrl();
+            if (!StringUtils.hasText(fetched) && existing != null) {
+                return existing.getImageUrl();
+            }
+            return fetched;
+        } catch (RuntimeException ex) {
+            boolean wasInterrupted = Thread.currentThread().isInterrupted();
+            Throwable cause = ex.getCause();
+            if (cause instanceof InterruptedException && !wasInterrupted) {
+                Thread.currentThread().interrupt();
+                wasInterrupted = true;
+            }
+            if (cause instanceof InterruptedException || wasInterrupted) {
+                log.debug("Képkeresés megszakítva ({}): {}", medicationName, ex.getMessage());
+            } else {
+                log.warn("Nem sikerült képet keresni az OGYEI tételhez ({}): {}", medicationName, ex.getMessage());
+            }
+            return existing != null ? existing.getImageUrl() : null;
         }
-        return fetched;
     }
 
     private boolean shouldRefreshImage(Medication existing) {

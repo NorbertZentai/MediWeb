@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class GoogleConfig {
     private String key;
     private String cx;
-    private long requestDelayMs = 1500L;
+    private long requestDelayMs = 1000L;
     private int maxRequestsPerMinute = 30;
     private int maxRequestsPerDay = 400;
     

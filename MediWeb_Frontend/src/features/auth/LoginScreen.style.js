@@ -1,21 +1,29 @@
+import { StyleSheet } from 'react-native';
 import { theme } from 'styles/theme';
 
-export const styles = {
+export const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  contentWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    minHeight: '85vh',
   },
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.white,
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   title: {
     fontSize: 28,
@@ -56,4 +64,4 @@ export const styles = {
     textAlign: 'center',
     textDecorationLine: 'underline',
   }
-};
+});

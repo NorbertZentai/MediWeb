@@ -8,6 +8,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -19,7 +21,8 @@ public class HazipatikaSearchService {
 
         while (!currentQuery.isEmpty()) {
             try {
-                String searchUrl = "https://www.hazipatika.com/gyogyszerkereso/kereses?holkeres=nevben&search=" + currentQuery;
+                String encodedQuery = URLEncoder.encode(currentQuery, StandardCharsets.UTF_8);
+                String searchUrl = "https://www.hazipatika.com/gyogyszerkereso/kereses?holkeres=nevben&search=" + encodedQuery;
                 Document searchDoc = Jsoup.connect(searchUrl).get();
 
                 Elements items = searchDoc.select("ul.m-list.-medicines li a.m-list__anchor");
@@ -119,7 +122,7 @@ public class HazipatikaSearchService {
                 currentQuery = currentQuery.substring(0, lastSpace).trim();
 
             } catch (Exception e) {
-                log.error("❌ Hiba a keresés során: {}", e.getMessage());
+                log.error("❌ Hiba a keresés során ({})", currentQuery, e);
                 return null;
             }
         }

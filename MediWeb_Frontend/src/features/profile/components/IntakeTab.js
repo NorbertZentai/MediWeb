@@ -35,7 +35,7 @@ export default function IntakeTab() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.intakeTabContent}>
+    <View style={styles.intakeTabContent}>
       {profiles.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateCard}>
@@ -106,6 +106,6 @@ export default function IntakeTab() {
           )}
         </>
       )}
-    </ScrollView>
+    </View>
   );
 }

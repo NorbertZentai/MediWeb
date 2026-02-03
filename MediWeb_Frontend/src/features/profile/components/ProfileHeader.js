@@ -5,9 +5,13 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Modal,
+  Pressable,
+  Platform,
+  Alert,
 } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { toast } from "react-toastify";
+import { FontAwesome5 } from "@expo/vector-icons"
+import { toast } from "utils/toast";
 
 import { styles } from "../ProfileScreen.style";
 import defaultAvatar from "assets/default-avatar.jpg";
@@ -33,7 +37,6 @@ export default function ProfileHeader() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [hoveringImage, setHoveringImage] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -61,14 +64,23 @@ export default function ProfileHeader() {
   };
 
   const selectImage = async () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) setInputValue(file);
-    };
-    input.click();
+    if (Platform.OS === 'web') {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) setInputValue(file);
+      };
+      input.click();
+    } else {
+      // On native, show info that image upload is only available on web for now
+      Alert.alert(
+        "Profilkép",
+        "A profilkép feltöltése jelenleg csak webes verzióban érhető el.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const handleSave = async () => {
@@ -122,73 +134,94 @@ export default function ProfileHeader() {
     }
   };
 
+  const InfoCard = ({ icon, label, value, onEdit }) => (
+    <View style={styles.infoCard}>
+      <View style={styles.infoCardIcon}>
+        <FontAwesome5 name={icon} size={16} color="#2E7D32" />
+      </View>
+      <View style={styles.infoCardContent}>
+        <Text style={styles.infoCardLabel}>{label}</Text>
+        <Text style={styles.infoCardValue} numberOfLines={1}>{value}</Text>
+      </View>
+      <TouchableOpacity style={styles.infoCardEditButton} onPress={onEdit}>
+        <FontAwesome5 name="pen" size={12} color="#6B7280" />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <>
       <View style={styles.header}>
-        <View
-          onMouseEnter={() => setHoveringImage(true)}
-          onMouseLeave={() => setHoveringImage(false)}
-          style={styles.imageWrapper}
-        >
-          <Image
-            source={
-              typeof profileImageUrl === "string"
-                ? { uri: profileImageUrl }
-                : profileImageUrl
-            }
-            resizeMode="cover"
-            style={styles.profileImage}
-          />
-          {hoveringImage && (
+        {/* Top Section with Avatar and Name */}
+        <View style={styles.headerTop}>
+          <View style={styles.imageWrapper}>
+            <Image
+              source={
+                typeof profileImageUrl === "string"
+                  ? { uri: profileImageUrl }
+                  : profileImageUrl
+              }
+              resizeMode="cover"
+              style={styles.profileImage}
+            />
             <TouchableOpacity
-              style={styles.imageOverlay}
+              style={styles.editImageButton}
               onPress={() => openEditModal("image")}
             >
-              <FontAwesome5 name="edit" size={20} color="#fff" />
+              <FontAwesome5 name="camera" size={12} color="#fff" />
             </TouchableOpacity>
-          )}
+          </View>
+          <View style={styles.headerInfo}>
+            <Text style={styles.userName}>{name}</Text>
+            <Text style={styles.userEmail}>{email}</Text>
+          </View>
         </View>
 
-        <View style={styles.inlineInfoRow}>
-          <View style={styles.inlineInfoItem}>
-            <Text style={styles.label}>Név:</Text>
-            <Text style={styles.value}>{name}</Text>
-            <TouchableOpacity onPress={() => openEditModal("name")}>
-              <FontAwesome5 name="edit" size={14} style={styles.editIcon} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inlineInfoItem}>
-            <Text style={styles.label}>Email:</Text>
-            <Text style={styles.value}>{email}</Text>
-            <TouchableOpacity onPress={() => openEditModal("email")}>
-              <FontAwesome5 name="edit" size={14} style={styles.editIcon} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inlineInfoItem}>
-            <Text style={styles.label}>Telefonszám:</Text>
-            <Text style={styles.value}>{phone}</Text>
-            <TouchableOpacity onPress={() => openEditModal("phone")}>
-              <FontAwesome5 name="edit" size={14} style={styles.editIcon} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inlineInfoItem}>
-            <Text style={styles.label}>Jelszó módosítása</Text>
-            <TouchableOpacity onPress={() => openEditModal("password")}>
-              <FontAwesome5 name="edit" size={14} style={styles.editIcon} />
-            </TouchableOpacity>
-          </View>
+        {/* Info Cards */}
+        <View style={styles.infoCardsContainer}>
+          <InfoCard
+            icon="phone"
+            label="Telefonszám"
+            value={phone}
+            onEdit={() => openEditModal("phone")}
+          />
+          <InfoCard
+            icon="lock"
+            label="Jelszó"
+            value="••••••••"
+            onEdit={() => openEditModal("password")}
+          />
         </View>
       </View>
 
-      {isModalVisible && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+      {/* Bottom Sheet Modal */}
+      <Modal
+        visible={isModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.modalHandle} />
+
+            <Text style={styles.modalTitle}>
+              {editingField === "name" && "Név szerkesztése"}
+              {editingField === "email" && "Email szerkesztése"}
+              {editingField === "phone" && "Telefonszám szerkesztése"}
+              {editingField === "password" && "Jelszó módosítása"}
+              {editingField === "image" && "Profilkép frissítése"}
+            </Text>
+
             {editingField === "password" ? (
               <>
-                <Text style={styles.modalTitle}>Jelszó módosítása</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Jelenlegi jelszó"
+                  placeholderTextColor="#9CA3AF"
                   secureTextEntry
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
@@ -196,6 +229,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó"
+                  placeholderTextColor="#9CA3AF"
                   secureTextEntry
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -203,6 +237,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó megerősítése"
+                  placeholderTextColor="#9CA3AF"
                   secureTextEntry
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -210,48 +245,50 @@ export default function ProfileHeader() {
               </>
             ) : editingField === "image" ? (
               <>
-                <Text style={styles.modalTitle}>Profilkép frissítése</Text>
-                <TouchableOpacity
-                  style={styles.uploadButton}
-                  onPress={selectImage}
-                >
-                  <Text style={styles.uploadText}>Fájl kiválasztása</Text>
+                <TouchableOpacity style={styles.uploadButton} onPress={selectImage}>
+                  <FontAwesome5 name="cloud-upload-alt" size={32} color="#2E7D32" />
+                  <Text style={styles.uploadText}>Kép kiválasztása</Text>
                 </TouchableOpacity>
                 {inputValue && (
                   <Text style={styles.previewFilename}>
-                    {inputValue.name}
+                    {inputValue.name || inputValue.fileName || "Kiválasztva"}
                   </Text>
                 )}
               </>
             ) : (
-              <>
-                <Text style={styles.modalTitle}>
-                  {editingField === "name"
-                    ? "Név szerkesztése"
-                    : editingField === "email"
-                    ? "Email szerkesztése"
-                    : "Telefonszám szerkesztése"}
-                </Text>
-                <TextInput
-                  style={styles.modalInput}
-                  value={inputValue}
-                  onChangeText={setInputValue}
-                  autoFocus
-                />
-              </>
+              <TextInput
+                style={styles.modalInput}
+                value={inputValue}
+                onChangeText={setInputValue}
+                placeholder={
+                  editingField === "name" ? "Neved" :
+                    editingField === "email" ? "Email címed" :
+                      "Telefonszámod"
+                }
+                placeholderTextColor="#9CA3AF"
+                autoFocus
+                keyboardType={
+                  editingField === "email" ? "email-address" :
+                    editingField === "phone" ? "phone-pad" :
+                      "default"
+                }
+              />
             )}
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelButton}>Mégse</Text>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Mégse</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave}>
-                <Text style={styles.saveButton}>Mentés</Text>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Mentés</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   );
 }

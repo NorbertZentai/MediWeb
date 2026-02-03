@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
 import { styles } from './HomeScreen.style';
 import { theme } from 'styles/theme';
 import { getHomeDashboard, getPopularMedications } from './home.api';
-import { getMedicationSyncStatus } from 'features/medication/medication.api';
+import { haptics } from 'utils/haptics';
+import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync } from 'features/medication/medication.api';
 
 const DEFAULT_DASHBOARD_TEMPLATE = {
   summary: {
@@ -40,11 +41,14 @@ const DEFAULT_SYNC_STATUS = {
   startedAt: null,
   finishedAt: null,
   discovered: 0,
+  discoveryScanned: 0,
+  discoveryTarget: 0,
   processed: 0,
   succeeded: 0,
   failed: 0,
   skipped: 0,
   totalKnown: 0,
+  totalPersisted: 0,
   averageSecondsPerItem: 10,
   parallelism: 1,
   estimatedTotalSeconds: 0,
@@ -52,18 +56,29 @@ const DEFAULT_SYNC_STATUS = {
   phase: 'IDLE',
   discoveryCompleted: true,
   lastMessage: null,
+  cancellationRequested: false,
 };
+
+const TEST_SYNC_LIMIT = 1000;
+
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 
 export default function HomeScreen() {
   const { user, loading } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { isMobile } = useResponsiveLayout();
 
   const [dashboard, setDashboard] = useState(() => createDefaultDashboard());
+  // ... existing state ...
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [syncStatus, setSyncStatus] = useState(DEFAULT_SYNC_STATUS);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [isStartingSync, setIsStartingSync] = useState(false);
+  const [isStoppingSync, setIsStoppingSync] = useState(false);
+  const [manualSyncError, setManualSyncError] = useState(null);
+  const [pendingStartType, setPendingStartType] = useState(null);
 
   const fetchSyncStatus = useCallback(async () => {
     try {
@@ -72,7 +87,9 @@ export default function HomeScreen() {
         setSyncStatus({
           ...DEFAULT_SYNC_STATUS,
           ...status,
+          cancellationRequested: Boolean(status?.cancellationRequested),
         });
+        setManualSyncError(null);
         return status;
       }
     } catch (statusError) {
@@ -153,7 +170,7 @@ export default function HomeScreen() {
   }, [loading, user, fetchSyncStatus]);
 
   useEffect(() => {
-    if (!syncStatus.running) {
+    if (!syncStatus.running && !syncStatus.cancellationRequested) {
       return undefined;
     }
 
@@ -162,10 +179,10 @@ export default function HomeScreen() {
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [syncStatus.running, fetchSyncStatus]);
+  }, [syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
 
   useEffect(() => {
-    if (!syncStatus.running || !syncStatus.discoveryCompleted) {
+    if (!syncStatus.running || !syncStatus.discoveryCompleted || syncStatus.cancellationRequested) {
       setRemainingSeconds(0);
       return;
     }
@@ -174,10 +191,10 @@ export default function HomeScreen() {
       ? Math.max(Math.round(syncStatus.estimatedRemainingSeconds), 0)
       : 0;
     setRemainingSeconds(estimated);
-  }, [syncStatus.running, syncStatus.estimatedRemainingSeconds]);
+  }, [syncStatus.running, syncStatus.estimatedRemainingSeconds, syncStatus.cancellationRequested]);
 
   useEffect(() => {
-    if (!syncStatus.running || !syncStatus.discoveryCompleted) {
+    if (!syncStatus.running || !syncStatus.discoveryCompleted || syncStatus.cancellationRequested) {
       return undefined;
     }
 
@@ -186,29 +203,116 @@ export default function HomeScreen() {
     }, 1000);
 
     return () => clearInterval(ticker);
-  }, [syncStatus.running, syncStatus.discoveryCompleted]);
+  }, [syncStatus.running, syncStatus.discoveryCompleted, syncStatus.cancellationRequested]);
 
   const isDiscoveryPhase = syncStatus.running && syncStatus.phase === 'ID_DISCOVERY';
+
+  const triggerSync = useCallback(
+    async ({ force = false, limit = null, variant = 'standard' } = {}) => {
+      if (isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested) {
+        return;
+      }
+
+      setIsStartingSync(true);
+      setPendingStartType(variant);
+      setIsStoppingSync(false);
+      setManualSyncError(null);
+      try {
+        const extraParams = {};
+        if (limit !== null && limit !== undefined) {
+          extraParams.limit = limit;
+        }
+        await startMedicationSync(force, extraParams);
+        const startMessage = limit !== null && limit !== undefined
+          ? `Teszt szinkron indítása (${limit} elem)...`
+          : 'Szinkron indítása folyamatban...';
+        setSyncStatus((prev) => ({
+          ...prev,
+          running: true,
+          cancellationRequested: false,
+          lastMessage: startMessage,
+          phase: prev.phase === 'IDLE' ? 'ID_DISCOVERY' : prev.phase,
+        }));
+        await fetchSyncStatus();
+      } catch (error) {
+        console.error('Nem sikerült elindítani a gyógyszer szinkront:', error);
+        const message = limit !== null && limit !== undefined
+          ? 'Nem sikerült elindítani a teszt szinkront.'
+          : 'Nem sikerült elindítani a gyógyszer frissítést.';
+        setManualSyncError(message);
+      } finally {
+        setIsStartingSync(false);
+        setPendingStartType(null);
+      }
+    },
+    [isStartingSync, isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]
+  );
+
+  const handleManualSync = useCallback(() => {
+    triggerSync({ force: false, limit: null, variant: 'standard' });
+  }, [triggerSync]);
+
+  const handleTestSync = useCallback(() => {
+    triggerSync({ force: false, limit: TEST_SYNC_LIMIT, variant: 'limited' });
+  }, [triggerSync]);
+
+  const handleStopSync = useCallback(async () => {
+    if (isStoppingSync || !syncStatus.running || syncStatus.cancellationRequested) {
+      return;
+    }
+
+    setIsStoppingSync(true);
+    setPendingStartType(null);
+    setManualSyncError(null);
+    try {
+      await stopMedicationSync();
+      setSyncStatus((prev) => ({
+        ...prev,
+        cancellationRequested: true,
+        lastMessage: 'Leállítás kezdeményezve...',
+      }));
+      await fetchSyncStatus();
+    } catch (error) {
+      console.error('Nem sikerült leállítani a gyógyszer szinkront:', error);
+      setManualSyncError('Nem sikerült leállítani a gyógyszer frissítést.');
+    } finally {
+      setIsStoppingSync(false);
+    }
+  }, [isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
+
+
+
+
+  // ...
 
   const quickActions = useMemo(
     () => [
       {
         label: 'Gyógyszer keresése',
         description: 'Találd meg gyorsan a szükséges gyógyszert',
-        onPress: () => navigate('/search'),
+        onPress: () => {
+          haptics.light();
+          router.push('/search');
+        },
       },
       {
         label: 'Profilok kezelése',
         description: 'Kapcsolt felhasználók és emlékeztetők áttekintése',
-        onPress: () => navigate('/user'),
+        onPress: () => {
+          haptics.light();
+          router.push('/profile');
+        },
       },
       {
         label: 'Gyógyszer felvétele',
         description: 'Adj hozzá új gyógyszert a profilokhoz',
-        onPress: () => navigate('/search?intent=add'),
+        onPress: () => {
+          haptics.light();
+          router.push('/search?intent=add');
+        },
       },
     ],
-    [navigate]
+    [router]
   );
 
   const summaryCards = useMemo(() => {
@@ -217,8 +321,8 @@ export default function HomeScreen() {
       typeof adherence === 'number'
         ? `${Math.round(adherence * 100)}%`
         : adherence === null
-        ? 'N/A'
-        : adherence;
+          ? 'N/A'
+          : adherence;
 
     return [
       {
@@ -248,6 +352,21 @@ export default function HomeScreen() {
     fetchSyncStatus();
   }, [loadDashboard, user, fetchSyncStatus]);
 
+  const formatCount = useCallback((value) => {
+    if (value === null || value === undefined) {
+      return '—';
+    }
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0) {
+      return '—';
+    }
+    try {
+      return numeric.toLocaleString('hu-HU');
+    } catch (error) {
+      return String(numeric);
+    }
+  }, []);
+
   const syncProgressText = useMemo(() => {
     const denominator = syncStatus.totalKnown || syncStatus.discovered || Math.max(syncStatus.processed, syncStatus.succeeded, 0);
     const denomValue = denominator > 0 ? denominator : null;
@@ -261,6 +380,27 @@ export default function HomeScreen() {
     const numerator = syncStatus.succeeded ?? 0;
     return denomValue === null ? `${numerator} / —` : `${numerator} / ${denomValue}`;
   }, [syncStatus.succeeded, syncStatus.discovered, syncStatus.totalKnown]);
+
+  const discoveryTargetText = useMemo(() => {
+    const target = syncStatus.discoveryTarget;
+    if (!target || target <= 0) {
+      return '—';
+    }
+    return formatCount(target);
+  }, [syncStatus.discoveryTarget, formatCount]);
+
+  const discoveryNewText = useMemo(() => {
+    const newFormatted = formatCount(syncStatus.discovered);
+    return `${newFormatted} / ${discoveryTargetText}`;
+  }, [syncStatus.discovered, discoveryTargetText, formatCount]);
+
+  const discoveryScannedText = useMemo(() => formatCount(syncStatus.discoveryScanned), [syncStatus.discoveryScanned, formatCount]);
+
+  const startDisabled = isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested;
+  const stopDisabled = !syncStatus.running || syncStatus.cancellationRequested || isStoppingSync;
+  const stopInFlight = syncStatus.cancellationRequested || isStoppingSync;
+  const isStandardStartPending = isStartingSync && pendingStartType === 'standard';
+  const isTestStartPending = isStartingSync && pendingStartType === 'limited';
 
   const formatSeconds = useCallback((seconds) => {
     if (!Number.isFinite(seconds) || seconds < 0) {
@@ -331,13 +471,13 @@ export default function HomeScreen() {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={[styles.primaryButton, styles.fullWidthButton]}
-                onPress={() => navigate('/login')}
+                onPress={() => router.push('/login')}
               >
                 <Text style={styles.primaryButtonText}>Bejelentkezés</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.secondaryButton, styles.fullWidthButton]}
-                onPress={() => navigate('/register')}
+                onPress={() => router.push('/register')}
               >
                 <Text style={styles.secondaryButtonText}>Regisztráció</Text>
               </TouchableOpacity>
@@ -390,18 +530,87 @@ export default function HomeScreen() {
                 <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
                 {isDiscoveryPhase ? (
                   <>
-                    <Text style={styles.syncSubtitle}>{`Azonosítók kigyűjtése: ${syncStatus.discovered}`}</Text>
-                    <Text style={styles.syncMeta}>{`Aktuális becslés: ${syncStatus.totalKnown || syncStatus.discovered || '—'} tétel • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
-                    <Text style={styles.syncMeta}>{`Állapot: gyógyszer ID-k összegyűjtése folyamatban…`}</Text>
+                    <Text style={styles.syncSubtitle}>{`Új azonosítók: ${discoveryNewText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Átnézett OGYEI találatok: ${discoveryScannedText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Cél: ${discoveryTargetText === '—' ? 'teljes adatbázis' : `${discoveryTargetText} új elem`} • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
+                    <Text style={styles.syncMeta}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
+                    <Text style={styles.syncMeta}>{`Állapot: gyógyszer ID-k összegyűjtése folyamatban...`}</Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
                     <Text style={styles.syncMeta}>{`Sikeres: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Sikertelen: ${syncStatus.failed}`}</Text>
                     <Text style={styles.syncMeta}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} tétel • Átlag: ${averageSecondsText}s/elem • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
+                    <Text style={styles.syncMeta}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
                     <Text style={styles.syncMeta}>{`Hátralévő idő: ${estimatedRemainingDurationText} • Várható teljes idő: ${estimatedTotalDurationText}`}</Text>
                   </>
                 )}
+              </View>
+            </View>
+          )}
+
+          {__DEV__ && (
+            <View style={styles.debugControls}>
+              {manualSyncError ? (
+                <Text style={styles.debugError}>{manualSyncError}</Text>
+              ) : null}
+              <Text style={styles.debugInfo}>{`Adatbázisban tárolt gyógyszerek: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
+              <Text style={styles.debugInfoSecondary}>{`Fázis: ${syncStatus.phase || '—'}`}</Text>
+              <Text style={styles.debugInfoSecondary}>{`Új azonosítók: ${discoveryNewText}`}</Text>
+              <Text style={styles.debugInfoSecondary}>{`Átnézett OGYEI találatok: ${discoveryScannedText}`}</Text>
+              <Text style={styles.debugInfoSecondary}>{`Gyors teszt limit: ${TEST_SYNC_LIMIT} tétel`}</Text>
+              {syncStatus.lastMessage ? (
+                <Text style={styles.debugInfoSecondary}>{`Állapot: ${syncStatus.lastMessage}`}</Text>
+              ) : null}
+              {stopInFlight ? (
+                <Text style={styles.debugInfoWarning}>Leállítás folyamatban, kérlek várj...</Text>
+              ) : null}
+              <View style={styles.debugButtonRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.debugButton,
+                    styles.debugButtonStart,
+                    startDisabled && styles.debugButtonDisabled,
+                  ]}
+                  onPress={handleManualSync}
+                  disabled={startDisabled}
+                >
+                  {isStandardStartPending ? (
+                    <ActivityIndicator size="small" color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.debugButtonText}>Debug: szinkron indítása</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.debugButton,
+                    styles.debugButtonTest,
+                    startDisabled && styles.debugButtonDisabled,
+                  ]}
+                  onPress={handleTestSync}
+                  disabled={startDisabled}
+                >
+                  {isTestStartPending ? (
+                    <ActivityIndicator size="small" color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.debugButtonText}>{`Debug: ${TEST_SYNC_LIMIT} elem teszt`}</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.debugButton,
+                    styles.debugButtonStop,
+                    stopDisabled && styles.debugButtonDisabled,
+                  ]}
+                  onPress={handleStopSync}
+                  disabled={stopDisabled}
+                >
+                  {stopInFlight ? (
+                    <ActivityIndicator size="small" color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.debugButtonText}>Debug: szinkron leállítása</Text>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -411,6 +620,7 @@ export default function HomeScreen() {
               <Text style={styles.syncIdleTitle}>Legutóbbi gyógyszer frissítés lezárva</Text>
               <Text style={styles.syncIdleSubtitle}>{`Összesen: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Hibás: ${syncStatus.failed}`}</Text>
               <Text style={styles.syncMetaSecondary}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x • Becsült teljes idő: ${estimatedTotalDurationText}`}</Text>
+              <Text style={styles.syncMetaSecondary}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)}`}</Text>
               <Text style={styles.syncMetaSecondary}>{`Átlag: ${averageSecondsText}s/elem`}</Text>
               {syncStatus.estimatedRemainingSeconds > 0 ? (
                 <Text style={styles.syncMetaSecondary}>{`Becsült hátralévő idő: ${idleRemainingDurationText}`}</Text>
@@ -436,12 +646,12 @@ export default function HomeScreen() {
                 ))}
               </View>
 
-              <View style={styles.gridRow}>
-                <View style={styles.leftColumn}>
+              <View style={[styles.gridRow, isMobile && { flexDirection: 'column' }]}>
+                <View style={[styles.leftColumn, isMobile && { flex: 1, marginRight: 0, marginBottom: 16 }]}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
                       <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
-                      <TouchableOpacity onPress={() => navigate('/search')}>
+                      <TouchableOpacity onPress={() => router.push('/search')}>
                         <Text style={styles.sectionAction}>Összes keresése</Text>
                       </TouchableOpacity>
                     </View>
@@ -454,7 +664,7 @@ export default function HomeScreen() {
                             onPress={() => {
                               const identifier = medication.itemId || medication.id;
                               if (identifier) {
-                                navigate(`/medication/${identifier}`);
+                                router.push(`/medication/${identifier}`);
                               }
                             }}
                           >
@@ -526,7 +736,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                <View style={styles.rightColumn}>
+                <View style={[styles.rightColumn, isMobile && { flex: 1 }]}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
                       <Text style={styles.sectionTitle}>Következő emlékeztető</Text>
@@ -553,7 +763,7 @@ export default function HomeScreen() {
                       {quickActions.map((action) => (
                         <TouchableOpacity
                           key={action.label}
-                          style={styles.quickActionCard}
+                          style={[styles.quickActionCard, isMobile && { flexBasis: '100%' }]}
                           onPress={action.onPress}
                         >
                           <Text style={styles.quickActionLabel}>{action.label}</Text>
