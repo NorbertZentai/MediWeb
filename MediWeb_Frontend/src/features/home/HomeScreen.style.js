@@ -14,13 +14,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingBottom: 64,
     width: '100%',
-    maxWidth: 1440,
+    maxWidth: 1000,
     alignSelf: 'center',
     backgroundColor: theme.colors.background,
   },
   contentWrapper: {
     width: '100%',
-    paddingTop: 40,
+    paddingTop: 60, // Safe area for mobile (status bar + extra space)
     paddingBottom: 32,
     backgroundColor: theme.colors.background,
   },
@@ -386,5 +386,68 @@ export const styles = StyleSheet.create({
   },
   fullWidthButton: {
     width: '100%',
+  },
+  debugControls: {
+    marginBottom: 24,
+    alignItems: 'flex-start',
+    width: '100%',
+    backgroundColor: '#f6faf7',
+    padding: 16,
+    borderRadius: 16,
+  },
+  debugButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  debugButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    flexWrap: 'wrap',
+  },
+  debugButtonStart: {
+    marginRight: 12,
+    marginBottom: 8,
+  },
+  debugButtonTest: {
+    backgroundColor: '#4F6956',
+    marginRight: 12,
+    marginBottom: 8,
+  },
+  debugButtonStop: {
+    backgroundColor: theme.colors.danger,
+    marginBottom: 8,
+  },
+  debugButtonDisabled: {
+    opacity: 0.6,
+  },
+  debugButtonText: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  debugError: {
+    color: theme.colors.danger,
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  debugInfo: {
+    color: '#4F6956',
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  debugInfoSecondary: {
+    color: '#4F6956',
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  debugInfoWarning: {
+    color: theme.colors.danger,
+    fontSize: 12,
+    marginBottom: 10,
   },
 });

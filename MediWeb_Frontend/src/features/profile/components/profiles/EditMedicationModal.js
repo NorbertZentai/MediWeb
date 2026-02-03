@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { styles } from "../ProfilesTab.style";
 import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
 
@@ -92,9 +92,10 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
   };
 
   return (
-    <Modal visible={true} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={true} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.editMedicationModalContainer}>
+          <View style={styles.modalHandle} />
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Text style={styles.modalTitle}>Gyógyszer szerkesztése</Text>
             <Text style={styles.medicationTitle}>{medication.medicationName}</Text>
@@ -139,11 +140,13 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                   <View style={styles.reminderTimesInline}>
                     {[0, 1, 2].map((timeIndex) => (
                       <View key={timeIndex}>
-                        <input
-                          type="time"
+                        <TextInput
+                          placeholder="--:--"
                           value={reminder.times[timeIndex] || ""}
-                          onChange={(e) => updateTime(index, timeIndex, e.target.value)}
+                          onChangeText={(text) => updateTime(index, timeIndex, text)}
                           style={styles.timeInput}
+                          keyboardType="numbers-and-punctuation"
+                          maxLength={5}
                         />
                       </View>
                     ))}

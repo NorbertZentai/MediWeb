@@ -15,14 +15,15 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.IntConsumer;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +40,7 @@ public class SearchService {
     private static final int DISCOVERY_CHUNK_SIZE = 1000;
     private static final Pattern ITEM_ID_PATTERN = Pattern.compile("item=(\\d+)");
 
-    @Value("${medication.sync.discovery-delay-ms:800}")
+    @Value("${medication.sync.discovery-delay-ms:1000}")
     private long discoveryDelayMs;
 
     @Value("${medication.sync.discovery-retry-attempts:5}")
@@ -81,16 +82,31 @@ public class SearchService {
     }
 
     public LinkedHashSet<Long> fetchAllMedicationIds() {
-        return fetchAllMedicationIds(null);
+        return fetchAllMedicationIds(null, null, null);
     }
 
-    public LinkedHashSet<Long> fetchAllMedicationIds(IntConsumer progressCallback) {
+    public LinkedHashSet<Long> fetchAllMedicationIds(BiConsumer<Integer, Integer> progressCallback) {
+        return fetchAllMedicationIds(progressCallback, null, null);
+    }
+
+    public LinkedHashSet<Long> fetchAllMedicationIds(BiConsumer<Integer, Integer> progressCallback, Integer limit) {
+        return fetchAllMedicationIds(progressCallback, limit, null);
+    }
+
+    public LinkedHashSet<Long> fetchAllMedicationIds(BiConsumer<Integer, Integer> progressCallback,
+                                                     Integer limit,
+                                                     Set<Long> knownExistingIds) {
         try {
             Map<String, String> sessionData = OgyeiRequestHelper.fetchSessionAndCsrfToken();
             String phpsessid = sessionData.get("PHPSESSID");
             String csrft = sessionData.get("csrft");
 
             LinkedHashSet<Long> identifiers = new LinkedHashSet<>();
+            int effectiveLimit = (limit != null && limit > 0) ? limit : -1;
+            boolean limitReached = false;
+            int discoveredNewCount = 0;
+            Set<Long> knownIds = knownExistingIds != null ? knownExistingIds : Collections.emptySet();
+            boolean knownIdsEmpty = knownIds.isEmpty();
             MedicationSearchRequest request = MedicationSearchRequest.builder().build();
 
             int maxOffset = MAX_FULL_SCAN_PAGES * PAGE_SIZE;
@@ -99,7 +115,7 @@ public class SearchService {
             ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, discoveryParallelism));
 
             try {
-                while (morePages && currentOffset < maxOffset) {
+                while (morePages && currentOffset < maxOffset && !limitReached) {
                     int chunkEnd = Math.min(currentOffset + DISCOVERY_CHUNK_SIZE, maxOffset);
                     int chunkAdded = 0;
                     boolean chunkFoundLastPage = false;
@@ -108,13 +124,18 @@ public class SearchService {
                     int submittedTasks = 0;
                     ExecutorCompletionService<PageFetchResult> completionService = new ExecutorCompletionService<>(executor);
                     for (int offset = currentOffset; offset < chunkEnd; offset += PAGE_SIZE) {
+                        if (effectiveLimit > 0 && discoveredNewCount >= effectiveLimit) {
+                            limitReached = true;
+                            break;
+                        }
                         final int pageOffset = offset;
                         final int pageNumber = (offset / PAGE_SIZE) + 1;
                         completionService.submit(() -> fetchIdsForPage(request, csrft, phpsessid, pageOffset, pageNumber));
                         submittedTasks++;
                     }
 
-                    for (int i = 0; i < submittedTasks; i++) {
+                    int processedTasks = 0;
+                    while (processedTasks < submittedTasks) {
                         Future<PageFetchResult> future;
                         try {
                             future = completionService.take();
@@ -122,26 +143,45 @@ public class SearchService {
                             Thread.currentThread().interrupt();
                             throw new RuntimeException("Az OGYEI azonosítókeresést megszakították", ie);
                         }
+                        processedTasks++;
 
                         PageFetchResult result = getPageFetchResult(future);
                         if (result == null) {
                             continue;
                         }
 
+                        if (limitReached) {
+                            continue;
+                        }
+
                         if (!result.ids().isEmpty()) {
                             int before = identifiers.size();
+                            int newlyAdded = 0;
+                            int processedWithinPage = 0;
                             for (Long id : result.ids()) {
-                                identifiers.add(id);
+                                if (limitReached) {
+                                    break;
+                                }
+                                processedWithinPage++;
+                                boolean added = identifiers.add(id);
+                                if (added && (knownIdsEmpty || !knownIds.contains(id))) {
+                                    newlyAdded++;
+                                    discoveredNewCount++;
+                                    if (effectiveLimit > 0 && discoveredNewCount >= effectiveLimit) {
+                                        limitReached = true;
+                                    }
+                                }
                             }
-                            int diff = identifiers.size() - before;
+                            int scannedDelta = processedWithinPage;
+                            int diff = Math.max(0, identifiers.size() - before);
                             if (diff > 0) {
                                 chunkAdded += diff;
-                                if (progressCallback != null) {
-                                    try {
-                                        progressCallback.accept(diff);
-                                    } catch (RuntimeException callbackEx) {
-                                        log.debug("OGYEI progress callback threw exception", callbackEx);
-                                    }
+                            }
+                            if (progressCallback != null && (scannedDelta > 0 || newlyAdded > 0)) {
+                                try {
+                                    progressCallback.accept(scannedDelta, newlyAdded);
+                                } catch (RuntimeException callbackEx) {
+                                    log.debug("OGYEI progress callback threw exception", callbackEx);
                                 }
                             }
                         }
@@ -159,9 +199,14 @@ public class SearchService {
                         morePages = false;
                     }
 
+                    if (limitReached) {
+                        log.info("OGYEI discovery stopped early after reaching the requested new-item limit ({})", effectiveLimit);
+                        morePages = false;
+                    }
+
                     currentOffset += DISCOVERY_CHUNK_SIZE;
 
-                    if (morePages) {
+                    if (morePages && !limitReached) {
                         applyDiscoveryDelay();
                     }
                 }
@@ -169,9 +214,36 @@ public class SearchService {
                 shutdownExecutor(executor);
             }
 
+            if (effectiveLimit > 0) {
+                enforceNewLimit(identifiers, knownIds, effectiveLimit);
+            }
+
             return identifiers;
         } catch (IOException e) {
             throw new RuntimeException("Nem sikerült lekérni az OGYEI azonosítókat", e);
+        }
+    }
+
+    private void enforceNewLimit(LinkedHashSet<Long> identifiers, Set<Long> knownIds, int newLimit) {
+        if (newLimit <= 0 || identifiers.isEmpty()) {
+            return;
+        }
+        Set<Long> existing = knownIds != null ? knownIds : Collections.emptySet();
+        int newCount = 0;
+        LinkedHashSet<Long> limited = new LinkedHashSet<>(identifiers.size());
+        for (Long id : identifiers) {
+            boolean isKnown = existing.contains(id);
+            if (!isKnown) {
+                if (newCount >= newLimit) {
+                    continue;
+                }
+                newCount++;
+            }
+            limited.add(id);
+        }
+        if (limited.size() != identifiers.size()) {
+            identifiers.clear();
+            identifiers.addAll(limited);
         }
     }
 

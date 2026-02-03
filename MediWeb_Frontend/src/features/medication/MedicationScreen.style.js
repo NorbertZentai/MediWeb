@@ -1,8 +1,9 @@
 import { StyleSheet } from "react-native";
+import { theme } from "styles/theme";
 
 export const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 32,
     paddingVertical: 40,
     alignItems: "center",
@@ -26,7 +27,7 @@ export const styles = StyleSheet.create({
     borderColor: "red",
     alignSelf: "center",
   },
-    actionRow: {
+  actionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     alignItems: "center",
