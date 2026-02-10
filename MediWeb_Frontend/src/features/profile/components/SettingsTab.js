@@ -20,6 +20,7 @@ import {
 } from "features/profile/profile.api";
 import { AuthContext } from "contexts/AuthContext";
 import { styles } from "./SettingsTab.style";
+import { theme } from "styles/theme";
 
 const DEFAULT_PREFERENCES = {
   notifications: {
@@ -235,9 +236,9 @@ export default function SettingsTab() {
         <Switch
           value={preferences[section][key]}
           onValueChange={handleToggle(section, key)}
-          trackColor={{ false: "#D1D5DB", true: "#10B981" }}
-          thumbColor={preferences[section][key] ? "#047857" : "#F3F4F6"}
-          ios_backgroundColor="#D1D5DB"
+          trackColor={{ false: theme.colors.borderDark, true: theme.colors.secondary }}
+          thumbColor={preferences[section][key] ? theme.colors.secondaryDark : theme.colors.divider}
+          ios_backgroundColor={theme.colors.borderDark}
         />
       </View>
     </View>
@@ -291,7 +292,7 @@ export default function SettingsTab() {
   if (loading) {
     return (
       <View style={styles.loadingWrapper}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size="large" color={theme.colors.secondary} />
       </View>
     );
   }
@@ -413,7 +414,7 @@ export default function SettingsTab() {
                 disabled={exporting}
               >
                 {exporting ? (
-                  <ActivityIndicator color="#047857" />
+                  <ActivityIndicator color={theme.colors.secondaryDark} />
                 ) : (
                   <Text style={styles.actionButtonText}>Adatok exportálása</Text>
                 )}
@@ -428,7 +429,7 @@ export default function SettingsTab() {
                 disabled={deleting}
               >
                 {deleting ? (
-                  <ActivityIndicator color="#B91C1C" />
+                  <ActivityIndicator color={theme.colors.error} />
                 ) : (
                   <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
                     Fiók törlése
@@ -453,7 +454,7 @@ export default function SettingsTab() {
               disabled={!hasChanges || saving}
             >
               {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={theme.colors.white} />
               ) : (
                 <Text style={styles.saveButtonText}>Beállítások mentése</Text>
               )}
@@ -485,7 +486,7 @@ export default function SettingsTab() {
                 );
               }}
             >
-              <FontAwesome5 name="sign-out-alt" size={18} color="#EF4444" />
+              <FontAwesome5 name="sign-out-alt" size={18} color={theme.colors.error} />
               <Text style={styles.logoutButtonText}>Kijelentkezés</Text>
             </TouchableOpacity>
           </View>

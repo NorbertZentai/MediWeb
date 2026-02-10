@@ -5,6 +5,7 @@ import hu.project.MediWeb.modules.medication.repository.MedicationRepository;
 import hu.project.MediWeb.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediWeb.modules.profile.entity.Profile;
 import hu.project.MediWeb.modules.profile.entity.ProfileMedication;
+import hu.project.MediWeb.modules.profile.exception.DuplicateAssignmentException;
 import hu.project.MediWeb.modules.profile.repository.ProfileMedicationRepository;
 import hu.project.MediWeb.modules.profile.repository.ProfileRepository;
 import jakarta.transaction.Transactional;
@@ -40,6 +41,12 @@ public class ProfileMedicationService {
         Medication medication = medicationRepository.findById(medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Gyógyszer nem található: " + medicationId));
 
+        // Check for duplicate assignment before attempting insert
+        if (profileMedicationRepository.findByProfileIdAndMedicationId(profileId, medicationId).isPresent()) {
+            throw new DuplicateAssignmentException(
+                    "Ez a gyógyszer már hozzá van rendelve ehhez a profilhoz: " + medication.getName());
+        }
+
         ProfileMedication pm = ProfileMedication.builder()
                 .profile(profile)
                 .medication(medication)
@@ -51,8 +58,8 @@ public class ProfileMedicationService {
     }
 
     @Transactional
-    public ProfileMedicationDTO updateMedication( Long profileId, Long medicationId, String note, String remindersJson) {
-        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId( profileId, medicationId)
+    public ProfileMedicationDTO updateMedication(Long profileId, Long medicationId, String note, String remindersJson) {
+        ProfileMedication existing = profileMedicationRepository.findByProfileIdAndMedicationId(profileId, medicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Nincs ilyen gyógyszer hozzárendelve a profilhoz."));
 
         existing.setNotes(note);

@@ -4,6 +4,7 @@
  */
 
 import { Platform } from 'react-native';
+import { Colors } from '@/src/styles/Colors';
 
 // ============================================
 // DIMENSIONS
@@ -59,35 +60,21 @@ export const ANIMATION_CONFIG = {
 
 export const TAB_BAR_COLORS = {
   light: {
-    /** Tab bar background color */
-    background: '#FFFFFF',
-    /** Active tab text/icon color */
-    activeText: '#2E7D32',
-    /** Inactive tab text/icon color */
-    inactiveText: '#9CA3AF',
-    /** Sliding indicator color */
-    indicator: '#2E7D32',
-    /** Active tab pill background */
-    activePill: '#ECFDF5',
-    /** Shadow color for elevation */
+    background: Colors.light.tabBarBackground,
+    activeText: Colors.light.tabBarActiveText,
+    inactiveText: Colors.light.tabBarInactiveText,
+    indicator: Colors.light.tabBarIndicator,
+    activePill: Colors.light.tabBarActivePill,
     shadow: 'rgba(0, 0, 0, 0.08)',
-    /** Border color (if needed) */
     border: 'rgba(0, 0, 0, 0.05)',
   },
   dark: {
-    /** Tab bar background color */
-    background: '#1F2937',
-    /** Active tab text/icon color */
-    activeText: '#6EE7B7',
-    /** Inactive tab text/icon color */
-    inactiveText: '#6B7280',
-    /** Sliding indicator color */
-    indicator: '#6EE7B7',
-    /** Active tab pill background */
-    activePill: 'rgba(110, 231, 183, 0.15)',
-    /** Shadow color for elevation */
+    background: Colors.dark.tabBarBackground,
+    activeText: Colors.dark.tabBarActiveText,
+    inactiveText: Colors.dark.tabBarInactiveText,
+    indicator: Colors.dark.tabBarIndicator,
+    activePill: Colors.dark.tabBarActivePill,
     shadow: 'rgba(0, 0, 0, 0.3)',
-    /** Border color (if needed) */
     border: 'rgba(255, 255, 255, 0.1)',
   },
 } as const;

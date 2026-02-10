@@ -58,13 +58,18 @@ public class MedicationCatalogService {
                     builder.like(builder.lower(root.get("name")), like(q)),
                     builder.like(builder.lower(root.get("substance")), like(q)),
                     builder.like(builder.lower(root.get("registrationNumber")), like(q)),
-                    builder.like(builder.lower(root.get("company")), like(q))
-            ));
+                    builder.like(builder.lower(root.get("company")), like(q))));
         }
 
         if (StringUtils.hasText(criteria.atcCode())) {
             String atc = criteria.atcCode().toLowerCase(Locale.ROOT);
             spec = spec.and((root, query, builder) -> builder.like(builder.lower(root.get("atcCode")), like(atc)));
+        }
+
+        if (StringUtils.hasText(criteria.registrationNumber())) {
+            String reg = criteria.registrationNumber().toLowerCase(Locale.ROOT);
+            spec = spec.and(
+                    (root, query, builder) -> builder.like(builder.lower(root.get("registrationNumber")), like(reg)));
         }
 
         spec = spec.and(booleanFilter(criteria.lactoseFree(), root -> root.get("containsLactose"), true));
@@ -75,10 +80,55 @@ public class MedicationCatalogService {
             spec = spec.and((root, query, builder) -> builder.greaterThan(builder.length(root.get("narcotic")), 0));
         }
 
+        // hasFinalSample: check that finalSamplesJson is not null, not empty, and not
+        // "[]"
+        if (Boolean.TRUE.equals(criteria.hasFinalSample())) {
+            spec = spec.and((root, query, builder) -> builder.and(
+                    builder.isNotNull(root.get("finalSamplesJson")),
+                    builder.notEqual(root.get("finalSamplesJson"), ""),
+                    builder.notEqual(root.get("finalSamplesJson"), "[]")));
+        }
+
+        // hasDefectedForm: check that defectiveFormsJson is not null, not empty, and
+        // not "[]"
+        if (Boolean.TRUE.equals(criteria.hasDefectedForm())) {
+            spec = spec.and((root, query, builder) -> builder.and(
+                    builder.isNotNull(root.get("defectiveFormsJson")),
+                    builder.notEqual(root.get("defectiveFormsJson"), ""),
+                    builder.notEqual(root.get("defectiveFormsJson"), "[]")));
+        }
+
+        // fokozottFelugyelet: direct boolean field on entity
+        if (Boolean.TRUE.equals(criteria.fokozottFelugyelet())) {
+            spec = spec.and((root, query, builder) -> builder.isTrue(root.get("fokozottFelugyelet")));
+        }
+
+        // Authorization date range
+        if (criteria.authorisationDateFrom() != null) {
+            spec = spec.and((root, query, builder) -> builder.greaterThanOrEqualTo(root.get("authorizationDate"),
+                    criteria.authorisationDateFrom()));
+        }
+        if (criteria.authorisationDateTo() != null) {
+            spec = spec.and((root, query, builder) -> builder.lessThanOrEqualTo(root.get("authorizationDate"),
+                    criteria.authorisationDateTo()));
+        }
+
+        // Revoke date range (using releaseDate as the revoke/withdrawal date)
+        if (criteria.revokeDateFrom() != null) {
+            spec = spec.and((root, query, builder) -> builder.greaterThanOrEqualTo(root.get("releaseDate"),
+                    criteria.revokeDateFrom()));
+        }
+        if (criteria.revokeDateTo() != null) {
+            spec = spec.and((root, query, builder) -> builder.lessThanOrEqualTo(root.get("releaseDate"),
+                    criteria.revokeDateTo()));
+        }
+
         return spec;
     }
 
-    private Specification<Medication> booleanFilter(Boolean enabled, Function<jakarta.persistence.criteria.Root<Medication>, jakarta.persistence.criteria.Path<Boolean>> extractor, boolean invert) {
+    private Specification<Medication> booleanFilter(Boolean enabled,
+            Function<jakarta.persistence.criteria.Root<Medication>, jakarta.persistence.criteria.Path<Boolean>> extractor,
+            boolean invert) {
         if (enabled == null || !enabled) {
             return Specification.where(null);
         }
@@ -109,7 +159,6 @@ public class MedicationCatalogService {
                 !medication.isContainsGluten(),
                 !medication.isContainsBenzoate(),
                 medication.getNarcotic() != null && !medication.getNarcotic().isBlank(),
-                medication.isActive()
-        );
+                medication.isActive());
     }
 }

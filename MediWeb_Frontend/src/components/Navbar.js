@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "expo-router";
 import { AuthContext } from "contexts/AuthContext";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useResponsiveLayout } from "hooks/useResponsiveLayout";
+import { theme } from "styles/theme";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -66,7 +67,7 @@ export default function Navbar() {
             <FontAwesome5
               name={icon}
               size={14}
-              color={isActive(to) ? "#2E7D32" : "#6B7280"}
+              color={isActive(to) ? theme.colors.primary : theme.colors.textSecondary}
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.navLinkText, isActive(to) && styles.activeLinkText]}>
@@ -100,7 +101,7 @@ export default function Navbar() {
             style={styles.logoutButton}
             activeOpacity={0.7}
           >
-            <FontAwesome5 name="sign-out-alt" size={14} color="#EF4444" style={{ marginRight: 6 }} />
+            <FontAwesome5 name="sign-out-alt" size={14} color={theme.colors.error} style={{ marginRight: 6 }} />
             <Text style={styles.logoutText}>Kijelentkezés</Text>
           </TouchableOpacity>
         )}
@@ -118,15 +119,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 32,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
+    backgroundColor: theme.colors.white,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 4,
     zIndex: 1000,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: theme.colors.divider,
   },
   logoContainer: {
     flexDirection: "row",
@@ -137,19 +138,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
   logo: {
     fontSize: 22,
-    fontWeight: "700",
-    color: "#1F2937",
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
     letterSpacing: -0.3,
   },
   logoAccent: {
-    color: "#2E7D32",
-    fontWeight: "800",
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.extrabold,
   },
   menu: {
     flexDirection: "row",
@@ -164,20 +165,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   navLinkText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textSecondary,
   },
   activeLink: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
   },
   activeLinkText: {
-    color: "#2E7D32",
+    color: theme.colors.primary,
   },
   menuDivider: {
     width: 1,
     height: 24,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: theme.colors.border,
     marginHorizontal: 12,
   },
   loginButton: {
@@ -185,24 +186,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: "#2E7D32",
+    borderColor: theme.colors.primary,
   },
   loginButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2E7D32",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
   },
   registerButton: {
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
     marginLeft: 8,
   },
   registerButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.white,
   },
   logoutButton: {
     flexDirection: "row",
@@ -210,12 +211,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: theme.colors.favoriteLight,
   },
   logoutText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#EF4444",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.error,
   },
 
   // --- Mobile Navbar ---
@@ -226,8 +227,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
+    backgroundColor: theme.colors.white,
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   hamburgerLine: {
     width: 22,
     height: 2.5,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
     borderRadius: 2,
   },
   hamburgerLineShort: {
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -267,12 +268,12 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   mobileMenu: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.white,
     marginTop: 72,
     marginHorizontal: 16,
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#000",
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 16 },
     shadowOpacity: 0.2,
     shadowRadius: 32,
@@ -290,15 +291,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mobileMenuTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -314,30 +315,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   mobileNavLinkActive: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
   },
   mobileNavIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
   mobileNavIconActive: {
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
   },
   mobileNavLinkText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textSecondary,
   },
   mobileNavLinkTextActive: {
-    color: "#2E7D32",
+    color: theme.colors.primary,
   },
   mobileDivider: {
     height: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.divider,
     marginVertical: 16,
   },
   mobileAuthSection: {
@@ -350,12 +351,12 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
   },
   mobileLoginButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.white,
   },
   mobileRegisterButton: {
     flexDirection: "row",
@@ -363,12 +364,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
   },
   mobileRegisterButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2E7D32",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
   },
   mobileLogoutButton: {
     flexDirection: "row",
@@ -377,11 +378,11 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: theme.colors.favoriteLight,
   },
   mobileLogoutButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#EF4444",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.error,
   },
 });

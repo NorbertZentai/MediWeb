@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import CustomDropdown from "components/CustomDropdown";
 import { FontAwesome } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { renderStars } from "./ReviewStars";
 import { styles } from "./ReviewSection.style";
+import { theme } from "styles/theme";
 
 export default function ReviewSection({
   reviews,
@@ -95,7 +97,7 @@ export default function ReviewSection({
                 <FontAwesome
                   name={val <= rating ? "star" : "star-o"}
                   size={30}
-                  color="#fbc02d"
+                  color={theme.colors.warning}
                   style={{ marginHorizontal: 4 }}
                 />
               </TouchableOpacity>
@@ -129,7 +131,7 @@ export default function ReviewSection({
             disabled={submitting || rating === 0}
           >
             {submitting ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={theme.colors.white} />
             ) : (
               <Text style={styles.reviewButtonText}>
                 {ownReview ? "Véleményed frissítése" : "Vélemény küldése"}
@@ -149,16 +151,17 @@ export default function ReviewSection({
           <Text style={styles.reviewListTitle}>Korábbi értékelések</Text>
 
           <View style={styles.dropdownWrapper}>
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              style={styles.dropdown}
-            >
-              <option value="latest">Legújabb</option>
-              <option value="oldest">Legrégebbi</option>
-              <option value="highest">Legmagasabb értékelés</option>
-              <option value="lowest">Legalacsonyabb értékelés</option>
-            </select>
+            <CustomDropdown
+              options={[
+                { label: "Legújabb", value: "latest" },
+                { label: "Legrégebbi", value: "oldest" },
+                { label: "Legmagasabb értékelés", value: "highest" },
+                { label: "Legalacsonyabb értékelés", value: "lowest" },
+              ]}
+              selectedValue={sortOption}
+              onValueChange={(value) => setSortOption(value)}
+              placeholder="Rendezés"
+            />
           </View>
         </View>
 
@@ -176,7 +179,7 @@ export default function ReviewSection({
           ))
         ) : ownReview ? (
           <View style={styles.noReviewsBox}>
-            <FontAwesome name="user-circle" size={28} color="#888" style={{ marginBottom: 6 }} />
+            <FontAwesome name="user-circle" size={28} color={theme.colors.textSecondary} style={{ marginBottom: 6 }} />
             <Text style={styles.noReviewsTitle}>Csak a te értékelésed érkezett eddig</Text>
             <Text style={styles.noReviewsSubtitle}>
               Jelenleg még senki más nem írt véleményt ehhez a gyógyszerhez.
@@ -184,7 +187,7 @@ export default function ReviewSection({
           </View>
         ) : (
           <View style={styles.noReviewsBox}>
-            <FontAwesome name="comment-o" size={28} color="#aaa" style={{ marginBottom: 6 }} />
+            <FontAwesome name="comment-o" size={28} color={theme.colors.textTertiary} style={{ marginBottom: 6 }} />
             <Text style={styles.noReviewsTitle}>Nincs még értékelés</Text>
             <Text style={styles.noReviewsSubtitle}>
               Legyél te az első, aki megosztja a tapasztalatait!

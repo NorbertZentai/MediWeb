@@ -51,7 +51,7 @@ public class SearchService {
 
     public List<MedicationSearchResult> searchMedications(MedicationSearchRequest params) {
         try {
-            Map<String, String> sessionData = OgyeiRequestHelper.fetchSessionAndCsrfToken();
+            Map<String, String> sessionData = fetchSessionWithRetry();
             String phpsessid = sessionData.get("PHPSESSID");
             String csrft = sessionData.get("csrft");
 
@@ -97,7 +97,7 @@ public class SearchService {
                                                      Integer limit,
                                                      Set<Long> knownExistingIds) {
         try {
-            Map<String, String> sessionData = OgyeiRequestHelper.fetchSessionAndCsrfToken();
+            Map<String, String> sessionData = fetchSessionWithRetry();
             String phpsessid = sessionData.get("PHPSESSID");
             String csrft = sessionData.get("csrft");
 
@@ -245,6 +245,29 @@ public class SearchService {
             identifiers.clear();
             identifiers.addAll(limited);
         }
+    }
+
+    private Map<String, String> fetchSessionWithRetry() throws IOException {
+        int attempts = Math.max(discoveryRetryAttempts, 0) + 1;
+        IOException lastException = null;
+
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                if (attempt > 1) {
+                    log.warn("Retrying OGYEI session fetch (attempt={}/{})", attempt, attempts);
+                }
+                return OgyeiRequestHelper.fetchSessionAndCsrfToken();
+            } catch (IOException ex) {
+                lastException = ex;
+                log.error("Failed to fetch OGYEI session (attempt={}/{}): {}", attempt, attempts, ex.getMessage());
+                if (attempt >= attempts) {
+                    break;
+                }
+                applyRetryBackoff(attempt);
+            }
+        }
+
+        throw lastException != null ? lastException : new IOException("Nem sikerült az OGYEI session lekérése több próbálkozás után");
     }
 
     private Document fetchPageWithRetry(String url, String phpsessid, int pageNumber) throws IOException {

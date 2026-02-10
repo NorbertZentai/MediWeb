@@ -13,16 +13,37 @@ export function useMedicationService(medicationId) {
   const [favoriteId, setFavoriteId] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchDetails = useCallback(async () => {
     setLoading(true);
+    setError(null);
     const startTime = Date.now();
 
     try {
       const result = await getMedicationDetails(medicationId);
       setData(result);
+      setError(null);
     } catch (e) {
       console.error("Hiba a részletek betöltésekor:", e);
+
+      // Check if it's a 503 Service Unavailable error (timeout)
+      if (e.response?.status === 503) {
+        setError({
+          type: 'timeout',
+          message: e.response?.data?.message || 'Az OGYEI szerver nem elérhető. Kérjük, próbálja újra később.'
+        });
+      } else if (e.response?.status >= 500) {
+        setError({
+          type: 'server',
+          message: 'Szerverhiba történt. Kérjük, próbálja újra később.'
+        });
+      } else {
+        setError({
+          type: 'unknown',
+          message: 'Nem sikerült betölteni a gyógyszer adatait.'
+        });
+      }
     } finally {
       const elapsed = Date.now() - startTime;
       const remaining = 1000 - elapsed;
@@ -91,9 +112,11 @@ export function useMedicationService(medicationId) {
     favoriteId,
     profiles,
     loading,
+    error,
     setIsFavorite,
     setFavoriteId,
     fetchReviews,
     fetchFavorites,
+    fetchDetails,
   };
 }

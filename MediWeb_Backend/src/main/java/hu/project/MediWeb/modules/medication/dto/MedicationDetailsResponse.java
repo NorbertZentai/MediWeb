@@ -35,6 +35,7 @@ public class MedicationDetailsResponse {
     private boolean containsLactose;
     private boolean containsGluten;
     private boolean containsBenzoate;
+    private boolean fokozottFelugyelet;
 
     // Kiszerelések és helyettesítők
     private List<PackageInfo> packages;
