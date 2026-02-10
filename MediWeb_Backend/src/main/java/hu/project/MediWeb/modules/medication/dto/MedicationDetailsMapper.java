@@ -31,10 +31,15 @@ public class MedicationDetailsMapper {
                     .containsLactose(dto.isContainsLactose())
                     .containsGluten(dto.isContainsGluten())
                     .containsBenzoate(dto.isContainsBenzoate())
-                    .packagesJson(mapper.writeValueAsString(dto.getPackages() != null ? dto.getPackages() : new ArrayList<>()))
-                    .substitutesJson(mapper.writeValueAsString(dto.getSubstitutes() != null ? dto.getSubstitutes() : new ArrayList<>()))
-                    .finalSamplesJson(mapper.writeValueAsString(dto.getFinalSamples() != null ? dto.getFinalSamples() : new ArrayList<>()))
-                    .defectiveFormsJson(mapper.writeValueAsString(dto.getDefectiveForms() != null ? dto.getDefectiveForms() : new ArrayList<>()))
+                    .fokozottFelugyelet(dto.isFokozottFelugyelet())
+                    .packagesJson(mapper
+                            .writeValueAsString(dto.getPackages() != null ? dto.getPackages() : new ArrayList<>()))
+                    .substitutesJson(mapper.writeValueAsString(
+                            dto.getSubstitutes() != null ? dto.getSubstitutes() : new ArrayList<>()))
+                    .finalSamplesJson(mapper.writeValueAsString(
+                            dto.getFinalSamples() != null ? dto.getFinalSamples() : new ArrayList<>()))
+                    .defectiveFormsJson(mapper.writeValueAsString(
+                            dto.getDefectiveForms() != null ? dto.getDefectiveForms() : new ArrayList<>()))
                     .hazipatikaJson(mapper.writeValueAsString(dto.getHazipatikaInfo()))
                     .build();
         } catch (JsonProcessingException e) {
@@ -63,11 +68,17 @@ public class MedicationDetailsMapper {
                     .containsLactose(e.isContainsLactose())
                     .containsGluten(e.isContainsGluten())
                     .containsBenzoate(e.isContainsBenzoate())
-                    .packages(mapper.readValue(e.getPackagesJson(), new TypeReference<>() {}))
-                    .substitutes(mapper.readValue(e.getSubstitutesJson(), new TypeReference<>() {}))
-                    .finalSamples(mapper.readValue(e.getFinalSamplesJson(), new TypeReference<>() {}))
-                    .defectiveForms(mapper.readValue(e.getDefectiveFormsJson(), new TypeReference<>() {}))
-                    .hazipatikaInfo(mapper.readValue(e.getHazipatikaJson(), new TypeReference<>() {}))
+                    .fokozottFelugyelet(e.isFokozottFelugyelet())
+                    .packages(mapper.readValue(e.getPackagesJson(), new TypeReference<>() {
+                    }))
+                    .substitutes(mapper.readValue(e.getSubstitutesJson(), new TypeReference<>() {
+                    }))
+                    .finalSamples(mapper.readValue(e.getFinalSamplesJson(), new TypeReference<>() {
+                    }))
+                    .defectiveForms(mapper.readValue(e.getDefectiveFormsJson(), new TypeReference<>() {
+                    }))
+                    .hazipatikaInfo(mapper.readValue(e.getHazipatikaJson(), new TypeReference<>() {
+                    }))
                     .active(e.isActive())
                     .build();
         } catch (JsonProcessingException ex) {

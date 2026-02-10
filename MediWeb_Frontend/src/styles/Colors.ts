@@ -1,42 +1,37 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * App color tokens derived from the centralized theme.
+ * Used by navigation, tab bar, and platform-specific components.
  */
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-// Primary brand green
-const primaryGreen = '#2E7D32';
-const primaryGreenDark = '#6EE7B7';
+import { theme } from './theme';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: theme.colors.textPrimary,
+    background: theme.colors.white,
+    tint: theme.colors.primary,
+    icon: theme.colors.textSecondary,
+    tabIconDefault: theme.colors.textSecondary,
+    tabIconSelected: theme.colors.primary,
     // Tab bar specific
-    tabBarBackground: '#FFFFFF',
-    tabBarActiveText: primaryGreen,
-    tabBarInactiveText: '#9CA3AF',
-    tabBarIndicator: primaryGreen,
-    tabBarActivePill: '#ECFDF5',
+    tabBarBackground: theme.colors.white,
+    tabBarActiveText: theme.colors.primary,
+    tabBarInactiveText: theme.colors.textTertiary,
+    tabBarIndicator: theme.colors.primary,
+    tabBarActivePill: theme.colors.primaryMuted,
   },
   dark: {
     text: '#ECEDEE',
     background: '#151718',
-    tint: tintColorDark,
+    tint: '#fff',
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: '#fff',
     // Tab bar specific
     tabBarBackground: '#1F2937',
-    tabBarActiveText: primaryGreenDark,
+    tabBarActiveText: '#6EE7B7',
     tabBarInactiveText: '#6B7280',
-    tabBarIndicator: primaryGreenDark,
+    tabBarIndicator: '#6EE7B7',
     tabBarActivePill: 'rgba(110, 231, 183, 0.15)',
   },
 };

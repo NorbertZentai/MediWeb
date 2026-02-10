@@ -74,6 +74,8 @@ public class Medication {
     @Column(columnDefinition = "TEXT")
     private String hazipatikaJson;
 
+    private boolean fokozottFelugyelet;
+
     @Column(length = 100)
     private String packaging;
 

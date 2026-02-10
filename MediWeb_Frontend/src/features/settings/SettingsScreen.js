@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { AuthContext } from 'contexts/AuthContext';
+import { theme } from 'styles/theme';
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -57,24 +58,24 @@ export default function SettingsScreen() {
                             onPress={() => router.push('/profile/account')}
                         >
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="user" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="user" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Profil adatok</Text>
-                            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+                            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
 
                         <View style={styles.divider} />
 
                         <View style={styles.menuItem}>
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="bell" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="bell" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Értesítések</Text>
                             <Switch
                                 value={notifications}
                                 onValueChange={setNotifications}
-                                trackColor={{ false: '#E2E8F0', true: '#ECFDF5' }}
-                                thumbColor={notifications ? '#2E7D32' : '#9CA3AF'}
+                                trackColor={{ false: theme.colors.border, true: theme.colors.primaryMuted }}
+                                thumbColor={notifications ? theme.colors.primary : theme.colors.textTertiary}
                             />
                         </View>
 
@@ -85,10 +86,10 @@ export default function SettingsScreen() {
                             onPress={() => {/* TODO: Navigate to privacy settings */ }}
                         >
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="lock" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="lock" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Adatvédelem</Text>
-                            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+                            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -99,7 +100,7 @@ export default function SettingsScreen() {
                     <View style={styles.card}>
                         <View style={styles.menuItem}>
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="palette" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="palette" size={18} color={theme.colors.primary} />
                             </View>
                             <View style={styles.flex1}>
                                 <Text style={styles.menuLabel}>Téma</Text>
@@ -131,11 +132,11 @@ export default function SettingsScreen() {
                             onPress={() => {/* TODO: Language selection */ }}
                         >
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="globe" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="globe" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Nyelv</Text>
                             <Text style={styles.menuValue}>Magyar</Text>
-                            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+                            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -146,7 +147,7 @@ export default function SettingsScreen() {
                     <View style={styles.card}>
                         <View style={styles.menuItem}>
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="info-circle" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="info-circle" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Verzió</Text>
                             <Text style={styles.menuValue}>2.1.0</Text>
@@ -159,10 +160,10 @@ export default function SettingsScreen() {
                             onPress={() => {/* TODO: Terms of Service */ }}
                         >
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="file-alt" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="file-alt" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Felhasználási feltételek</Text>
-                            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+                            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
 
                         <View style={styles.divider} />
@@ -172,10 +173,10 @@ export default function SettingsScreen() {
                             onPress={() => {/* TODO: Privacy Policy */ }}
                         >
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="shield-alt" size={18} color="#2E7D32" />
+                                <FontAwesome5 name="shield-alt" size={18} color={theme.colors.primary} />
                             </View>
                             <Text style={styles.menuLabel}>Adatvédelmi irányelvek</Text>
-                            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+                            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -185,7 +186,7 @@ export default function SettingsScreen() {
                     style={styles.logoutButton}
                     onPress={handleLogout}
                 >
-                    <FontAwesome5 name="sign-out-alt" size={18} color="#EF4444" />
+                    <FontAwesome5 name="sign-out-alt" size={18} color={theme.colors.error} />
                     <Text style={styles.logoutText}>Kijelentkezés</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -196,73 +197,69 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F8FAFC',
+        backgroundColor: theme.colors.background,
     },
     scrollView: {
         flex: 1,
     },
     content: {
-        padding: 16,
-        paddingTop: Platform.OS === 'ios' ? 70 : 60, // Extra padding for status bar
+        padding: theme.spacing.md,
+        paddingTop: Platform.OS === 'ios' ? 70 : 60,
         paddingBottom: 100,
     },
     header: {
-        marginBottom: 24,
+        marginBottom: theme.spacing.lg,
     },
     headerTitle: {
-        fontSize: 28,
-        fontWeight: '700',
-        color: '#1F2937',
+        fontSize: theme.fontSize.xxxl - 4,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.textPrimary,
     },
     section: {
-        marginBottom: 24,
+        marginBottom: theme.spacing.lg,
     },
     sectionTitle: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#64748B',
-        marginBottom: 12,
+        fontSize: theme.fontSize.xs + 1,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textSecondary,
+        marginBottom: theme.spacing.sm + 4,
         letterSpacing: 0.5,
     },
     card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.md,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-        elevation: 2,
+        ...theme.shadows.sm,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        paddingVertical: theme.spacing.md,
+        paddingHorizontal: theme.spacing.md,
     },
     menuIconWrapper: {
         width: 40,
         height: 40,
         borderRadius: 10,
-        backgroundColor: '#ECFDF5',
+        backgroundColor: theme.colors.primaryMuted,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 14,
     },
     menuLabel: {
         flex: 1,
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#1F2937',
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.medium,
+        color: theme.colors.textPrimary,
     },
     menuValue: {
-        fontSize: 16,
-        color: '#64748B',
-        marginRight: 8,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textSecondary,
+        marginRight: theme.spacing.sm,
     },
     divider: {
         height: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: theme.colors.divider,
         marginLeft: 70,
     },
     flex1: {
@@ -270,40 +267,40 @@ const styles = StyleSheet.create({
     },
     themeOptions: {
         flexDirection: 'row',
-        gap: 8,
-        marginTop: 8,
+        gap: theme.spacing.sm,
+        marginTop: theme.spacing.sm,
     },
     themeButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        backgroundColor: '#F3F4F6',
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        borderRadius: theme.borderRadius.sm,
+        backgroundColor: theme.colors.divider,
     },
     themeButtonActive: {
-        backgroundColor: '#ECFDF5',
+        backgroundColor: theme.colors.primaryMuted,
     },
     themeButtonText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#64748B',
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.medium,
+        color: theme.colors.textSecondary,
     },
     themeButtonTextActive: {
-        color: '#2E7D32',
+        color: theme.colors.primary,
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        backgroundColor: '#FEF2F2',
-        paddingVertical: 16,
-        borderRadius: 12,
+        backgroundColor: theme.colors.favoriteLight,
+        paddingVertical: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
         borderWidth: 1,
         borderColor: '#FECACA',
     },
     logoutText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#EF4444',
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.error,
     },
 });

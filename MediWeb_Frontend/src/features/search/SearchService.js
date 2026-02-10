@@ -23,7 +23,6 @@ export function useSearchService() {
   const [results, setResults] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [viewMode, setViewMode] = useState("list");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -99,9 +98,21 @@ export function useSearchService() {
       const data = await searchMedications(params);
       const content = data?.content ?? [];
       setResults((prev) => (append ? [...prev, ...content] : content));
-      setTotalCount(data?.totalElements ?? content.length);
+
+      const totalElements = data?.page?.totalElements ?? data?.totalElements ?? content.length;
+      const totalPages = data?.page?.totalPages ?? data?.totalPages ?? 0;
+      const currentPage = data?.page?.number ?? data?.number ?? 0;
+
+      let isLast = true;
+      if (typeof data?.last === 'boolean') {
+        isLast = data.last;
+      } else if (totalPages > 0) {
+        isLast = (currentPage + 1) >= totalPages;
+      }
+
+      setTotalCount(totalElements);
       setPage(targetPage);
-      setHasMore(!(data?.last ?? true));
+      setHasMore(!isLast);
     } catch (error) {
       console.error("Keresés sikertelen:", error);
       if (!append) {
@@ -164,8 +175,6 @@ export function useSearchService() {
     totalCount,
     handleSearch,
     loading,
-    filtersExpanded,
-    setFiltersExpanded,
     viewMode,
     setViewMode,
     loadMore,

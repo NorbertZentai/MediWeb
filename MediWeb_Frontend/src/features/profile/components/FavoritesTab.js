@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, TouchableOpacity, Modal, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { getFavorites, removeFromFavorites } from "features/profile/profile.api";
 import { toast } from 'utils/toast';
 import { styles } from "./ProfilesTab.style";
+import { theme } from "styles/theme";
 
 export default function FavoritesTab() {
+  const router = useRouter();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFavorite, setSelectedFavorite] = useState(null);
@@ -50,7 +53,7 @@ export default function FavoritesTab() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="green" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -73,7 +76,7 @@ export default function FavoritesTab() {
             {favorites.map((fav, index) => (
               <View key={fav.id} style={styles.profileCard}>
                 <View style={styles.profileCardHeader}>
-                  <TouchableOpacity onPress={() => window.open(`/medication/${fav.medicationId}`, "_blank")}>
+                  <TouchableOpacity onPress={() => router.push(`/medication/${fav.medicationId}`)}>
                     <Text style={styles.medicationName}>
                       {index + 1}. {fav.medicationName}
                     </Text>
@@ -102,7 +105,7 @@ export default function FavoritesTab() {
             <Text style={styles.modalDeleteTitle}>
               Biztosan törölni szeretnéd ezt a kedvencet?
             </Text>
-            <Text style={{ color: "#6B7280" }}>
+            <Text style={{ color: theme.colors.textSecondary }}>
               {selectedFavorite?.medicationName}
             </Text>
             <View style={styles.modalDeleteActions}>

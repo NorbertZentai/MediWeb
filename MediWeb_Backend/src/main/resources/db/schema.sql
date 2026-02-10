@@ -23,11 +23,11 @@ CREATE TABLE IF NOT EXISTS public.users (
 );
 
 CREATE TABLE IF NOT EXISTS public.profiles (
-   id SERIAL PRIMARY KEY,
-   user_id INTEGER NOT NULL REFERENCES public.users(id),
-   name VARCHAR(100) NOT NULL,
-   notes TEXT,
-   CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES public.users (id),
+    name VARCHAR(100) NOT NULL,
+    notes TEXT,
+    CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS public.medications (
@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS public.medications (
     final_samples_json TEXT,
     defective_forms_json TEXT,
     hazipatika_json TEXT,
+    fokozott_felugyelet BOOLEAN NOT NULL DEFAULT FALSE,
     packaging VARCHAR(100),
     release_date DATE,
     description TEXT,
@@ -66,10 +67,14 @@ CREATE TABLE IF NOT EXISTS public.medications (
     last_reviewed TIMESTAMP
 );
 
+-- Add fokozott_felugyelet if the table already existed before this column was introduced
+ALTER TABLE public.medications
+ADD COLUMN IF NOT EXISTS fokozott_felugyelet BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE TABLE IF NOT EXISTS public.profile_medications (
     id SERIAL PRIMARY KEY,
-    profile_id INTEGER NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    medication_id INTEGER NOT NULL REFERENCES public.medications(id),
+    profile_id INTEGER NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
+    medication_id INTEGER NOT NULL REFERENCES public.medications (id),
     notes TEXT,
     reminders TEXT,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -78,15 +83,15 @@ CREATE TABLE IF NOT EXISTS public.profile_medications (
 
 CREATE TABLE IF NOT EXISTS public.favorites (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users(id),
-    medication_id INTEGER NOT NULL REFERENCES public.medications(id),
+    user_id INTEGER NOT NULL REFERENCES public.users (id),
+    medication_id INTEGER NOT NULL REFERENCES public.medications (id),
     CONSTRAINT unique_favorite_per_user UNIQUE (user_id, medication_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.reviews (
     id SERIAL PRIMARY KEY,
-    item_id INTEGER NOT NULL REFERENCES public.medications(id),
-    user_id INTEGER NOT NULL REFERENCES public.users(id),
+    item_id INTEGER NOT NULL REFERENCES public.medications (id),
+    user_id INTEGER NOT NULL REFERENCES public.users (id),
     rating INTEGER NOT NULL,
     positive TEXT,
     negative TEXT,
@@ -96,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.reviews (
 
 CREATE TABLE IF NOT EXISTS public.medication_intake_log (
     id SERIAL PRIMARY KEY,
-    profile_medication_id INTEGER NOT NULL REFERENCES public.profile_medications(id) ON DELETE CASCADE,
+    profile_medication_id INTEGER NOT NULL REFERENCES public.profile_medications (id) ON DELETE CASCADE,
     intake_date DATE NOT NULL,
     intake_time TIME NOT NULL,
     taken BOOLEAN NOT NULL,
@@ -105,7 +110,7 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
 );
 
 CREATE TABLE IF NOT EXISTS public.user_preferences (
-    user_id INTEGER PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
+    user_id INTEGER PRIMARY KEY REFERENCES public.users (id) ON DELETE CASCADE,
     preferences_payload TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -113,7 +118,7 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
 
 CREATE TABLE IF NOT EXISTS public.user_data_requests (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES public.users (id) ON DELETE CASCADE,
     request_type VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     metadata TEXT,

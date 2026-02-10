@@ -8,6 +8,7 @@ import hu.project.MediWeb.modules.profile.service.ProfileService;
 import hu.project.MediWeb.modules.profile.service.ProfileMedicationService;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.UserService;
+import hu.project.MediWeb.modules.profile.exception.DuplicateAssignmentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +33,9 @@ public class ProfileController {
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated() || 
-            "anonymousUser".equals(authentication.getPrincipal())) {
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
             return null;
         }
 
@@ -76,14 +77,20 @@ public class ProfileController {
     }
 
     @PostMapping("/addMedication/{profileId}")
-    public ResponseEntity<ProfileMedicationDTO> addMedication( @PathVariable Long profileId, @RequestBody Map<String, Long> request) {
+    public ResponseEntity<?> addMedication(@PathVariable Long profileId, @RequestBody Map<String, Long> request) {
         Long itemId = request.get("itemId");
-        ProfileMedicationDTO added = medicationService.addMedication(profileId, itemId);
-        return ResponseEntity.ok(added);
+        try {
+            ProfileMedicationDTO added = medicationService.addMedication(profileId, itemId);
+            return ResponseEntity.ok(added);
+        } catch (DuplicateAssignmentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Conflict", "message", e.getMessage()));
+        }
     }
 
     @PutMapping("/{profileId}/medications/{medicationId}")
-    public ProfileMedicationDTO updateMedicationForProfile( @PathVariable Long profileId, @PathVariable Long medicationId, @RequestBody Map<String, Object> data ) {
+    public ProfileMedicationDTO updateMedicationForProfile(@PathVariable Long profileId,
+            @PathVariable Long medicationId, @RequestBody Map<String, Object> data) {
         try {
             String note = (String) data.get("note");
             ObjectMapper objectMapper = new ObjectMapper();

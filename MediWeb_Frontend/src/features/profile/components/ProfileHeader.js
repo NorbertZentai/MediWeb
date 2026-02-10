@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons"
 import { toast } from "utils/toast";
+import { theme } from "styles/theme";
 
 import { styles } from "../ProfileScreen.style";
 import defaultAvatar from "assets/default-avatar.jpg";
@@ -137,14 +138,14 @@ export default function ProfileHeader() {
   const InfoCard = ({ icon, label, value, onEdit }) => (
     <View style={styles.infoCard}>
       <View style={styles.infoCardIcon}>
-        <FontAwesome5 name={icon} size={16} color="#2E7D32" />
+        <FontAwesome5 name={icon} size={16} color={theme.colors.primary} />
       </View>
       <View style={styles.infoCardContent}>
         <Text style={styles.infoCardLabel}>{label}</Text>
         <Text style={styles.infoCardValue} numberOfLines={1}>{value}</Text>
       </View>
       <TouchableOpacity style={styles.infoCardEditButton} onPress={onEdit}>
-        <FontAwesome5 name="pen" size={12} color="#6B7280" />
+        <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
       </TouchableOpacity>
     </View>
   );
@@ -168,7 +169,7 @@ export default function ProfileHeader() {
               style={styles.editImageButton}
               onPress={() => openEditModal("image")}
             >
-              <FontAwesome5 name="camera" size={12} color="#fff" />
+              <FontAwesome5 name="camera" size={12} color={theme.colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerInfo}>
@@ -221,7 +222,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Jelenlegi jelszó"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={currentPassword}
                   onChangeText={setCurrentPassword}
@@ -229,7 +230,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={newPassword}
                   onChangeText={setNewPassword}
@@ -237,7 +238,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó megerősítése"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
@@ -246,7 +247,7 @@ export default function ProfileHeader() {
             ) : editingField === "image" ? (
               <>
                 <TouchableOpacity style={styles.uploadButton} onPress={selectImage}>
-                  <FontAwesome5 name="cloud-upload-alt" size={32} color="#2E7D32" />
+                  <FontAwesome5 name="cloud-upload-alt" size={32} color={theme.colors.primary} />
                   <Text style={styles.uploadText}>Kép kiválasztása</Text>
                 </TouchableOpacity>
                 {inputValue && (
@@ -265,7 +266,7 @@ export default function ProfileHeader() {
                     editingField === "email" ? "Email címed" :
                       "Telefonszámod"
                 }
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={theme.colors.textTertiary}
                 autoFocus
                 keyboardType={
                   editingField === "email" ? "email-address" :

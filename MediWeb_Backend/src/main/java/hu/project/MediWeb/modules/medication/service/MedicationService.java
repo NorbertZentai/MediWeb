@@ -42,7 +42,8 @@ public class MedicationService {
     @Value("${medication.image.refresh-days:30}")
     private int imageRefreshDays;
 
-    public record MedicationRefreshResult(Medication entity, MedicationDetailsResponse response) {}
+    public record MedicationRefreshResult(Medication entity, MedicationDetailsResponse response) {
+    }
 
     public MedicationDetailsResponse getMedicationDetails(Long itemId) throws Exception {
         return getMedicationDetailsInternal(itemId, false);
@@ -133,16 +134,41 @@ public class MedicationService {
     }
 
     private MedicationDetailsResponse getMedicationDetailsInternal(Long itemId, boolean forceRefresh) throws Exception {
+        log.debug("🔍 [MEDICATION] Starting getMedicationDetails for ID: {}", itemId);
         Optional<Medication> optional = medicationRepository.findById(itemId);
 
-        if (optional.isPresent() && shouldReturnCached(optional.get(), forceRefresh)) {
-            log.debug("Returning cached medication data for id={} (force={})", itemId, forceRefresh);
+        // If we have cached data, return it immediately unless force refresh is
+        // requested
+        if (optional.isPresent() && !forceRefresh) {
+            log.debug("✅ [MEDICATION] Returning cached medication data for id={}", itemId);
             return MedicationDetailsMapper.toDto(optional.get());
         }
 
-        MedicationRefreshResult result = refreshMedicationSnapshot(itemId);
-        persistMedicationSnapshot(result.entity());
-        return result.response();
+        // If we have cached data but need to refresh, try OGYEI but fallback to cache
+        // on error
+        if (optional.isPresent() && forceRefresh) {
+            try {
+                MedicationRefreshResult result = refreshMedicationSnapshot(itemId);
+                persistMedicationSnapshot(result.entity());
+                log.debug("✅ [MEDICATION] Successfully refreshed from OGYEI for id={}", itemId);
+                return result.response();
+            } catch (Exception e) {
+                log.warn("⚠️ [MEDICATION] OGYEI unavailable for ID: {}, returning cached data. Error: {}", itemId,
+                        e.getMessage());
+                return MedicationDetailsMapper.toDto(optional.get());
+            }
+        }
+
+        // No cached data, must fetch from OGYEI
+        try {
+            MedicationRefreshResult result = refreshMedicationSnapshot(itemId);
+            persistMedicationSnapshot(result.entity());
+            log.debug("✅ [MEDICATION] Successfully fetched new medication from OGYEI for id={}", itemId);
+            return result.response();
+        } catch (Exception e) {
+            log.error("❌ [MEDICATION] Failed to fetch medication from OGYEI and no cache available for ID: {}", itemId);
+            throw new RuntimeException("A gyógyszer adatai nem érhetők el. Az OGYEI szerver jelenleg nem elérhető.", e);
+        }
     }
 
     private boolean shouldReturnCached(Medication medication, boolean forceRefresh) {
@@ -158,8 +184,25 @@ public class MedicationService {
 
     private MedicationDetailsResponse scrapeMedication(Long itemId, Medication existing) throws Exception {
         log.info("Fetching medication details from OGYEI for id={}", itemId);
-        String url = "https://ogyei.gov.hu/gyogyszeradatbazis&action=show_details&item=" + itemId;
-        Document doc = Jsoup.connect(url).get();
+        String url = "https://ogyei.gov.hu/gyogyszeradatbazis?action=show_details&item=" + itemId;
+
+        Document doc;
+        try {
+            doc = Jsoup.connect(url)
+                    .timeout(90000) // 90 second timeout
+                    .userAgent(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7")
+                    .maxBodySize(0)
+                    .get();
+        } catch (java.net.SocketTimeoutException e) {
+            log.error("❌ [MEDICATION] Timeout connecting to OGYEI for ID: {}", itemId);
+            throw new RuntimeException("Az OGYEI szerver nem elérhető. Kérjük, próbálja újra később.", e);
+        } catch (java.io.IOException e) {
+            log.error("❌ [MEDICATION] Network error for ID: {}", itemId, e);
+            throw new RuntimeException("Hálózati hiba történt az OGYEI szerverrel való kapcsolat során.", e);
+        }
 
         Element titleElement = doc.selectFirst("h3.gy-content__title");
         if (titleElement == null) {
@@ -193,6 +236,10 @@ public class MedicationService {
         Boolean containsStarch = parseBooleanFromLine(datasheetTable, "Búzakeményítő");
         Boolean containsBenzoate = parseBooleanFromLine(datasheetTable, "Benzoát");
 
+        // Fokozott felügyelet - check the top table for this field
+        String fokozottText = textFromTitle(topTable, "Fokozott felügyelet");
+        boolean fokozottFelugyelet = fokozottText != null && fokozottText.toLowerCase().contains("igen");
+
         List<FinalSampleApproval> finalSamples = extractFinalSampleApprovals(doc);
         List<DefectiveFormApproval> defectiveForms = extractDefectiveForms(doc);
 
@@ -219,6 +266,7 @@ public class MedicationService {
                 .containsLactose(Boolean.TRUE.equals(containsLactose))
                 .containsGluten(Boolean.TRUE.equals(containsStarch))
                 .containsBenzoate(Boolean.TRUE.equals(containsBenzoate))
+                .fokozottFelugyelet(fokozottFelugyelet)
                 .finalSamples(finalSamples)
                 .defectiveForms(defectiveForms)
                 .hazipatikaInfo(hazipatikaInfo)
@@ -385,8 +433,7 @@ public class MedicationService {
                                     cells.get(0).text(),
                                     cells.get(1).text(),
                                     cells.get(2).text(),
-                                    cells.get(3).text()
-                            ));
+                                    cells.get(3).text()));
                         }
                     }
                 }
@@ -410,8 +457,7 @@ public class MedicationService {
                                     cells.get(1).text(),
                                     cells.get(2).text(),
                                     cells.get(3).text(),
-                                    cells.get(4).text()
-                            ));
+                                    cells.get(4).text()));
                         }
                     }
                 }
@@ -458,8 +504,7 @@ public class MedicationService {
                         cells.get(1).text(),
                         cells.get(2).text(),
                         cells.get(3).text(),
-                        cells.get(4).text()
-                ));
+                        cells.get(4).text()));
             } catch (Exception ex) {
                 log.warn("Failed to parse package row", ex);
             }

@@ -1,13 +1,18 @@
 import { StyleSheet } from "react-native";
+import { theme } from "styles/theme";
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
+    flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 32,
+    paddingBottom: 100,
     paddingTop: 12,
     gap: 20,
   },
@@ -17,52 +22,55 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 16,
   },
+  header: {
+    gap: 16,
+  },
+  titleContainer: {
+    gap: 4,
+  },
   title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginTop: 4,
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
-  periodSwitcher: {
+  // Modern Period Tabs
+  periodTabsContainer: {
     flexDirection: "row",
-    borderRadius: 999,
-    backgroundColor: "#E5E7EB",
-    padding: 4,
+    gap: 8,
+    width: "100%",
   },
-  periodButton: {
+  periodTab: {
+    flex: 1,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "transparent",
   },
-  periodButtonActive: {
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#4B5563",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+  periodTabActive: {
+    backgroundColor: theme.colors.primaryMuted,
+    borderColor: theme.colors.secondary,
   },
-  periodButtonLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
+  periodTabLabel: {
+    fontSize: 15,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textSecondary,
   },
-  periodButtonLabelActive: {
-    color: "#059669",
+  periodTabLabelActive: {
+    color: theme.colors.secondaryDark,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.lg,
     padding: 20,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 2,
+    ...theme.shadows.md,
     gap: 14,
   },
   cardHeader: {
@@ -70,13 +78,13 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
   chartWrapper: {
     width: "100%",
@@ -84,13 +92,13 @@ export const styles = StyleSheet.create({
   },
   complianceValue: {
     fontSize: 32,
-    fontWeight: "700",
-    color: "#059669",
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.secondaryDark,
     textAlign: "center",
   },
   complianceMeta: {
     fontSize: 13,
-    color: "#6B7280",
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 4,
   },
@@ -100,13 +108,13 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   errorText: {
-    color: "#B91C1C",
-    fontSize: 14,
+    color: theme.colors.error,
+    fontSize: theme.fontSize.sm,
     textAlign: "center",
   },
   helperText: {
     fontSize: 13,
-    color: "#6B7280",
+    color: theme.colors.textSecondary,
     textAlign: "center",
   },
   legendList: {
@@ -128,11 +136,11 @@ export const styles = StyleSheet.create({
   },
   legendLabel: {
     fontSize: 13,
-    color: "#374151",
+    color: theme.colors.textSecondary,
   },
   sectionDivider: {
     height: 1,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: theme.colors.border,
     marginVertical: 12,
   },
   emptyState: {
@@ -141,8 +149,8 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyStateText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
     textAlign: "center",
   },
 });

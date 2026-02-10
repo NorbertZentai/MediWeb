@@ -1,17 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./SearchScreen.style";
 import { useSearchService } from "./SearchService";
 import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import { haptics } from "utils/haptics";
-
-const booleanFilters = [
-  { field: "hasFinalSample", label: "Van véglegminta engedélye" },
-  { field: "hasDefectedForm", label: "Van alaki hiba engedélye" },
-  { field: "fokozottFelugyelet", label: "Fokozott felügyelet alatt áll" },
-];
+import { theme } from "styles/theme";
+import FilterModal, { getActiveFilterCount, getActiveFilterLabels } from "./FilterModal";
 
 export default function SearchScreen() {
   const {
@@ -23,8 +19,6 @@ export default function SearchScreen() {
     totalCount,
     handleSearch: serviceHandleSearch,
     loading,
-    filtersExpanded,
-    setFiltersExpanded,
     viewMode,
     setViewMode,
     hasMore,
@@ -32,170 +26,120 @@ export default function SearchScreen() {
   } = useSearchService();
 
   const router = useRouter();
-  const params = useLocalSearchParams();
   const { isMobile } = useResponsiveLayout();
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  const activeFilterCount = getActiveFilterCount(filters);
+  const activeFilterLabels = getActiveFilterLabels(filters);
 
   const handleSearch = () => {
     haptics.medium();
     serviceHandleSearch();
   };
 
-  const toggleFilters = () => {
-    haptics.light();
-    setFiltersExpanded(!filtersExpanded);
+  const resetAllFilters = () => {
+    const booleanFields = [
+      "hasFinalSample", "hasDefectedForm", "fokozottFelugyelet",
+      "lactoseFree", "glutenFree", "benzoateFree", "narcoticOnly",
+    ];
+    booleanFields.forEach((f) => handleFilterChange(f, false));
+    handleFilterChange("atcCode", "");
+    handleFilterChange("registrationNumber", "");
+    handleFilterChange("authorisationDateFrom", "");
+    handleFilterChange("authorisationDateTo", "");
+    handleFilterChange("revokeDateFrom", "");
+    handleFilterChange("revokeDateTo", "");
   };
 
-  const handleViewModeChange = (mode) => {
+  const removeFilter = (field, type) => {
     haptics.light();
-    setViewMode(mode);
+    if (type === "boolean") {
+      handleFilterChange(field, false);
+    } else {
+      handleFilterChange(field, "");
+    }
   };
-
-
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#E8F5E9" }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={styles.container}>
       <View style={styles.contentWrapper}>
         <Text style={styles.title}>Gyógyszer kereső</Text>
 
-        {/* Modern Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <FontAwesome5 name="search" size={20} color="#64748B" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Keress gyógyszer nevére..."
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-            onSubmitEditing={handleSearch}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery('')}
-              style={styles.clearButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <FontAwesome5 name="times-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Quick Filters - Modern Chips */}
-        <View style={styles.quickFiltersContainer}>
-          <View style={styles.quickFiltersHeader}>
-            <Text style={styles.quickFiltersTitle}>Gyors szűrők</Text>
-            {(filters.hasFinalSample || filters.hasDefectedForm || filters.fokozottFelugyelet) && (
+        {/* Search bar + filter button row */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchBarContainer}>
+            <FontAwesome5 name="search" size={18} color={theme.colors.textSecondary} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Keress gyógyszer nevére..."
+              placeholderTextColor={theme.colors.textTertiary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+              onSubmitEditing={handleSearch}
+            />
+            {searchQuery.length > 0 && (
               <TouchableOpacity
-                onPress={() => {
-                  handleFilterChange('hasFinalSample', false);
-                  handleFilterChange('hasDefectedForm', false);
-                  handleFilterChange('fokozottFelugyelet', false);
-                }}
+                onPress={() => setSearchQuery("")}
+                style={styles.clearButton}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text style={styles.clearFiltersText}>Törlés</Text>
+                <FontAwesome5 name="times-circle" size={18} color={theme.colors.textTertiary} />
               </TouchableOpacity>
             )}
           </View>
-          <View style={styles.chipRow}>
-            {booleanFilters.map(({ field, label }) => (
-              <TouchableOpacity
-                key={field}
-                onPress={() => {
-                  haptics.light();
-                  handleFilterChange(field, !filters[field]);
-                }}
-                style={[
-                  styles.filterChip,
-                  filters[field] && styles.filterChipActive
-                ]}
-                activeOpacity={0.7}
-              >
-                {filters[field] && (
-                  <FontAwesome5 name="check" size={14} color="#FFFFFF" style={styles.chipIcon} />
-                )}
-                <Text style={[
-                  styles.filterChipText,
-                  filters[field] && styles.filterChipTextActive
-                ]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+
+          {/* Filter button */}
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}
+            onPress={() => {
+              haptics.light();
+              setFilterModalVisible(true);
+            }}
+            activeOpacity={0.7}
+          >
+            <FontAwesome5
+              name="sliders-h"
+              size={18}
+              color={activeFilterCount > 0 ? theme.colors.white : theme.colors.textSecondary}
+            />
+            {activeFilterCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
-        {/* Részletes szűrés */}
-        <TouchableOpacity onPress={toggleFilters}>
-          <Text style={styles.expandFilters}>{filtersExpanded ? "- Szűrők elrejtése" : "+ Részletes szűrők"}</Text>
-        </TouchableOpacity>
-
-        {filtersExpanded && (
-          <View style={styles.filtersContainer}>
-            {/* Szöveges mezők */}
-            <View style={styles.filterGrid}>
-              <TextInput
-                style={[styles.filterInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="ATC kód"
-                value={filters.atcCode}
-                onChangeText={(text) => handleFilterChange("atcCode", text)}
-              />
-              <TextInput
-                style={[styles.filterInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="Nyilvántartási szám"
-                value={filters.registrationNumber}
-                onChangeText={(text) => handleFilterChange("registrationNumber", text)}
-              />
-            </View>
-
-            {/* Dátum mezők */}
-            <Text style={styles.filterSectionTitle}>Engedélyezés dátuma</Text>
-            <View style={styles.filterGrid}>
-              <TextInput
-                style={[styles.dateInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="Dátum -tól (YYYY-MM-DD)"
-                value={filters.authorisationDateFrom}
-                onChangeText={(text) => handleFilterChange("authorisationDateFrom", text)}
-              />
-              <TextInput
-                style={[styles.dateInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="Dátum -ig (YYYY-MM-DD)"
-                value={filters.authorisationDateTo}
-                onChangeText={(text) => handleFilterChange("authorisationDateTo", text)}
-              />
-            </View>
-
-            <Text style={styles.filterSectionTitle}>Törlés dátuma</Text>
-            <View style={styles.filterGrid}>
-              <TextInput
-                style={[styles.dateInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="Dátum -tól (YYYY-MM-DD)"
-                value={filters.revokeDateFrom}
-                onChangeText={(text) => handleFilterChange("revokeDateFrom", text)}
-              />
-              <TextInput
-                style={[styles.dateInput, isMobile && { width: '100%' }]} // Added isMobile style
-                placeholder="Dátum -ig (YYYY-MM-DD)"
-                value={filters.revokeDateTo}
-                onChangeText={(text) => handleFilterChange("revokeDateTo", text)}
-              />
-            </View>
-
-            {/* További checkbox szűrők */}
-            <Text style={styles.filterSectionTitle}>További szűrők</Text>
-            <View style={styles.checkboxRow}>
-              {booleanFilters.map(({ field, label }) => (
-                <TouchableOpacity key={field} onPress={() => handleFilterChange(field, !filters[field])}>
-                  <Text style={[styles.checkbox, filters[field] && styles.checkboxActive]}>
-                    {filters[field] ? "☑" : "☐"} {label}
-                  </Text>
+        {/* Active filter chips */}
+        {activeFilterLabels.length > 0 && (
+          <View style={styles.activeFiltersContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScrollContent}>
+              {activeFilterLabels.map(({ field, label, type }) => (
+                <TouchableOpacity
+                  key={field}
+                  style={styles.activeChip}
+                  onPress={() => removeFilter(field, type)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.activeChipText} numberOfLines={1}>{label}</Text>
+                  <FontAwesome5 name="times" size={10} color={theme.colors.primary} style={styles.activeChipClose} />
                 </TouchableOpacity>
               ))}
-            </View>
+              <TouchableOpacity
+                style={styles.clearAllChip}
+                onPress={() => {
+                  haptics.light();
+                  resetAllFilters();
+                }}
+              >
+                <Text style={styles.clearAllChipText}>Összes törlése</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         )}
 
-        {/* Találatok */}
+        {/* Results */}
         {loading && results.length === 0 ? (
           <View style={styles.skeletonContainer}>
             {[1, 2, 3].map((item) => (
@@ -208,46 +152,44 @@ export default function SearchScreen() {
           </View>
         ) : results.length === 0 && !loading ? (
           <View style={styles.emptyStateContainer}>
-            <FontAwesome5 name="search" size={64} color="#E2E8F0" />
+            <FontAwesome5 name="search" size={64} color={theme.colors.border} />
             <Text style={styles.emptyStateTitle}>Nincs találat</Text>
             <Text style={styles.emptyStateSubtitle}>
               Próbálj más keresési kifejezést használni vagy módosítsd a szűrőket
             </Text>
-            {(filters.hasFinalSample || filters.hasDefectedForm || filters.fokozottFelugyelet ||
-              filters.atcCode || filters.registrationNumber) && (
-                <TouchableOpacity
-                  style={styles.clearAllButton}
-                  onPress={() => {
-                    setSearchQuery('');
-                    Object.keys(filters).forEach(key => handleFilterChange(key, false));
-                  }}
-                >
-                  <FontAwesome5 name="redo" size={16} color="#2E7D32" />
-                  <Text style={styles.clearAllButtonText}>Szűrők törlése</Text>
-                </TouchableOpacity>
-              )}
+            {activeFilterCount > 0 && (
+              <TouchableOpacity
+                style={styles.clearAllButton}
+                onPress={() => {
+                  setSearchQuery("");
+                  resetAllFilters();
+                }}
+              >
+                <FontAwesome5 name="redo" size={16} color={theme.colors.primary} />
+                <Text style={styles.clearAllButtonText}>Szűrők törlése</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <>
-            {/* Nézetváltó és Találatok száma - csak ha van találat vagy keresés történt */}
+            {/* Results count + view switcher */}
             <View style={styles.topBar}>
               <Text style={styles.resultCount}>
                 {loading ? "Keresés..." : `${results.length} találat`}
               </Text>
-              {/* Hide view switcher on mobile since grid is forced to full-width */}
               {!isMobile && (
                 <View style={styles.viewSwitcher}>
                   <TouchableOpacity
-                    style={[styles.viewSwitcherButton, viewMode === "grid" && styles.viewSwitcherButtonActive]} // New styles
+                    style={[styles.viewSwitcherButton, viewMode === "grid" && styles.viewSwitcherButtonActive]}
                     onPress={() => setViewMode("grid")}
                   >
-                    <MaterialIcons name="grid-view" size={24} color={viewMode === "grid" ? "#2E7D32" : "#666"} />
+                    <MaterialIcons name="grid-view" size={24} color={viewMode === "grid" ? theme.colors.primary : theme.colors.textSecondary} />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.viewSwitcherButton, viewMode === "list" && styles.viewSwitcherButtonActive]} // New styles
+                    style={[styles.viewSwitcherButton, viewMode === "list" && styles.viewSwitcherButtonActive]}
                     onPress={() => setViewMode("list")}
                   >
-                    <MaterialIcons name="view-list" size={24} color={viewMode === "list" ? "#2E7D32" : "#666"} />
+                    <MaterialIcons name="view-list" size={24} color={viewMode === "list" ? theme.colors.primary : theme.colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
               )}
@@ -258,7 +200,7 @@ export default function SearchScreen() {
                 <TouchableOpacity
                   key={med.id}
                   style={viewMode === "grid"
-                    ? [styles.gridItem, isMobile && { width: '100%' }] // Added isMobile style
+                    ? [styles.gridItem, isMobile && { width: "100%" }]
                     : styles.listItem
                   }
                   onPress={() => {
@@ -276,7 +218,6 @@ export default function SearchScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-              {/* Removed showEmptyState condition and text */}
               {hasMore && (
                 <TouchableOpacity
                   onPress={loadMore}
@@ -284,7 +225,7 @@ export default function SearchScreen() {
                   style={styles.loadMoreButton}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color="#2E7D32" />
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
                   ) : (
                     <Text style={styles.loadMoreText}>További találatok betöltése</Text>
                   )}
@@ -294,6 +235,15 @@ export default function SearchScreen() {
           </>
         )}
       </View>
+
+      {/* Filter Modal */}
+      <FilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={resetAllFilters}
+      />
     </ScrollView>
   );
 }

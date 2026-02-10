@@ -54,14 +54,23 @@ api.interceptors.request.use(
   }
 );
 
+import { emitLogout } from "utils/authEvents";
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Don't log 401 errors as they are expected when not logged in
-    if (error.response?.status !== 401) {
+    // Don't log expected errors (auth, access denied, duplicate/conflict)
+    const status = error.response?.status;
+
+    if (status === 401) {
+      console.log("🔒 [API] 401 Unauthorized - Triggering logout...");
+      emitLogout();
+    }
+
+    if (status !== 401 && status !== 403 && status !== 409) {
       console.error("API Error:", error.response?.data || error.message);
     }
     return Promise.reject(error);

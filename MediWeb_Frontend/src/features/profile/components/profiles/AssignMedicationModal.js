@@ -42,15 +42,33 @@ export default function AssignMedicationModal({ profileId, visible, onClose, onA
 
   const handleAssign = async () => {
     if (selectedIds.length === 0) {
-      toast.warning("Nincs kiválasztott gyógyszer.");
+      toast.warn("Nincs kiválasztott gyógyszer.");
       return;
     }
 
     try {
-      await Promise.all(
+      const results = await Promise.allSettled(
         selectedIds.map((itemId) => addMedicationToProfile(profileId, itemId))
       );
-      toast.success("Gyógyszerek sikeresen hozzáadva.");
+
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      const duplicates = results.filter(
+        (r) => r.status === "rejected" && r.reason?.response?.status === 409
+      ).length;
+      const failed = results.filter(
+        (r) => r.status === "rejected" && r.reason?.response?.status !== 409
+      ).length;
+
+      if (succeeded > 0 && duplicates === 0 && failed === 0) {
+        toast.success("Gyógyszerek sikeresen hozzáadva.");
+      } else if (succeeded > 0 && duplicates > 0) {
+        toast.warn(`${succeeded} hozzáadva, ${duplicates} már szerepelt a profilban.`);
+      } else if (duplicates > 0 && succeeded === 0) {
+        toast.warn("Minden kiválasztott gyógyszer már szerepel a profilban.");
+      } else if (failed > 0) {
+        toast.error("Nem sikerült hozzáadni néhány gyógyszert.");
+      }
+
       onAssigned(selectedIds);
       onClose();
     } catch (err) {

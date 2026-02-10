@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { LineChart, PieChart, BarChart, ProgressChart } from "react-native-chart-kit";
 import { toast } from 'utils/toast';
 import {
@@ -10,6 +10,7 @@ import {
   getTrendStatistics,
 } from "features/profile/profile.api";
 import { styles } from "./StatisticsTab.style";
+import { theme } from "styles/theme";
 
 const periodOptions = [
   { key: "weekly", label: "Heti" },
@@ -304,26 +305,31 @@ export default function StatisticsTab() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>Statisztikák</Text>
-            <Text style={styles.subtitle}>
-              {subtitleLabel} • {selectedPeriod === "weekly" ? "Heti" : selectedPeriod === "monthly" ? "Havi" : "Negyedéves"} nézet
-            </Text>
+            <Text style={styles.subtitle}>{subtitleLabel}</Text>
           </View>
-          <View style={styles.periodSwitcher}>
+
+          {/* Modern Period Tabs */}
+          <View style={styles.periodTabsContainer}>
             {periodOptions.map((option) => {
               const isActive = option.key === selectedPeriod;
               return (
                 <TouchableOpacity
                   key={option.key}
-                  style={[styles.periodButton, isActive && styles.periodButtonActive]}
+                  style={[styles.periodTab, isActive && styles.periodTabActive]}
                   onPress={() => setSelectedPeriod(option.key)}
                   disabled={option.key === selectedPeriod}
+                  activeOpacity={0.7}
                 >
                   <Text
-                    style={[styles.periodButtonLabel, isActive && styles.periodButtonLabelActive]}
+                    style={[styles.periodTabLabel, isActive && styles.periodTabLabelActive]}
                   >
                     {option.label}
                   </Text>
@@ -335,7 +341,7 @@ export default function StatisticsTab() {
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#10B981" />
+            <ActivityIndicator size="large" color={theme.colors.secondary} />
             <Text style={styles.helperText}>Statisztikák betöltése...</Text>
           </View>
         ) : (
@@ -493,7 +499,7 @@ export default function StatisticsTab() {
             </View>
           </>
         )}
-      </View>
-    </View>
+      </ScrollView>
+    </View >
   );
 }
