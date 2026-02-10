@@ -1,0 +1,25 @@
+name: Code Agent (dev only)
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  code-agent:
+    runs-on: ubuntu-latest
+    # Ne fusson bot kommentre, és ne fusson master PR-on (plusz biztosíték)
+    if: >
+      github.event.sender.type != 'Bot' &&
+      (github.event_name != 'pull_request_review_comment' || github.event.pull_request.base.ref != 'master')
+    steps:
+      - uses: potproject/code-agent@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
