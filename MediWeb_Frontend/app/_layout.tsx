@@ -11,6 +11,7 @@ import { AuthProvider } from '@/src/contexts/AuthContext';
 import { ToastProvider } from '@/src/components/ToastProvider';
 
 import { registerForPushNotificationsAsync } from '@/src/utils/notifications';
+import { Logger } from '@/src/utils/Logger';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -50,6 +51,8 @@ export default function RootLayout() {
 
   // Hide splash screen immediately since we're not loading custom fonts
   useEffect(() => {
+    Logger.init(); // Initialize global error handler and check previous crash
+
     SplashScreen.hideAsync();
 
     // Initialize notifications
