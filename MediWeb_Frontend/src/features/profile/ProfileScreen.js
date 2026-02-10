@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { AuthContext } from "contexts/AuthContext";
 import { fetchCurrentUser } from "./profile.api";
+import { theme } from "styles/theme";
 import defaultAvatar from "assets/default-avatar.jpg";
 
 const menuItems = [
@@ -70,7 +71,7 @@ export default function ProfileScreen() {
           style={styles.editButton}
           onPress={() => handleMenuPress("account")}
         >
-          <FontAwesome5 name="pen" size={14} color="#6B7280" />
+          <FontAwesome5 name="pen" size={14} color={theme.colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -88,13 +89,13 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.menuIconWrapper}>
-              <FontAwesome5 name={item.icon} size={18} color="#2E7D32" />
+              <FontAwesome5 name={item.icon} size={18} color={theme.colors.primary} />
             </View>
             <View style={styles.menuTextWrapper}>
               <Text style={styles.menuLabel}>{item.label}</Text>
               <Text style={styles.menuDescription}>{item.description}</Text>
             </View>
-            <FontAwesome5 name="chevron-right" size={14} color="#D1D5DB" />
+            <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
           </TouchableOpacity>
         ))}
       </View>
@@ -154,13 +155,13 @@ export default function ProfileScreen() {
                       key={i}
                       name="star"
                       size={12}
-                      color={i < review.rating ? "#F59E0B" : "#E2E8F0"}
+                      color={i < review.rating ? theme.colors.warning : theme.colors.border}
                       solid
                     />
                   ))}
                 </View>
                 <TouchableOpacity>
-                  <FontAwesome5 name="pen" size={12} color="#64748B" />
+                  <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -176,89 +177,81 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: theme.colors.background,
   },
   content: {
-    padding: 16,
-    paddingTop: Platform.OS === 'ios' ? 70 : 60, // Extra padding for status bar
+    padding: theme.spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 70 : 60,
     paddingBottom: 100,
   },
   userCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: theme.colors.border,
     borderWidth: 3,
-    borderColor: "#ECFDF5",
+    borderColor: theme.colors.primaryMuted,
   },
   userInfo: {
     flex: 1,
     marginLeft: 14,
   },
   userName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1F2937",
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   userEmail: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   editButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
-    backgroundColor: "#F3F4F6",
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.divider,
     justifyContent: "center",
     alignItems: "center",
   },
   menuContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.lg,
     overflow: "hidden",
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: theme.colors.divider,
   },
   menuItemFirst: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
   },
   menuItemLast: {
     borderBottomWidth: 0,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderBottomLeftRadius: theme.borderRadius.lg,
+    borderBottomRightRadius: theme.borderRadius.lg,
   },
   menuIconWrapper: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "#ECFDF5",
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.primaryMuted,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
@@ -267,79 +260,75 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
   menuDescription: {
-    fontSize: 13,
-    color: "#9CA3AF",
+    fontSize: theme.fontSize.xs + 1,
+    color: theme.colors.textTertiary,
     marginTop: 2,
   },
   sectionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: theme.spacing.sm + 4,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
   sectionAction: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2E7D32",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
   },
   emptyState: {
-    fontSize: 14,
-    color: "#9CA3AF",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textTertiary,
     textAlign: "center",
-    paddingVertical: 16,
+    paddingVertical: theme.spacing.md,
   },
   horizontalCard: {
     width: 140,
     height: 100,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    padding: 12,
-    marginRight: 12,
+    backgroundColor: theme.colors.backgroundElevated,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm + 4,
+    marginRight: theme.spacing.sm + 4,
     justifyContent: "center",
     alignItems: "center",
   },
   horizontalCardTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
     textAlign: "center",
   },
   reviewItem: {
-    paddingVertical: 12,
+    paddingVertical: theme.spacing.sm + 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: theme.colors.divider,
   },
   reviewHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: theme.spacing.sm,
   },
   reviewMedication: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
   reviewRating: {
     flexDirection: "row",

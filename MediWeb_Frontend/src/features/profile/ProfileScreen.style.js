@@ -7,12 +7,12 @@ export const styles = StyleSheet.create({
   // --- Main Container ---
   container: {
     flex: 1,
-    backgroundColor: "#F5F7FA",
+    backgroundColor: theme.colors.background,
   },
 
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 100, // Space for bottom tabs
+    paddingBottom: 100,
   },
 
   tabContent: {
@@ -23,17 +23,13 @@ export const styles = StyleSheet.create({
 
   // --- Header ---
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.backgroundCard,
     paddingTop: 20,
     paddingBottom: 24,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    ...theme.shadows.md,
   },
 
   headerTop: {
@@ -50,9 +46,9 @@ export const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: theme.colors.border,
     borderWidth: 3,
-    borderColor: "#ECFDF5",
+    borderColor: theme.colors.primaryMuted,
   },
 
   editImageButton: {
@@ -62,11 +58,11 @@ export const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#2E7D32",
+    backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: theme.colors.white,
   },
 
   headerInfo: {
@@ -75,15 +71,15 @@ export const styles = StyleSheet.create({
   },
 
   userName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1F2937",
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
     marginBottom: 4,
   },
 
   userEmail: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
 
   // --- Info Cards ---
@@ -94,19 +90,19 @@ export const styles = StyleSheet.create({
   infoCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
+    backgroundColor: theme.colors.backgroundElevated,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border,
   },
 
   infoCardIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -117,37 +113,33 @@ export const styles = StyleSheet.create({
   },
 
   infoCardLabel: {
-    fontSize: 12,
-    color: "#9CA3AF",
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textTertiary,
     marginBottom: 2,
   },
 
   infoCardValue: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#1F2937",
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
 
   infoCardEditButton: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
 
   // --- Tabs ---
   tabsScrollView: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.backgroundCard,
     marginTop: 16,
     marginHorizontal: 16,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.sm,
   },
 
   tabs: {
@@ -163,22 +155,22 @@ export const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: "transparent",
   },
 
   tabButtonActive: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
   },
 
   tabLabel: {
     fontSize: 13,
-    fontWeight: "600",
-    color: "#6B7280",
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textSecondary,
   },
 
   tabLabelActive: {
-    color: "#2E7D32",
+    color: theme.colors.primary,
   },
 
   // --- Modal ---
@@ -188,18 +180,18 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: theme.components.modal.overlay,
     justifyContent: "flex-end",
     zIndex: 999,
   },
 
   modalBox: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
+    backgroundColor: theme.components.modal.background,
+    borderTopLeftRadius: theme.components.modal.borderRadius,
+    borderTopRightRadius: theme.components.modal.borderRadius,
+    padding: theme.spacing.lg,
     paddingBottom: 40,
-    shadowColor: "#000",
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -209,29 +201,29 @@ export const styles = StyleSheet.create({
   modalHandle: {
     width: 40,
     height: 4,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: theme.components.modal.handleColor,
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 20,
   },
 
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
     marginBottom: 20,
     textAlign: "center",
   },
 
   modalInput: {
-    backgroundColor: "#F9FAFB",
+    backgroundColor: theme.components.input.background,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#1F2937",
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textPrimary,
     marginBottom: 12,
   },
 
@@ -244,77 +236,77 @@ export const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: "#F3F4F6",
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.background,
     alignItems: "center",
   },
 
   cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#6B7280",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textSecondary,
   },
 
   saveButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: "#2E7D32",
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.primary,
     alignItems: "center",
   },
 
   saveButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.white,
   },
 
   uploadButton: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: theme.colors.primaryMuted,
     paddingVertical: 40,
-    borderRadius: 16,
+    borderRadius: theme.borderRadius.lg,
     alignItems: "center",
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: "#2E7D32",
+    borderColor: theme.colors.primary,
     borderStyle: "dashed",
   },
 
   uploadText: {
-    color: "#2E7D32",
-    fontWeight: "600",
-    fontSize: 16,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.base,
     marginTop: 8,
   },
 
   previewFilename: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginBottom: 8,
   },
 
   // Legacy support
   label: {
-    fontWeight: "500",
-    color: "#6B7280",
-    fontSize: 14,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
     marginRight: 4,
   },
   value: {
-    color: "#111827",
-    fontSize: 16,
-    fontWeight: "600",
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
   },
   editIcon: {
     marginLeft: 6,
-    color: "#4B5563",
+    color: theme.colors.textSecondary,
   },
   inlineInfoRow: {
-    display: "none", // Hide old layout
+    display: "none",
   },
   imageOverlay: {
-    display: "none", // Hide old overlay
+    display: "none",
   },
   inlineInfoItem: {
     display: "none",

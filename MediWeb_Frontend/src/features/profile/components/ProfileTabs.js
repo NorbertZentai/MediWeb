@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { styles } from "../ProfileScreen.style";
+import { theme } from "styles/theme";
 
 const tabs = [
   { key: "profiles", label: "Profilok", icon: "user-friends" },
@@ -31,7 +32,7 @@ export default function ProfileTabs({ selectedTab, onTabChange }) {
             <FontAwesome5
               name={tab.icon}
               size={14}
-              color={isActive ? "#2E7D32" : "#9CA3AF"}
+              color={isActive ? theme.colors.primary : theme.colors.textTertiary}
             />
             <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
               {tab.label}

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { toast } from "utils/toast";
+import { theme } from "styles/theme";
 import defaultAvatar from "assets/default-avatar.jpg";
 import {
     updateUsername,
@@ -121,14 +122,14 @@ export default function AccountScreen() {
     const InfoRow = ({ icon, label, value, onEdit }) => (
         <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
-                <FontAwesome5 name={icon} size={16} color="#2E7D32" />
+                <FontAwesome5 name={icon} size={16} color={theme.colors.primary} />
             </View>
             <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>{label}</Text>
                 <Text style={styles.infoValue}>{value || "-"}</Text>
             </View>
             <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
-                <FontAwesome5 name="pen" size={12} color="#6B7280" />
+                <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
             </TouchableOpacity>
         </View>
     );
@@ -136,7 +137,7 @@ export default function AccountScreen() {
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#2E7D32" />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
@@ -157,7 +158,7 @@ export default function AccountScreen() {
                         }
                     }}
                 >
-                    <FontAwesome5 name="camera" size={14} color="#2E7D32" />
+                    <FontAwesome5 name="camera" size={14} color={theme.colors.primary} />
                     <Text style={styles.changeAvatarText}>Kép módosítása</Text>
                 </TouchableOpacity>
             </View>
@@ -177,7 +178,7 @@ export default function AccountScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Jelenlegi jelszó"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
                                 value={currentPassword}
                                 onChangeText={setCurrentPassword}
@@ -185,7 +186,7 @@ export default function AccountScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Új jelszó"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
                                 value={newPassword}
                                 onChangeText={setNewPassword}
@@ -193,7 +194,7 @@ export default function AccountScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Új jelszó megerősítése"
-                                placeholderTextColor="#9CA3AF"
+                                placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
@@ -205,7 +206,7 @@ export default function AccountScreen() {
                             value={inputValue}
                             onChangeText={setInputValue}
                             placeholder="Írj ide..."
-                            placeholderTextColor="#9CA3AF"
+                            placeholderTextColor={theme.colors.textTertiary}
                             autoFocus
                             keyboardType={
                                 editingField === "email" ? "email-address" :
@@ -224,7 +225,7 @@ export default function AccountScreen() {
                             disabled={saving}
                         >
                             {saving ? (
-                                <ActivityIndicator size="small" color="#fff" />
+                                <ActivityIndicator size="small" color={theme.colors.white} />
                             ) : (
                                 <Text style={styles.saveBtnText}>Mentés</Text>
                             )}
@@ -266,149 +267,141 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FA",
+        backgroundColor: theme.colors.background,
     },
     content: {
-        padding: 16,
+        padding: theme.spacing.md,
         paddingBottom: 40,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#F5F7FA",
+        backgroundColor: theme.colors.background,
     },
     avatarSection: {
         alignItems: "center",
-        marginBottom: 24,
-        paddingTop: 8,
+        marginBottom: theme.spacing.lg,
+        paddingTop: theme.spacing.sm,
     },
     avatar: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: "#E5E7EB",
+        backgroundColor: theme.colors.border,
         borderWidth: 3,
-        borderColor: "#ECFDF5",
+        borderColor: theme.colors.primaryMuted,
     },
     changeAvatarBtn: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
-        marginTop: 12,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        backgroundColor: "#ECFDF5",
-        borderRadius: 20,
+        gap: theme.spacing.sm,
+        marginTop: theme.spacing.sm + 4,
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        backgroundColor: theme.colors.primaryMuted,
+        borderRadius: theme.borderRadius.xl,
     },
     changeAvatarText: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#2E7D32",
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.primary,
     },
     infoCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.lg,
         overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        ...theme.shadows.md,
     },
     infoRow: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        paddingVertical: theme.spacing.md,
+        paddingHorizontal: theme.spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: "#F3F4F6",
+        borderBottomColor: theme.colors.divider,
     },
     infoIcon: {
         width: 40,
         height: 40,
         borderRadius: 10,
-        backgroundColor: "#ECFDF5",
+        backgroundColor: theme.colors.primaryMuted,
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 12,
+        marginRight: theme.spacing.sm + 4,
     },
     infoContent: {
         flex: 1,
     },
     infoLabel: {
-        fontSize: 12,
-        color: "#9CA3AF",
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textTertiary,
         marginBottom: 2,
     },
     infoValue: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#1F2937",
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textPrimary,
     },
     editBtn: {
         width: 36,
         height: 36,
         borderRadius: 10,
-        backgroundColor: "#F3F4F6",
+        backgroundColor: theme.colors.divider,
         justifyContent: "center",
         alignItems: "center",
     },
     editCard: {
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.lg,
+        padding: theme.spacing.lg - 4,
+        ...theme.shadows.md,
     },
     editCardTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#1F2937",
-        marginBottom: 16,
+        fontSize: theme.fontSize.lg,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.textPrimary,
+        marginBottom: theme.spacing.md,
         textAlign: "center",
     },
     input: {
-        backgroundColor: "#F9FAFB",
+        backgroundColor: theme.colors.backgroundElevated,
         borderWidth: 1,
-        borderColor: "#E5E7EB",
-        borderRadius: 12,
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.md,
         paddingVertical: 14,
-        paddingHorizontal: 16,
-        fontSize: 16,
-        color: "#1F2937",
-        marginBottom: 12,
+        paddingHorizontal: theme.spacing.md,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textPrimary,
+        marginBottom: theme.spacing.sm + 4,
     },
     editActions: {
         flexDirection: "row",
-        gap: 12,
-        marginTop: 8,
+        gap: theme.spacing.sm + 4,
+        marginTop: theme.spacing.sm,
     },
     cancelBtn: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 12,
-        backgroundColor: "#F3F4F6",
+        borderRadius: theme.borderRadius.md,
+        backgroundColor: theme.colors.divider,
         alignItems: "center",
     },
     cancelBtnText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#6B7280",
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textSecondary,
     },
     saveBtn: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 12,
-        backgroundColor: "#2E7D32",
+        borderRadius: theme.borderRadius.md,
+        backgroundColor: theme.colors.primary,
         alignItems: "center",
     },
     saveBtnText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#FFFFFF",
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.white,
     },
 });

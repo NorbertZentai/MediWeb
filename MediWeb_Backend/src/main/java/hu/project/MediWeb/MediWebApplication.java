@@ -7,9 +7,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import hu.project.MediWeb.modules.notification.config.EmailNotificationProperties;
 
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties(EmailNotificationProperties.class)
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class MediWebApplication {
 
 	public static void main(String[] args) {

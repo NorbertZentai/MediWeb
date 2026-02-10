@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect } from 'react';
 import storage from "utils/storage";
 import { fetchCurrentUser } from 'features/profile/profile.api';
 import { login as apiLogin, register as apiRegister, logout as apiLogout, } from 'features/auth/auth.api';
+import { DeviceEventEmitter } from 'react-native';
+import { AUTH_EVENTS } from 'utils/authEvents';
 
 export const AuthContext = createContext({
     user: null,
@@ -79,6 +81,21 @@ export const AuthProvider = ({ children }) => {
             }
         };
         loadUser();
+    }, []);
+
+    // Listen to global logout events (e.g. 401 Unauthorized)
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener(AUTH_EVENTS.LOGOUT, () => {
+            console.log("🔒 [Auth] Logout event received - Clearing session...");
+            // Manually clearing state/storage without calling apiLogout to avoid loop if apiLogout fails with 401
+            setUser(null);
+            storage.removeItem('authToken');
+            storage.removeItem('isLoggedIn');
+        });
+
+        return () => {
+            subscription.remove();
+        };
     }, []);
 
     return (

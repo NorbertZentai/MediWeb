@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, useWindowDimensions } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, useWindowDimensions, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import CustomDropdown from "components/CustomDropdown";
 import RenderHtml from "react-native-render-html";
-import { useLocalSearchParams, Link } from "expo-router";
+import { useLocalSearchParams, Link, useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { addToFavorites, addMedicationToProfile, getMedicationsForProfile, removeFromFavorites } from "features/profile/profile.api";
 import { submitReview, updateReview } from "features/review/review.api";
@@ -11,6 +12,7 @@ import { useMedicationService } from "./MedicationService";
 import { styles } from "./MedicationScreen.style";
 import { toast } from "utils/toast";
 import Navbar from "components/Navbar";
+import { theme } from "styles/theme";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -18,6 +20,7 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function MedicationDetailsScreen() {
   const { id: itemId } = useLocalSearchParams();
+  const router = useRouter();
   const {
     data,
     reviews,
@@ -73,7 +76,7 @@ export default function MedicationDetailsScreen() {
         contentWidth={contentWidth - 64}
         source={{ html }}
         tagsStyles={{
-          p: { marginVertical: 4, color: '#333' },
+          p: { marginVertical: 4, color: theme.colors.textSecondary },
           ul: { marginLeft: 16 },
           li: { marginVertical: 2 },
         }}
@@ -82,23 +85,23 @@ export default function MedicationDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <SafeAreaView style={styles.container}>
         <Navbar />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#2E7D32" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <SafeAreaView style={styles.container}>
         <Navbar />
         <View style={styles.centered}>
           <Text style={styles.errorText}>Nem található adat.</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -119,209 +122,231 @@ export default function MedicationDetailsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       <Navbar />
+      <View style={styles.backButtonRow}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <FontAwesome5 name="arrow-left" size={18} color={theme.colors.textPrimary} />
+          <Text style={styles.backButtonText}>Vissza</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View style={styles.contentWrapper}>
-          {/* Fejléc + kép + ikonok */}
-          <View style={styles.topSection}>
-            <View style={styles.headerSection}>
-              <Text style={styles.title}>{data.name}</Text>
-              <Text style={styles.subtitle}>
-                Hatóanyag: {data.substance} • ATC: {data.atcCode}
+          {/* Cím */}
+          <Text style={styles.title}>{data.name}</Text>
+          <Text style={styles.subtitle}>
+            Hatóanyag: {data.substance} {data.atcCode ? `• ATC: ${data.atcCode}` : ""}
+          </Text>
+
+          {/* Inaktív banner */}
+          {data.active === false && (
+            <View style={styles.inactiveBanner}>
+              <FontAwesome5 name="exclamation-triangle" size={16} color={theme.colors.error} style={styles.inactiveBannerIcon} />
+              <Text style={styles.inactiveBannerText}>
+                Ez a készítmény inaktívnak jelölődött.
               </Text>
+            </View>
+          )}
 
-              {data.active === false && (
-                <View style={styles.inactiveBanner}>
-                  <FontAwesome5 name="exclamation-triangle" size={18} color="#c62828" style={styles.inactiveBannerIcon} />
-                  <Text style={styles.inactiveBannerText}>
-                    A legutóbbi szinkron óta ez a készítmény inaktívnak jelölődött.
-                  </Text>
-                </View>
-              )}
+          {/* Kedvencek gomb */}
+          <TouchableOpacity
+            style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+            onPress={async () => {
+              try {
+                if (isFavorite && favoriteId) {
+                  await removeFromFavorites(favoriteId);
+                  setIsFavorite(false);
+                  setFavoriteId(null);
+                  toast.success("Eltávolítva a kedvencek közül.");
+                } else {
+                  const res = await addToFavorites(itemId);
+                  setIsFavorite(true);
+                  setFavoriteId(res.id);
+                  toast.success("Hozzáadva a kedvencekhez.");
+                }
+              } catch (e) {
+                toast.error("Nem sikerült módosítani a kedvencek listát.");
+                console.error(e);
+              }
+            }}
+          >
+            <FontAwesome5 name="heart" size={18} solid={isFavorite} color={isFavorite ? theme.colors.favorite : theme.colors.textTertiary} />
+            <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
+              {isFavorite ? "Kedvencben van" : "Kedvencekhez adás"}
+            </Text>
+          </TouchableOpacity>
 
-              <View style={styles.actionRow}>
-                {/* Kedvencekhez adás gomb */}
+          {/* Profilhoz adás */}
+          <View style={styles.profileRow}>
+            <View style={styles.profilePickerWrapper}>
+              <CustomDropdown
+                options={profiles.map((p) => ({ label: p.name, value: p.id }))}
+                selectedValue={selectedProfileId}
+                onValueChange={async (value) => {
+                  const id = value ? Number(value) : null;
+                  setSelectedProfileId(id);
+                  if (id) {
+                    await handleCheckProfileMedication(id);
+                  } else {
+                    setProfileHasMedication(false);
+                  }
+                }}
+                placeholder="Válassz profilt..."
+                disabled={profiles.length === 0}
+              />
+            </View>
+            <TouchableOpacity
+              style={[styles.addButton, (!selectedProfileId || profileHasMedication) && { opacity: 0.4 }]}
+              disabled={!selectedProfileId || profileHasMedication}
+              onPress={async () => {
+                try {
+                  await addMedicationToProfile(selectedProfileId, itemId);
+                  toast.success("Hozzáadva a profilhoz!");
+                  setProfileHasMedication(true);
+                  setSelectedProfileId(null);
+                } catch (err) {
+                  if (err.response?.status === 409) {
+                    toast.warn("Ez a gyógyszer már hozzá van adva ehhez a profilhoz.");
+                    setProfileHasMedication(true);
+                  } else {
+                    toast.error("Hiba történt a profilhoz adáskor.");
+                  }
+                }
+              }}
+            >
+              <FontAwesome5 name="plus" size={14} color={theme.colors.white} />
+              <Text style={styles.addButtonText}>Hozzáadás</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Kép */}
+          {data.imageUrl && (
+            <View style={styles.imageSection}>
+              <Image source={{ uri: data.imageUrl }} resizeMode="contain" style={styles.mainImage} />
+            </View>
+          )}
+
+          {/* Dokumentum ikonok */}
+          {docs.length > 0 && (
+            <View style={styles.iconRow}>
+              {docs.map((doc, i) => (
                 <TouchableOpacity
-                  style={styles.favoriteButton}
-                  onPress={async () => {
-                    try {
-                      if (isFavorite && favoriteId) {
-                        await removeFromFavorites(favoriteId);
-                        setIsFavorite(false);
-                        setFavoriteId(null);
-                        toast.success("Eltávolítva a kedvencek közül.");
-                      } else {
-                        const res = await addToFavorites(itemId);
-                        setIsFavorite(true);
-                        setFavoriteId(res.id);
-                        toast.success("Hozzáadva a kedvencekhez.");
-                      }
-                    } catch (e) {
-                      toast.error("Nem sikerült módosítani a kedvencek listát.");
-                      console.error(e);
-                    }
-                  }}
+                  key={i}
+                  style={styles.iconButton}
+                  onPress={() => window.open(doc.url, "_blank")}
                 >
-                  <FontAwesome5
-                    name="heart"
-                    size={20}
-                    solid={isFavorite}
-                    color={isFavorite ? "red" : "black"}
-                  />
-                  <Text style={styles.favoriteButtonText}>
-                    {isFavorite ? "Kedvencben van" : "Kedvencekhez adás"}
-                  </Text>
+                  <View style={styles.iconCircle}>
+                    <FontAwesome5 name={doc.icon} size={20} color={theme.colors.primary} />
+                  </View>
+                  <Text style={styles.iconLabel}>{doc.label}</Text>
                 </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
-                {/* Profilhoz adás */}
-                <View style={styles.profileSelectContainer}>
-                  <Text style={styles.profileLabel}>Profilhoz adás:</Text>
-                  <Picker
-                    enabled={profiles.length > 0}
-                    style={styles.profileSelect}
-                    selectedValue={selectedProfileId || ""}
-                    onValueChange={async (itemValue) => {
-                      const id = itemValue ? Number(itemValue) : null;
-                      setSelectedProfileId(id);
-                      if (id) {
-                        await handleCheckProfileMedication(id);
-                      } else {
-                        setProfileHasMedication(false);
-                      }
-                    }}
-                  >
-                    <Picker.Item label="Válassz profilt..." value="" />
-                    {profiles.map((p) => (
-                      <Picker.Item key={p.id} label={p.name} value={p.id} />
-                    ))}
-                  </Picker>
-
-                  <TouchableOpacity
-                    disabled={!selectedProfileId || profileHasMedication}
-                    onPress={async () => {
-                      try {
-                        await addMedicationToProfile(selectedProfileId, itemId);
-                        toast.success("Hozzáadva a profilhoz!");
-                        setProfileHasMedication(true);
-                        setSelectedProfileId(null);
-                      } catch (err) {
-                        toast.error("Hiba történt a profilhoz adáskor.");
-                      }
-                    }}
-                  >
-                    <Text style={styles.addButton}>Hozzáadás</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Kép */}
-              {data.imageUrl && (
-                <Image source={{ uri: data.imageUrl }} resizeMode="contain" style={styles.mainImage} />
-              )}
-
-              {/* Dokumentum ikonok */}
-              <View style={styles.iconRow}>
-                {docs.map((doc, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.iconButton}
-                    onPress={() => window.open(doc.url, "_blank")}
-                  >
-                    <FontAwesome5 name={doc.icon} size={22} color="black" />
-                    <Text style={styles.iconLabel}>{doc.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+          {/* Allergia info */}
+          <View style={styles.allergySection}>
+            <Text style={styles.sectionTitle}>Allergia információk</Text>
+            <View style={styles.allergyRow}>
+              <AllergyBadge label="Laktóz" contains={data.containsLactose} />
+              <AllergyBadge label="Búzakeményítő" contains={data.containsGluten} />
+              <AllergyBadge label="Benzoát" contains={data.containsBenzoate} />
             </View>
           </View>
 
-          {/* Boolean mezők */}
-          <View style={styles.quickInfoSection}>
-            <BooleanField label="Laktóz" value={data.containsLactose} />
-            <BooleanField label="Búzakeményítő" value={data.containsGluten} />
-            <BooleanField label="Benzoát" value={data.containsBenzoate} />
-          </View>
-
-          {/* Rácsos boolean mezők */}
+          {/* Részletes információk */}
           <View style={styles.gridSection}>
-            <View style={styles.gridColumn}>
-              <BooleanField label="Kábítószer" value={data.narcotic?.toLowerCase() === "igen"} />
-              <BooleanField label="Vényköteles" value={data.hazipatikaInfo?.prescriptionRequired} />
-              <BooleanField label="Patikán kívül vásárolható" value={data.hazipatikaInfo?.outsidePharmacy} />
-              <BooleanField label="Normatív TB támogatás" value={data.hazipatikaInfo?.normativeTbSupport} />
-            </View>
-            <View style={styles.gridColumn}>
-              <BooleanField label="Közgyógyellátás" value={data.hazipatikaInfo?.publicHealthSupport} />
-              <BooleanField label="EÜ támogatás" value={data.hazipatikaInfo?.euSupportable} />
-              <BooleanField label="EÜ kiemelt" value={data.hazipatikaInfo?.euPrioritySupport} />
-              <BooleanField label="Üzemi baleset jogcím" value={data.hazipatikaInfo?.accidentCoverage} />
+            <Text style={styles.sectionTitle}>Részletes információk</Text>
+            <View style={styles.gridRow}>
+              <InfoItem label="Kábítószer" value={data.narcotic?.toLowerCase() === "igen"} />
+              <InfoItem label="Vényköteles" value={data.hazipatikaInfo?.prescriptionRequired} />
+              <InfoItem label="Patikán kívül" value={data.hazipatikaInfo?.outsidePharmacy} />
+              <InfoItem label="TB támogatás" value={data.hazipatikaInfo?.normativeTbSupport} />
+              <InfoItem label="Közgyógyellátás" value={data.hazipatikaInfo?.publicHealthSupport} />
+              <InfoItem label="EÜ támogatás" value={data.hazipatikaInfo?.euSupportable} />
+              <InfoItem label="EÜ kiemelt" value={data.hazipatikaInfo?.euPrioritySupport} />
+              <InfoItem label="Üzemi baleset" value={data.hazipatikaInfo?.accidentCoverage} />
             </View>
           </View>
 
-          {/* Accordion szekciók */}
+          {/* Accordion szekciók – csak ha van tartalom */}
           <Accordion title="Alapadatok" isOpen={openSections.baseInfo} onToggle={() => toggleSection("baseInfo")}>
             <Detail label="Hatóanyag" value={data.substance} />
             <Detail label="ATC kód" value={data.atcCode} />
-            <Detail label="Forgalomba hozatali engedély jogosultja" value={data.company} />
-            <Detail label="Gyártó" value={data.company} />
+            <Detail label="Engedély jogosultja" value={data.company} />
             <Detail label="Jogalap" value={data.legalBasis} />
             <Detail label="Státusz" value={data.status} />
-            <Detail label="Engedélyezés dátuma" value={data.authorizationDate} />
-            <Detail label="Nyilvántartási szám" value={data.registrationNumber} />
+            <Detail label="Engedélyezés" value={data.authorizationDate} />
+            <Detail label="Nyilv. szám" value={data.registrationNumber} />
           </Accordion>
 
-          <Accordion title="Helyettesítő készítmények" isOpen={openSections.substitutes} onToggle={() => toggleSection("substitutes")}>
-            {data.substitutes?.map((s, i) => (
-              <Link key={i} href={`/medication/${s.itemId}`} style={{ color: '#2563eb', marginVertical: 4 }}>
-                <Text>{s.name} ({s.registrationNumber})</Text>
-              </Link>
-            ))}
-          </Accordion>
+          {data.substitutes?.length > 0 && (
+            <Accordion title="Helyettesítő készítmények" isOpen={openSections.substitutes} onToggle={() => toggleSection("substitutes")}>
+              {data.substitutes.map((s, i) => (
+                <Link key={i} href={`/medication/${s.itemId}`} style={styles.substituteLink}>
+                  <Text style={styles.substituteLinkText}>{s.name} ({s.registrationNumber})</Text>
+                </Link>
+              ))}
+            </Accordion>
+          )}
 
-          <Accordion title="Kiszerelések" isOpen={openSections.packages} onToggle={() => toggleSection("packages")}>
-            {data.packages?.map((p, i) => (
-              <View key={i} style={{ marginVertical: 4 }}>
-                <Text style={{ color: '#333' }}>{p.name} ({p.registrationNumber})</Text>
-              </View>
-            ))}
-          </Accordion>
+          {data.packages?.length > 0 && (
+            <Accordion title="Kiszerelések" isOpen={openSections.packages} onToggle={() => toggleSection("packages")}>
+              {data.packages.map((p, i) => (
+                <View key={i} style={styles.packageItem}>
+                  <Text style={styles.packageText}>{p.name} ({p.registrationNumber})</Text>
+                </View>
+              ))}
+            </Accordion>
+          )}
 
-          <Accordion title="Lehetséges mellékhatások" isOpen={openSections.sideEffects} onToggle={() => toggleSection("sideEffects")}>
-            {renderHtmlSection(data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Lehetséges mellékhatások"))?.html)}
-          </Accordion>
+          {data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Lehetséges mellékhatások"))?.html && (
+            <Accordion title="Lehetséges mellékhatások" isOpen={openSections.sideEffects} onToggle={() => toggleSection("sideEffects")}>
+              {renderHtmlSection(data.hazipatikaInfo.sections.find(s => s.heading.includes("Lehetséges mellékhatások")).html)}
+            </Accordion>
+          )}
 
-          <Accordion title="Hogyan kell alkalmazni?" isOpen={openSections.application} onToggle={() => toggleSection("application")}>
-            {renderHtmlSection(data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Hogyan kell alkalmazni"))?.html)}
-          </Accordion>
+          {data.hazipatikaInfo?.sections?.find(s => s.heading.includes("Hogyan kell alkalmazni"))?.html && (
+            <Accordion title="Hogyan kell alkalmazni?" isOpen={openSections.application} onToggle={() => toggleSection("application")}>
+              {renderHtmlSection(data.hazipatikaInfo.sections.find(s => s.heading.includes("Hogyan kell alkalmazni")).html)}
+            </Accordion>
+          )}
 
-          <Accordion title="Teljes betegtájékoztató" isOpen={openSections.fullLeaflet} onToggle={() => toggleSection("fullLeaflet")}>
-            {data.hazipatikaInfo?.sections?.map((section, i) => (
-              <View key={i}>
-                <Text style={{ fontWeight: "bold", marginTop: 10 }}>{section.heading}</Text>
-                {renderHtmlSection(section.html)}
-              </View>
-            ))}
-          </Accordion>
+          {data.hazipatikaInfo?.sections?.length > 0 && (
+            <Accordion title="Teljes betegtájékoztató" isOpen={openSections.fullLeaflet} onToggle={() => toggleSection("fullLeaflet")}>
+              {data.hazipatikaInfo.sections.map((section, i) => (
+                <View key={i}>
+                  <Text style={styles.leafletHeading}>{section.heading}</Text>
+                  {renderHtmlSection(section.html)}
+                </View>
+              ))}
+            </Accordion>
+          )}
 
-          <Accordion title="Véglegminták" isOpen={openSections.finalSamples} onToggle={() => toggleSection("finalSamples")}>
-            {data.finalSamples?.map((f, i) => (
-              <div key={i} className="package-item">
-                {f.packageDescription} – {f.decisionDate}
-              </div>
-            ))}
-          </Accordion>
+          {data.finalSamples?.length > 0 && (
+            <Accordion title="Véglegminták" isOpen={openSections.finalSamples} onToggle={() => toggleSection("finalSamples")}>
+              {data.finalSamples.map((f, i) => (
+                <View key={i} style={styles.packageItem}>
+                  <Text style={styles.packageText}>{f.packageDescription} – {f.decisionDate}</Text>
+                </View>
+              ))}
+            </Accordion>
+          )}
 
-          <Accordion title="Alaki hibák" isOpen={openSections.defectiveForms} onToggle={() => toggleSection("defectiveForms")}>
-            {data.defectiveForms?.map((d, i) => (
-              <div key={i} className="package-item">
-                {d.packageDescription} – {d.decisionDate}
-              </div>
-            ))}
-          </Accordion>
+          {data.defectiveForms?.length > 0 && (
+            <Accordion title="Alaki hibák" isOpen={openSections.defectiveForms} onToggle={() => toggleSection("defectiveForms")}>
+              {data.defectiveForms.map((d, i) => (
+                <View key={i} style={styles.packageItem}>
+                  <Text style={styles.packageText}>{d.packageDescription} – {d.decisionDate}</Text>
+                </View>
+              ))}
+            </Accordion>
+          )}
 
           <ReviewSection
             reviews={reviews}
@@ -346,34 +371,56 @@ export default function MedicationDetailsScreen() {
           />
         </View>
       </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+/* ===== Helper Components ===== */
+
+function AllergyBadge({ label, contains }) {
+  return (
+    <View style={[styles.allergyBadge, contains ? styles.allergyBadgeYes : styles.allergyBadgeNo]}>
+      <FontAwesome5
+        name={contains ? "exclamation-circle" : "check-circle"}
+        size={14}
+        color={contains ? theme.colors.error : theme.colors.success}
+      />
+      <Text style={[styles.allergyBadgeText, contains ? styles.allergyBadgeTextYes : styles.allergyBadgeTextNo]}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-function BooleanField({ label, value }) {
+function InfoItem({ label, value }) {
   return (
-    <View style={{ flexDirection: "row", marginBottom: 8 }}>
-      <Text style={{ fontWeight: "600", marginRight: 6 }}>{label}:</Text>
-      <Text style={{ fontWeight: "700", color: value ? "green" : "red" }}>{value ? "✓" : "✕"}</Text>
+    <View style={styles.gridItem}>
+      <FontAwesome5
+        name={value ? "check-circle" : "times-circle"}
+        size={14}
+        color={value ? theme.colors.success : theme.colors.textTertiary}
+        solid
+      />
+      <Text style={[styles.gridItemText, value && styles.gridItemTextActive]}>{label}</Text>
     </View>
   );
 }
 
 function Detail({ label, value }) {
   return (
-    <View style={{ flexDirection: "row", marginBottom: 8 }}>
-      <Text style={{ fontWeight: "600", width: 240 }}>{label}:</Text>
-      <Text>{value}</Text>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value || "—"}</Text>
     </View>
   );
 }
 
 function Accordion({ title, isOpen, onToggle, children }) {
   return (
-    <View style={{ marginBottom: 24 }}>
-      <TouchableOpacity onPress={onToggle} style={styles.accordionHeader}>
+    <View style={styles.accordionWrapper}>
+      <TouchableOpacity onPress={onToggle} style={styles.accordionHeader} activeOpacity={0.7}>
         <Text style={styles.accordionTitle}>{title}</Text>
-        <Text>{isOpen ? "▲" : "▼"}</Text>
+        <FontAwesome5 name={isOpen ? "chevron-up" : "chevron-down"} size={14} color={theme.colors.textTertiary} />
       </TouchableOpacity>
       {isOpen && <View style={styles.accordionBody}>{children}</View>}
     </View>

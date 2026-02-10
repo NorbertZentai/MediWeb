@@ -2,164 +2,378 @@ import { StyleSheet } from "react-native";
 import { theme } from "styles/theme";
 
 export const styles = StyleSheet.create({
+  // ===== LAYOUT =====
   container: {
+    flex: 1,
     backgroundColor: theme.colors.background,
-    paddingHorizontal: 32,
-    paddingVertical: 40,
-    alignItems: "center",
   },
+
   contentWrapper: {
-    width: "100%",
-    maxWidth: 1000,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.md,
   },
+
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.background,
   },
-  favoriteButton: {
+
+  // ===== BACK BUTTON =====
+  backButtonRow: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+
+  backButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff0f0",
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "red",
-    alignSelf: "center",
+    alignSelf: "flex-start",
+    paddingVertical: theme.spacing.xs,
+    paddingRight: theme.spacing.md,
   },
-  actionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-    margin: "10px",
+
+  backButtonText: {
+    marginLeft: theme.spacing.sm,
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.medium,
   },
-  favoriteButtonText: {
-    marginLeft: 8,
-    color: "black",
-    fontSize: 14,
-  },
-  profileSelectContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileLabel: {
-    fontWeight: "600",
-    marginRight: 6,
-    fontSize: 14,
-  },
-  profileSelect: {
-    padding: 8,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    minWidth: 180,
-    fontSize: 14,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#e0f7e9",
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "green",
-    marginLeft: 12,
-  },
+
+  // ===== HEADER =====
   title: {
-    fontSize: 32,
-    fontWeight: "800",
-    marginBottom: 10,
+    fontSize: theme.fontSize.xxxl,
+    fontWeight: theme.fontWeight.extrabold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.xs,
+    lineHeight: 38,
   },
+
   subtitle: {
-    fontSize: 16,
-    color: "#444",
-    padding: "10px",
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.md,
+    lineHeight: 22,
   },
+
+  // ===== INACTIVE BANNER =====
   inactiveBanner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fdecea",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#f5c6cb",
-    padding: 10,
-    marginTop: 8,
-    marginBottom: 16,
+    backgroundColor: theme.colors.favoriteLight,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.error,
   },
+
+  inactiveBannerIcon: {
+    marginRight: theme.spacing.sm,
+  },
+
   inactiveBannerText: {
-    color: "#c62828",
-    fontWeight: "600",
-    fontSize: 14,
+    flex: 1,
+    color: theme.colors.error,
+    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.sm,
+  },
+
+  // ===== FAVORITE BUTTON =====
+  favoriteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: theme.colors.backgroundCard,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 10,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1.5,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.sm,
+  },
+
+  favoriteButtonActive: {
+    backgroundColor: theme.colors.favoriteLight,
+    borderColor: theme.colors.favorite,
+  },
+
+  favoriteButtonText: {
+    marginLeft: theme.spacing.sm,
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+  },
+
+  favoriteButtonTextActive: {
+    color: theme.colors.favorite,
+  },
+
+  // ===== PROFILE ROW =====
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+
+  profilePickerWrapper: {
     flex: 1,
   },
-  inactiveBannerIcon: {
-    marginRight: 8,
-  },
-  topSection: {
-    marginBottom: 32,
-  },
-  headerSection: {
+
+  addButton: {
+    flexDirection: "row",
     alignItems: "center",
+    backgroundColor: theme.colors.secondary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 12,
+    borderRadius: theme.borderRadius.md,
+    ...theme.shadows.sm,
   },
+
+  addButtonText: {
+    marginLeft: theme.spacing.sm,
+    color: theme.colors.white,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+  },
+
+  // ===== IMAGE =====
+  imageSection: {
+    alignItems: "center",
+    marginBottom: theme.spacing.xl,
+  },
+
   mainImage: {
-    width: 260,
-    height: 260,
-    marginBottom: 16,
-    borderRadius: 10,
+    width: 200,
+    height: 200,
+    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.backgroundCard,
+    ...theme.shadows.md,
   },
+
+  // ===== DOCUMENT ICON ROW =====
   iconRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 20,
-    justifyContent: "center",
+    justifyContent: "space-around",
+    marginBottom: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.sm,
   },
+
   iconButton: {
     alignItems: "center",
-    marginHorizontal: 6,
-    maxWidth: 80,
-  },
-  iconLabel: {
-    fontSize: 11,
-    textAlign: "center",
-    marginTop: 4,
-  },
-  quickInfoSection: {
-    flexDirection: "row",
-    justifyContent: "center",
-    backgroundColor: "#f3f3f3",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 24,
-  },
-  gridSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    gap: 32,
-  },
-  gridColumn: {
     flex: 1,
+    paddingVertical: theme.spacing.sm,
   },
+
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primaryLight,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  iconLabel: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+    textAlign: "center",
+    fontWeight: theme.fontWeight.medium,
+  },
+
+  // ===== ALLERGY SECTION =====
+  allergySection: {
+    marginBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.sm,
+  },
+
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.md,
+  },
+
+  allergyRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: theme.spacing.sm,
+  },
+
+  allergyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+  },
+
+  allergyBadgeYes: {
+    backgroundColor: theme.colors.favoriteLight,
+    borderColor: theme.colors.favoriteLight,
+  },
+
+  allergyBadgeNo: {
+    backgroundColor: theme.colors.primaryMuted,
+    borderColor: theme.colors.secondaryLight,
+  },
+
+  allergyBadgeText: {
+    marginLeft: theme.spacing.xs,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+
+  allergyBadgeTextYes: {
+    color: theme.colors.error,
+  },
+
+  allergyBadgeTextNo: {
+    color: theme.colors.success,
+  },
+
+  // ===== GRID SECTION (YES/NO INFO) =====
+  gridSection: {
+    marginBottom: theme.spacing.xl,
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.lg,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.sm,
+  },
+
+  gridRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+
+  gridItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "50%",
+    marginBottom: theme.spacing.sm,
+    paddingRight: theme.spacing.sm,
+  },
+
+  gridItemText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textTertiary,
+    marginLeft: theme.spacing.sm,
+  },
+
+  gridItemTextActive: {
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.medium,
+  },
+
+  // ===== ACCORDION =====
+  accordionWrapper: {
+    marginBottom: theme.spacing.sm,
+  },
+
   accordionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: "#000",
+    alignItems: "center",
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.sm,
   },
+
   accordionTitle: {
-    fontWeight: "700",
-    fontSize: 18,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    flex: 1,
   },
+
   accordionBody: {
-    paddingTop: 12,
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.md,
+    marginTop: 2,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
+
+  // ===== DETAIL ROW (inside Accordion) =====
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+
+  detailLabel: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+    fontWeight: theme.fontWeight.medium,
+    flex: 1,
+  },
+
+  detailValue: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.semibold,
+    flex: 1,
+    textAlign: "right",
+  },
+
+  // ===== SUBSTITUTE LINKS =====
+  substituteLink: {
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+
+  substituteLinkText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
+
+  // ===== PACKAGE / GENERIC LIST ITEMS =====
+  packageItem: {
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+
+  packageText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+    lineHeight: 20,
+  },
+
+  // ===== LEAFLET HEADING =====
+  leafletHeading: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+
+  // ===== ERROR =====
   errorText: {
-    color: "red",
+    color: theme.colors.error,
     textAlign: "center",
-    marginTop: 24,
+    fontSize: theme.fontSize.base,
+    marginTop: theme.spacing.xl,
+    fontWeight: theme.fontWeight.medium,
   },
 });

@@ -14,7 +14,11 @@ public class OgyeiRequestHelper {
     public static Map<String, String> fetchSessionAndCsrfToken() throws IOException {
         Connection.Response response = Jsoup.connect("https://ogyei.gov.hu/gyogyszeradatbazis")
                 .method(Connection.Method.GET)
-                .header("User-Agent", "Mozilla/5.0")
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header("Accept-Language", "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7")
+                .timeout(90_000)
+                .maxBodySize(0)
                 .execute();
 
         Map<String, String> cookies = response.cookies();
@@ -63,10 +67,12 @@ public class OgyeiRequestHelper {
     public static Document fetchFilterPageHtml() throws IOException {
         Connection.Response response = Jsoup.connect("https://ogyei.gov.hu/gyogyszeradatbazis")
                 .method(Connection.Method.GET)
-                .userAgent("Mozilla/5.0")
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                 .header("Referer", "https://nngyk.gov.hu/")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .header("Accept-Language", "hu-HU,hu;q=0.9")
+                .timeout(90_000)
+                .maxBodySize(0)
                 .cookie("cookieSetup", "true")
                 .execute();
 
