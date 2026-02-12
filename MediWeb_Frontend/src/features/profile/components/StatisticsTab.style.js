@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
-import { theme } from "styles/theme";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -53,6 +52,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderColor: "transparent",
+    ...theme.shadows.sm,
   },
   periodTabActive: {
     backgroundColor: theme.colors.primaryMuted,
@@ -119,24 +119,27 @@ export const styles = StyleSheet.create({
   },
   legendList: {
     width: "100%",
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     gap: 12,
-    justifyContent: "center",
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 8,
+    width: "100%",
   },
   legendColor: {
     width: 12,
     height: 12,
-    borderRadius: 99,
+    borderRadius: 6,
+    flexShrink: 0,
   },
   legendLabel: {
     fontSize: 13,
     color: theme.colors.textSecondary,
+    flexShrink: 1,
+    lineHeight: 18,
   },
   sectionDivider: {
     height: 1,

@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
-import { styles } from "../ProfilesTab.style";
+import { createStyles } from "../ProfilesTab.style";
 import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
+import { useTheme } from "contexts/ThemeContext";
+import TimePickerModal from "components/ui/TimePickerModal";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
 
 export default function EditMedicationModal({ profileId, medication, onClose, onUpdated, onDeleted }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const [note, setNote] = useState(medication.notes || "");
   const [reminders, setReminders] = useState(() => {
     try {
@@ -20,7 +25,7 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
   });
 
   const [timePickerVisible, setTimePickerVisible] = useState(false);
-  const [currentEditIndex, setCurrentEditIndex] = useState({ group: null, time: null });
+  const [activeTimeIndex, setActiveTimeIndex] = useState({ group: null, index: null });
 
   const updateReminder = (index, newReminder) => {
     const updated = [...reminders];
@@ -46,19 +51,26 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
     setReminders(updated);
   };
 
-  const updateTime = (index, timeIndex, value) => {
+  const updateTime = (groupIndex, timeIndex, value) => {
     const updated = [...reminders];
-    updated[index].times[timeIndex] = value;
-    setReminders(updated);
+    if (updated[groupIndex]) {
+      if (!updated[groupIndex].times) updated[groupIndex].times = [];
+      updated[groupIndex].times[timeIndex] = value;
+      setReminders(updated);
+    }
   };
 
-  const handleTimeSelect = (event, selectedDate) => {
-    if (selectedDate && currentEditIndex.group !== null) {
-      const hours = selectedDate.getHours().toString().padStart(2, "0");
-      const minutes = selectedDate.getMinutes().toString().padStart(2, "0");
-      updateTime(currentEditIndex.group, currentEditIndex.time, `${hours}:${minutes}`);
+  const openTimePicker = (groupIndex, timeIndex) => {
+    setActiveTimeIndex({ group: groupIndex, index: timeIndex });
+    setTimePickerVisible(true);
+  };
+
+  const handleTimeConfirm = (time) => {
+    if (activeTimeIndex.group !== null && activeTimeIndex.index !== null) {
+      updateTime(activeTimeIndex.group, activeTimeIndex.index, time);
     }
     setTimePickerVisible(false);
+    setActiveTimeIndex({ group: null, index: null });
   };
 
   const handleSave = async () => {
@@ -105,13 +117,14 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
               value={note}
               onChangeText={setNote}
               placeholder="Megjegyzés..."
+              placeholderTextColor={theme.colors.textTertiary}
               multiline
             />
 
             <Text style={styles.sectionHeaderTextInModal}>Értesítések</Text>
 
             {reminders.length === 0 && (
-              <Text style={styles.noRemindersText}>Nincs beállított értesítés.</Text>
+              <Text style={styles.noMedicationsText}>Nincs beállított értesítés.</Text>
             )}
 
             {reminders.map((reminder, index) => (
@@ -130,7 +143,9 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                             isSelected && styles.dayButtonSelected,
                           ]}
                         >
-                          <Text>{day}</Text>
+                          <Text style={[styles.dayButtonText, isSelected && styles.dayButtonTextSelected]}>
+                            {day}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
@@ -140,14 +155,20 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                   <View style={styles.reminderTimesInline}>
                     {[0, 1, 2].map((timeIndex) => (
                       <View key={timeIndex}>
-                        <TextInput
-                          placeholder="--:--"
-                          value={reminder.times[timeIndex] || ""}
-                          onChangeText={(text) => updateTime(index, timeIndex, text)}
-                          style={styles.timeInput}
-                          keyboardType="numbers-and-punctuation"
-                          maxLength={5}
-                        />
+                        <TouchableOpacity
+                          onPress={() => openTimePicker(index, timeIndex)}
+                          style={[
+                            styles.timeInput,
+                            { justifyContent: "center", alignItems: "center" }
+                          ]}
+                        >
+                          <Text style={{
+                            color: reminder.times[timeIndex] ? theme.colors.textPrimary : theme.colors.textTertiary,
+                            fontSize: 15
+                          }}>
+                            {reminder.times[timeIndex] || "--:--"}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     ))}
                   </View>
@@ -163,6 +184,21 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
               <Text style={styles.addReminderButton}>+ Új emlékeztető</Text>
             </TouchableOpacity>
           </ScrollView>
+
+          <TimePickerModal
+            visible={timePickerVisible}
+            onConfirm={handleTimeConfirm}
+            onCancel={() => {
+              setTimePickerVisible(false);
+              setActiveTimeIndex({ group: null, index: null });
+            }}
+            processedTime={
+              activeTimeIndex.group !== null && activeTimeIndex.index !== null
+                ? reminders[activeTimeIndex.group]?.times?.[activeTimeIndex.index]
+                : null
+            }
+            title="Időpont beállítása"
+          />
 
           <View style={styles.modalFooter}>
             <View style={styles.modalFooterRow}>

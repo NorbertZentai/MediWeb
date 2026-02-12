@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
-import { theme } from "styles/theme";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   // --- Általános konténer ---
   tabContent: {
     flex: 1,
@@ -53,7 +52,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: "center",
-    boxShadow: "0 6px 18px rgba(15, 23, 42, 0.08)",
+    ...theme.shadows.md,
     gap: theme.borderRadius.md,
   },
   emptyStateEmoji: {
@@ -92,7 +91,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     marginBottom: theme.spacing.lg,
-    boxShadow: "0 1px 4px rgba(0, 0, 0, 0.15)",
+    ...theme.shadows.sm,
   },
   addProfileButtonText: {
     color: theme.colors.white,
@@ -157,8 +156,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-    elevation: 1,
+    ...theme.shadows.sm,
     position: "relative",
     minHeight: 100,
   },
@@ -206,20 +204,16 @@ export const styles = StyleSheet.create({
   // --- Modális ablak (Bottom Sheet style) ---
   modalOverlay: {
     flex: 1,
-    backgroundColor: theme.components.modal.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Default overlay color
     justifyContent: "flex-end",
   },
   modalDeleteContainer: {
     backgroundColor: theme.colors.backgroundCard,
-    borderTopLeftRadius: theme.components.modal.borderRadius,
-    borderTopRightRadius: theme.components.modal.borderRadius,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
     padding: theme.spacing.lg,
     paddingBottom: 40,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+    ...theme.shadows.lg,
   },
   modalDeleteTitle: {
     fontSize: theme.fontSize.lg,
@@ -235,31 +229,23 @@ export const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: theme.colors.backgroundCard,
-    borderTopLeftRadius: theme.components.modal.borderRadius,
-    borderTopRightRadius: theme.components.modal.borderRadius,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
     paddingHorizontal: 20,
     paddingTop: theme.borderRadius.md,
     paddingBottom: 40,
     maxHeight: "90%",
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+    ...theme.shadows.lg,
   },
   editMedicationModalContainer: {
     backgroundColor: theme.colors.backgroundCard,
-    borderTopLeftRadius: theme.components.modal.borderRadius,
-    borderTopRightRadius: theme.components.modal.borderRadius,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
     paddingHorizontal: 0,
     paddingTop: theme.borderRadius.md,
     paddingBottom: 40,
     maxHeight: "90%",
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+    ...theme.shadows.lg,
   },
   modalContent: {
     paddingBottom: theme.spacing.lg,
@@ -269,7 +255,7 @@ export const styles = StyleSheet.create({
   modalHandle: {
     width: 40,
     height: 4,
-    backgroundColor: theme.components.modal.handleColor,
+    backgroundColor: theme.colors.border,
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: theme.spacing.md,
@@ -283,13 +269,14 @@ export const styles = StyleSheet.create({
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: theme.components.input.border,
+    borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.sm,
     padding: theme.borderRadius.md,
     fontSize: 15,
-    backgroundColor: theme.components.input.background,
+    backgroundColor: theme.colors.backgroundElevated,
     width: "100%",
     marginBottom: theme.borderRadius.md,
+    color: theme.colors.textPrimary,
   },
   sectionHeaderTextInModal: {
     fontWeight: theme.fontWeight.bold,
@@ -338,8 +325,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: theme.components.button.cancelBorder,
-    color: theme.components.button.cancelText,
+    borderColor: theme.colors.border,
+    color: theme.colors.textSecondary,
     fontWeight: theme.fontWeight.semibold,
     fontSize: theme.fontSize.sm,
   },
@@ -353,7 +340,7 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
   },
   disabledButton: {
-    opacity: theme.components.button.disabledOpacity,
+    opacity: 0.5,
   },
   modalFooter: {
     borderTopWidth: 1,
@@ -397,14 +384,14 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 6,
     marginBottom: 6,
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.backgroundElevated,
   },
   dayButtonSelected: {
     backgroundColor: theme.colors.secondary,
     borderColor: theme.colors.secondary,
   },
   dayButtonText: {
-    color: theme.components.button.cancelText,
+    color: theme.colors.textSecondary,
     fontWeight: theme.fontWeight.medium,
   },
   dayButtonTextSelected: {
@@ -426,7 +413,8 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: theme.colors.borderDark,
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.backgroundElevated,
+    color: theme.colors.textPrimary,
   },
   deleteReminderText: {
     color: theme.colors.error,
@@ -477,17 +465,13 @@ export const styles = StyleSheet.create({
   // --- Assing Modal ---
   assignModalContainer: {
     backgroundColor: theme.colors.backgroundCard,
-    borderTopLeftRadius: theme.components.modal.borderRadius,
-    borderTopRightRadius: theme.components.modal.borderRadius,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
     paddingHorizontal: theme.spacing.sm,
     paddingTop: theme.borderRadius.md,
     paddingBottom: 40,
     maxHeight: "85%",
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+    ...theme.shadows.lg,
   },
   assignList: {
     maxHeight: 200,
@@ -506,7 +490,7 @@ export const styles = StyleSheet.create({
     marginBottom: theme.borderRadius.md,
     width: "100%",
     maxWidth: 680,
-    elevation: 1,
+    ...theme.shadows.sm,
   },
   assignCardSelected: {
     backgroundColor: theme.colors.primaryMuted,
@@ -543,8 +527,9 @@ export const styles = StyleSheet.create({
     padding: 20,
     marginBottom: theme.borderRadius.md,
     alignSelf: "center",
-    border: `1px solid ${theme.colors.border}`,
-    boxShadow: "0px 3px 8px rgba(0, 0, 0, 0.06)",
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.md,
   },
 
   intakeCardTitle: {
@@ -611,8 +596,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: theme.borderRadius.md,
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.05)",
-    elevation: 2,
+    ...theme.shadows.sm,
   },
 
   intakeButtonProfileSelected: {
@@ -621,7 +605,7 @@ export const styles = StyleSheet.create({
   },
 
   intakeButtonTextProfile: {
-    color: theme.components.button.cancelText,
+    color: theme.colors.textSecondary,
     fontWeight: theme.fontWeight.semibold,
     fontSize: theme.fontSize.base,
   },

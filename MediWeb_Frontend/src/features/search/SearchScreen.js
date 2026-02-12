@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
-import { styles } from "./SearchScreen.style";
+import { createStyles } from "./SearchScreen.style";
 import { useSearchService } from "./SearchService";
 import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import { haptics } from "utils/haptics";
-import { theme } from "styles/theme";
 import FilterModal, { getActiveFilterCount, getActiveFilterLabels } from "./FilterModal";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function SearchScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const {
     searchQuery,
     setSearchQuery,

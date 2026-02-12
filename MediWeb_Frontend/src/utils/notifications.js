@@ -61,6 +61,18 @@ export async function registerForPushNotificationsAsync() {
 }
 
 /**
+ * Get current push notification permission status.
+ * @returns {Promise<string>} 'granted', 'denied', 'undetermined', or 'unsupported'
+ */
+export async function getPushPermissionStatus() {
+    if (Platform.OS === 'web') return 'unsupported';
+    if (!Device.isDevice) return 'unsupported';
+
+    const { status } = await Notifications.getPermissionsAsync();
+    return status;
+}
+
+/**
  * Schedule a local notification.
  * @param {string} title 
  * @param {string} body 

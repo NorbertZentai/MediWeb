@@ -46,6 +46,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.mediweb.mobile"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "95b1939b-844b-42ae-9786-8c2619d225e6"
+      }
     }
   }
 }

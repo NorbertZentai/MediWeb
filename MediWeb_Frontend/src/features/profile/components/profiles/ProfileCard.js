@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { styles } from "../ProfilesTab.style";
+import { createStyles } from "../ProfilesTab.style";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onDelete }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const handleDelete = async () => {
     try {
       await onDelete();

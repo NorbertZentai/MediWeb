@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,8 @@ import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { AuthContext } from "contexts/AuthContext";
 import { fetchCurrentUser } from "./profile.api";
-import { theme } from "styles/theme";
+import { createStyles } from "./ProfileScreen.style";
+import { useTheme } from "contexts/ThemeContext";
 import defaultAvatar from "assets/default-avatar.jpg";
 
 const menuItems = [
@@ -25,6 +26,8 @@ const menuItems = [
 export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useContext(AuthContext);
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [user, setUser] = useState({ name: "", email: "", imageUrl: null });
   const [favorites, setFavorites] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
@@ -173,165 +176,3 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    padding: theme.spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 70 : 60,
-    paddingBottom: 100,
-  },
-  userCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.backgroundCard,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.lg,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: theme.colors.border,
-    borderWidth: 3,
-    borderColor: theme.colors.primaryMuted,
-  },
-  userInfo: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  userName: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.textPrimary,
-  },
-  userEmail: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.divider,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  menuContainer: {
-    backgroundColor: theme.colors.backgroundCard,
-    borderRadius: theme.borderRadius.lg,
-    overflow: "hidden",
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
-  },
-  menuItemFirst: {
-    borderTopLeftRadius: theme.borderRadius.lg,
-    borderTopRightRadius: theme.borderRadius.lg,
-  },
-  menuItemLast: {
-    borderBottomWidth: 0,
-    borderBottomLeftRadius: theme.borderRadius.lg,
-    borderBottomRightRadius: theme.borderRadius.lg,
-  },
-  menuIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.primaryMuted,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-  menuTextWrapper: {
-    flex: 1,
-  },
-  menuLabel: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-  },
-  menuDescription: {
-    fontSize: theme.fontSize.xs + 1,
-    color: theme.colors.textTertiary,
-    marginTop: 2,
-  },
-  sectionCard: {
-    backgroundColor: theme.colors.backgroundCard,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.sm + 4,
-  },
-  sectionTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-  },
-  sectionAction: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.primary,
-  },
-  emptyState: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textTertiary,
-    textAlign: "center",
-    paddingVertical: theme.spacing.md,
-  },
-  horizontalCard: {
-    width: 140,
-    height: 100,
-    backgroundColor: theme.colors.backgroundElevated,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.sm + 4,
-    marginRight: theme.spacing.sm + 4,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  horizontalCardTitle: {
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    textAlign: "center",
-  },
-  reviewItem: {
-    paddingVertical: theme.spacing.sm + 4,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
-  },
-  reviewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-  },
-  reviewMedication: {
-    flex: 1,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-  },
-  reviewRating: {
-    flexDirection: "row",
-    gap: 2,
-  },
-});

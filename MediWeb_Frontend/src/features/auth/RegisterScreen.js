@@ -1,16 +1,19 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
 import { toast } from '../../utils/toast';
-import { styles } from './RegisterScreen.style';
+import { createStyles } from './RegisterScreen.style';
 import Navbar from 'components/Navbar';
+import { useTheme } from 'contexts/ThemeContext';
 
 export default function RegisterScreen() {
   const { register } = useContext(AuthContext);
   const router = useRouter();
   const { redirect } = useLocalSearchParams();
   const from = redirect || "/";
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -54,6 +57,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Név"
+            placeholderTextColor={theme.colors.textTertiary}
             value={name}
             onChangeText={setName}
           />
@@ -62,6 +66,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor={theme.colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -72,6 +77,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Jelszó"
+            placeholderTextColor={theme.colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -84,19 +90,19 @@ export default function RegisterScreen() {
               style={[styles.checkbox, gender === 'male' && styles.checkboxSelected]}
               onPress={() => setGender('male')}
             >
-              <Text style={styles.checkboxLabel}>Férfi</Text>
+              <Text style={[styles.checkboxLabel, gender === 'male' && styles.checkboxLabelSelected]}>Férfi</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.checkbox, gender === 'female' && styles.checkboxSelected]}
               onPress={() => setGender('female')}
             >
-              <Text style={styles.checkboxLabel}>Nő</Text>
+              <Text style={[styles.checkboxLabel, gender === 'female' && styles.checkboxLabelSelected]}>Nő</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.checkbox, gender === 'other' && styles.checkboxSelected]}
               onPress={() => setGender('other')}
             >
-              <Text style={styles.checkboxLabel}>Egyéb</Text>
+              <Text style={[styles.checkboxLabel, gender === 'other' && styles.checkboxLabelSelected]}>Egyéb</Text>
             </TouchableOpacity>
           </View>
 
@@ -105,15 +111,16 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor={theme.colors.textTertiary}
             value={dateOfBirth}
             onChangeText={setDateOfBirth}
-            type="date"
           />
 
           {/* Cím mező */}
           <TextInput
             style={styles.input}
             placeholder="Cím"
+            placeholderTextColor={theme.colors.textTertiary}
             value={address}
             onChangeText={setAddress}
           />
@@ -122,6 +129,7 @@ export default function RegisterScreen() {
           <TextInput
             style={styles.input}
             placeholder="Telefonszám"
+            placeholderTextColor={theme.colors.textTertiary}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"

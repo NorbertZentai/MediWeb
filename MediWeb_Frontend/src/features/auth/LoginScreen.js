@@ -1,16 +1,19 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
-import { styles } from './LoginScreen.style';
-import { toast } from '../../utils/toast';
+import { createStyles } from './LoginScreen.style';
+import { toast } from 'utils/toast';
 import Navbar from 'components/Navbar';
+import { useTheme } from 'contexts/ThemeContext';
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
   const router = useRouter();
   const { redirect } = useLocalSearchParams();
   const from = redirect || "/";
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +43,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email cím"
+            placeholderTextColor={theme.colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -49,6 +53,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Jelszó"
+            placeholderTextColor={theme.colors.textTertiary}
             value={password}
             onChangeText={setPassword}
             onSubmitEditing={handleLogin}

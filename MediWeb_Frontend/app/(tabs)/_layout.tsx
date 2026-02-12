@@ -6,14 +6,15 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { CustomTabBar } from '@/components/navigation';
 import { TAB_BAR_COLORS } from '@/components/navigation/constants';
 import { HapticTab } from '@/components/HapticTab';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import Navbar from '@/src/components/Navbar';
 
 // Feature flag for easy rollback
 const USE_CUSTOM_TAB_BAR = true;
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { isDark } = useTheme();
+  const colorScheme = isDark ? 'dark' : 'light';
   const isWeb = Platform.OS === 'web';
   const colors = TAB_BAR_COLORS[colorScheme ?? 'light'];
 

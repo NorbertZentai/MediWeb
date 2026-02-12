@@ -1,24 +1,23 @@
-import { StyleSheet } from 'react-native';
-import { theme } from 'styles/theme';
+import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
   contentWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: theme.spacing.md,
   },
   card: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     backgroundColor: theme.colors.backgroundCard,
     padding: 20,
     borderRadius: theme.borderRadius.sm,
-    alignItems: 'center',
+    alignItems: "center",
     ...theme.shadows.md,
   },
   title: {
@@ -26,25 +25,26 @@ export const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.primary,
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
-    width: '100%',
-    backgroundColor: theme.colors.backgroundCard,
-    padding: theme.components.input.padding,
-    borderRadius: theme.components.input.borderRadius,
+    width: "100%",
+    backgroundColor: theme.colors.backgroundInput || theme.colors.backgroundCard,
+    padding: theme.components?.input?.padding || 12,
+    borderRadius: theme.components?.input?.borderRadius || 8,
     fontSize: theme.fontSize.base,
     marginBottom: theme.spacing.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    color: theme.colors.textPrimary,
   },
   button: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: theme.borderRadius.sm,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     marginBottom: 12,
   },
   buttonText: {
@@ -57,7 +57,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.bold,
-    textAlign: 'center',
-    textDecorationLine: 'underline',
-  }
+    textAlign: "center",
+    textDecorationLine: "underline",
+  },
 });

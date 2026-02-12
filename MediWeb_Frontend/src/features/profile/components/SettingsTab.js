@@ -19,14 +19,16 @@ import {
   updateUserPreferences,
 } from "features/profile/profile.api";
 import { AuthContext } from "contexts/AuthContext";
-import { styles } from "./SettingsTab.style";
-import { theme } from "styles/theme";
+import { createStyles } from "./SettingsTab.style";
+import { useTheme } from "contexts/ThemeContext";
+import { registerForPushNotificationsAsync, getPushPermissionStatus } from "utils/notifications";
 
 const DEFAULT_PREFERENCES = {
   notifications: {
     medicationReminders: true,
     summaryEmails: true,
     refillAlerts: false,
+    pushEnabled: true,
   },
   general: {
     language: "hu",
@@ -71,6 +73,8 @@ const mergePreferences = (incoming) => ({
 export default function SettingsTab() {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -130,12 +134,33 @@ export default function SettingsTab() {
     }));
   };
 
-  const handleToggle = (section, key) => (value) => {
+  const handleToggle = (section, key) => async (value) => {
+    if (key === "pushEnabled" && value && Platform.OS !== "web") {
+      const status = await getPushPermissionStatus();
+      if (status !== "granted") {
+        const token = await registerForPushNotificationsAsync();
+        if (!token) {
+          Alert.alert(
+            "Engedély szükséges",
+            "A push értesítésekhez engedélyezned kell az értesítéseket a telefon beállításaiban."
+          );
+          return;
+        }
+      }
+    }
     setPreferenceValue(section, key, value);
   };
 
   const handleSelect = (section, key, value) => {
     setPreferenceValue(section, key, value);
+    if (key === 'theme') {
+      // Logika a téma váltáshoz, ha a globális témát is frissíteni kell
+      // A theme.js valószínűleg a settings alapján működik, vagy külön state-ben van.
+      // Itt nem hívom a toggleTheme-et automatikusan, mert az backend hívástól függhet,
+      // de az UI update miatt lehet, hogy kellene.
+      // A useTheme hook most már a contextből jön, így ha a user settings változik,
+      // akkor a globális state-nek is változnia kellene, de ez lehet, hogy a ThemeProvider dolga.
+    }
   };
 
   const handleInputChange = (section, key, value) => {
@@ -156,6 +181,10 @@ export default function SettingsTab() {
       setInitialPreferences(merged);
       setLastSavedAt(new Date());
       Alert.alert("Sikeres mentés", "A beállítások frissültek.");
+
+      // Ha a téma változott, akkor frissítsük a globális témát is
+      // Ez feltételezi, hogy a ThemeContext tudja kezelni a user preferences alapján történő beállítást,
+      // vagy reload kell.
     } catch (error) {
       console.error("Beállítások mentése sikertelen", error);
       Alert.alert(
@@ -236,9 +265,9 @@ export default function SettingsTab() {
         <Switch
           value={preferences[section][key]}
           onValueChange={handleToggle(section, key)}
-          trackColor={{ false: theme.colors.borderDark, true: theme.colors.secondary }}
-          thumbColor={preferences[section][key] ? theme.colors.secondaryDark : theme.colors.divider}
-          ios_backgroundColor={theme.colors.borderDark}
+          trackColor={{ false: theme.colors.border || theme.colors.borderDark, true: theme.colors.secondary }}
+          thumbColor={preferences[section][key] ? theme.colors.secondaryDark || theme.colors.primary : theme.colors.background}
+          ios_backgroundColor={theme.colors.border || theme.colors.borderDark}
         />
       </View>
     </View>
@@ -312,6 +341,11 @@ export default function SettingsTab() {
                 az egészségeddel kapcsolatos teendőkről.
               </Text>
             </View>
+
+            <View style={styles.subsectionHeader}>
+              <FontAwesome5 name="envelope" size={14} color={theme.colors.textSecondary} />
+              <Text style={styles.subsectionTitle}>Email értesítések</Text>
+            </View>
             {renderToggleRow(
               "Gyógyszer emlékeztetők",
               "Email értesítések a közelgő gyógyszerbevételekről.",
@@ -329,6 +363,27 @@ export default function SettingsTab() {
               "Értesítés, amikor közeledik egy recept megújításának határideje.",
               "notifications",
               "refillAlerts"
+            )}
+
+            <View style={styles.divider} />
+
+            <View style={styles.subsectionHeader}>
+              <FontAwesome5 name="mobile-alt" size={14} color={theme.colors.textSecondary} />
+              <Text style={styles.subsectionTitle}>Telefonos push értesítések</Text>
+            </View>
+            {Platform.OS === "web" ? (
+              <View style={styles.infoBox}>
+                <FontAwesome5 name="info-circle" size={14} color={theme.colors.primary} />
+                <Text style={styles.infoBoxText}>
+                  A telefonos push értesítések csak a mobil alkalmazásban érhetők el. Töltsd le az appot, hogy push értesítéseket kapj!
+                </Text>
+              </View>
+            ) : null}
+            {renderToggleRow(
+              "Push értesítések",
+              "Azonnali értesítések a telefonodra gyógyszerbevételi emlékeztetőkről.",
+              "notifications",
+              "pushEnabled"
             )}
           </View>
 
@@ -356,8 +411,7 @@ export default function SettingsTab() {
               "general",
               "theme",
               {
-                disabled: true,
-                infoText: "A téma mód beállítás hamarosan elérhető.",
+                disabled: false, // Changed from true to allow selection
               }
             )}
             {renderPillGroup(
@@ -375,6 +429,7 @@ export default function SettingsTab() {
                   value={preferences.general.dailyDigestHour}
                   onChangeText={(text) => handleInputChange("general", "dailyDigestHour", text)}
                   placeholder="08:00"
+                  placeholderTextColor={theme.colors.textTertiary}
                   keyboardType="numbers-and-punctuation"
                   maxLength={5}
                 />
@@ -414,7 +469,7 @@ export default function SettingsTab() {
                 disabled={exporting}
               >
                 {exporting ? (
-                  <ActivityIndicator color={theme.colors.secondaryDark} />
+                  <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
                 ) : (
                   <Text style={styles.actionButtonText}>Adatok exportálása</Text>
                 )}

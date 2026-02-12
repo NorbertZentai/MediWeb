@@ -9,8 +9,8 @@ import {
   getPeakIntakeTimes,
   getTrendStatistics,
 } from "features/profile/profile.api";
-import { styles } from "./StatisticsTab.style";
-import { theme } from "styles/theme";
+import { createStyles } from "./StatisticsTab.style";
+import { useTheme } from "contexts/ThemeContext";
 
 const periodOptions = [
   { key: "weekly", label: "Heti" },
@@ -33,21 +33,6 @@ const fallbackStatistics = {
 };
 
 const palette = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#6366F1", "#8B5CF6", "#14B8A6", "#EC4899"];
-
-const chartConfig = {
-  backgroundColor: "#FFFFFF",
-  backgroundGradientFrom: "#FFFFFF",
-  backgroundGradientTo: "#FFFFFF",
-  decimalPlaces: 0,
-  color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
-  propsForBackgroundLines: {
-    stroke: "#E5E7EB",
-  },
-  propsForLabels: {
-    fontSize: 12,
-  },
-};
 
 const formatPercentage = (value) => {
   if (value === null || value === undefined) {
@@ -128,12 +113,29 @@ const normalizeSeries = (payload) => {
 };
 
 export default function StatisticsTab() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { width } = useWindowDimensions();
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [statistics, setStatistics] = useState(fallbackStatistics);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingFallback, setUsingFallback] = useState(true);
+
+  const chartConfig = useMemo(() => ({
+    backgroundColor: theme.colors.backgroundCard,
+    backgroundGradientFrom: theme.colors.backgroundCard,
+    backgroundGradientTo: theme.colors.backgroundCard,
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+    labelColor: (opacity = 1) => theme.colors.textSecondary, // Use theme text color
+    propsForBackgroundLines: {
+      stroke: theme.colors.border, // Use theme border color
+    },
+    propsForLabels: {
+      fontSize: 12,
+    },
+  }), [theme]);
 
   const chartWidth = useMemo(() => {
     if (!width) {
@@ -258,10 +260,10 @@ export default function StatisticsTab() {
         name: item.label,
         population: item.value,
         color: palette[index % palette.length],
-        legendFontColor: "#374151",
+        legendFontColor: theme.colors.textSecondary,
         legendFontSize: 13,
       })),
-    [statistics.categoryBreakdown]
+    [statistics.categoryBreakdown, theme.colors.textSecondary]
   );
 
   const complianceLineData = useMemo(
@@ -412,10 +414,10 @@ export default function StatisticsTab() {
               )}
             </View>
 
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Gyógyszer kategóriák</Text>
-                <Text style={styles.cardSubtitle}>Megoszlás kategóriánként</Text>
+            <View style={[styles.card, { alignItems: 'center' }]}>
+              <View style={[styles.cardHeader, { alignItems: 'center' }]}>
+                <Text style={[styles.cardTitle, { textAlign: 'center' }]}>Gyógyszer kategóriák</Text>
+                <Text style={[styles.cardSubtitle, { textAlign: 'center' }]}>Megoszlás kategóriánként</Text>
               </View>
               {categoryChartData.length ? (
                 <>
@@ -429,6 +431,7 @@ export default function StatisticsTab() {
                       backgroundColor="transparent"
                       paddingLeft="8"
                       absolute
+                      hasLegend={false}
                     />
                   </View>
                   <View style={styles.legendList}>

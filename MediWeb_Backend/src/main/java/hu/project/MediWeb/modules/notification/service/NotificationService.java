@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static hu.project.MediWeb.modules.notification.utils.ReminderUtils.getDayCode;
 import static hu.project.MediWeb.modules.notification.utils.ReminderUtils.parseReminders;
@@ -24,6 +26,7 @@ public class NotificationService {
 
     private final ProfileMedicationRepository profileMedicationRepository;
     private final EmailNotificationService emailNotificationService;
+    private final PushNotificationService pushNotificationService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
     @Scheduled(cron = "0 * * * * *")
@@ -41,8 +44,16 @@ public class NotificationService {
                 }
 
                 User owner = med.getProfile().getUser();
-                if (owner == null || Boolean.FALSE.equals(owner.getEmailNotificationsEnabled())) {
-                    log.debug("Skipping email notification for medication {} because user opted out", med.getMedication().getName());
+                if (owner == null) {
+                    continue;
+                }
+
+                boolean emailEnabled = Boolean.TRUE.equals(owner.getEmailNotificationsEnabled());
+                boolean pushEnabled = Boolean.TRUE.equals(owner.getPushNotificationsEnabled());
+
+                if (!emailEnabled && !pushEnabled) {
+                    log.debug("Skipping all notifications for medication {} because user opted out of both email and push",
+                            med.getMedication().getName());
                     continue;
                 }
 
@@ -55,14 +66,29 @@ public class NotificationService {
                         LocalTime reminderTime = LocalTime.parse(time, formatter);
                         if (now.equals(reminderTime)) {
                             String medicationName = med.getMedication().getName();
-                            emailNotificationService.sendMedicationReminder(
-                                    owner,
-                                    medicationName,
-                                    today,
-                                    reminderTime,
-                                    med.getNotes()
-                            );
-                            log.info("Értesítés elküldve: {} – {} [{}]", owner.getEmail(), medicationName, time);
+
+                            if (emailEnabled) {
+                                emailNotificationService.sendMedicationReminder(
+                                        owner,
+                                        medicationName,
+                                        today,
+                                        reminderTime,
+                                        med.getNotes()
+                                );
+                                log.info("Email értesítés elküldve: {} – {} [{}]", owner.getEmail(), medicationName, time);
+                            }
+
+                            if (pushEnabled) {
+                                String title = "Gyógyszer emlékeztető";
+                                String body = medicationName + " – " + time;
+                                Map<String, Object> data = new HashMap<>();
+                                data.put("type", "medication_reminder");
+                                data.put("medicationName", medicationName);
+                                data.put("time", time);
+
+                                pushNotificationService.sendPushNotification(owner, title, body, data);
+                                log.info("Push értesítés elküldve: {} – {} [{}]", owner.getEmail(), medicationName, time);
+                            }
                         }
                     }
                 }

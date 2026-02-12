@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import {
     View,
     Text,
@@ -12,13 +12,76 @@ import {
 import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { AuthContext } from 'contexts/AuthContext';
-import { theme } from 'styles/theme';
+import { useTheme } from 'contexts/ThemeContext';
+import { fetchUserPreferences, updateUserPreferences } from 'features/profile/profile.api';
+import { registerForPushNotificationsAsync, getPushPermissionStatus } from 'utils/notifications';
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { logout } = useContext(AuthContext);
-    const [darkMode, setDarkMode] = useState(false);
-    const [notifications, setNotifications] = useState(true);
+    const { theme, themeMode, setThemeMode } = useTheme();
+    const [emailEnabled, setEmailEnabled] = useState(true);
+    const [pushEnabled, setPushEnabled] = useState(true);
+    const [preferences, setPreferences] = useState(null);
+
+    const styles = useMemo(() => createStyles(theme), [theme]);
+
+    useEffect(() => {
+        const loadPrefs = async () => {
+            try {
+                const prefs = await fetchUserPreferences();
+                setPreferences(prefs);
+                setEmailEnabled(prefs?.notifications?.medicationReminders ?? true);
+                setPushEnabled(prefs?.notifications?.pushEnabled ?? true);
+            } catch (e) {
+                console.log('Failed to load notification preferences:', e);
+            }
+        };
+        loadPrefs();
+    }, []);
+
+    const handleEmailToggle = async (value) => {
+        setEmailEnabled(value);
+        try {
+            const updated = {
+                ...preferences,
+                notifications: { ...preferences?.notifications, medicationReminders: value },
+            };
+            await updateUserPreferences(updated);
+            setPreferences(updated);
+        } catch (e) {
+            setEmailEnabled(!value);
+            console.log('Failed to update email preference:', e);
+        }
+    };
+
+    const handlePushToggle = async (value) => {
+        if (value && Platform.OS !== 'web') {
+            const status = await getPushPermissionStatus();
+            if (status !== 'granted') {
+                const token = await registerForPushNotificationsAsync();
+                if (!token) {
+                    Alert.alert(
+                        'Engedély szükséges',
+                        'A push értesítésekhez engedélyezned kell az értesítéseket a telefon beállításaiban.'
+                    );
+                    return;
+                }
+            }
+        }
+        setPushEnabled(value);
+        try {
+            const updated = {
+                ...preferences,
+                notifications: { ...preferences?.notifications, pushEnabled: value },
+            };
+            await updateUserPreferences(updated);
+            setPreferences(updated);
+        } catch (e) {
+            setPushEnabled(!value);
+            console.log('Failed to update push preference:', e);
+        }
+    };
 
     const handleLogout = () => {
         Alert.alert(
@@ -68,14 +131,40 @@ export default function SettingsScreen() {
 
                         <View style={styles.menuItem}>
                             <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="bell" size={18} color={theme.colors.primary} />
+                                <FontAwesome5 name="envelope" size={18} color={theme.colors.primary} />
                             </View>
-                            <Text style={styles.menuLabel}>Értesítések</Text>
+                            <View style={styles.flex1}>
+                                <Text style={styles.menuLabel}>Email értesítések</Text>
+                                <Text style={styles.menuHelper}>Gyógyszer emlékeztetők emailben</Text>
+                            </View>
                             <Switch
-                                value={notifications}
-                                onValueChange={setNotifications}
+                                value={emailEnabled}
+                                onValueChange={handleEmailToggle}
                                 trackColor={{ false: theme.colors.border, true: theme.colors.primaryMuted }}
-                                thumbColor={notifications ? theme.colors.primary : theme.colors.textTertiary}
+                                thumbColor={emailEnabled ? theme.colors.primary : theme.colors.textTertiary}
+                            />
+                        </View>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.menuItem}>
+                            <View style={styles.menuIconWrapper}>
+                                <FontAwesome5 name="mobile-alt" size={18} color={theme.colors.primary} />
+                            </View>
+                            <View style={styles.flex1}>
+                                <Text style={styles.menuLabel}>Push értesítések</Text>
+                                <Text style={styles.menuHelper}>
+                                    {Platform.OS === 'web'
+                                        ? 'Csak mobilon elérhető'
+                                        : 'Azonnali értesítések a telefonodra'}
+                                </Text>
+                            </View>
+                            <Switch
+                                value={pushEnabled}
+                                onValueChange={handlePushToggle}
+                                trackColor={{ false: theme.colors.border, true: theme.colors.primaryMuted }}
+                                thumbColor={pushEnabled ? theme.colors.primary : theme.colors.textTertiary}
+                                disabled={Platform.OS === 'web'}
                             />
                         </View>
 
@@ -106,19 +195,27 @@ export default function SettingsScreen() {
                                 <Text style={styles.menuLabel}>Téma</Text>
                                 <View style={styles.themeOptions}>
                                     <TouchableOpacity
-                                        style={[styles.themeButton, !darkMode && styles.themeButtonActive]}
-                                        onPress={() => setDarkMode(false)}
+                                        style={[styles.themeButton, themeMode === 'light' && styles.themeButtonActive]}
+                                        onPress={() => setThemeMode('light')}
                                     >
-                                        <Text style={[styles.themeButtonText, !darkMode && styles.themeButtonTextActive]}>
+                                        <Text style={[styles.themeButtonText, themeMode === 'light' && styles.themeButtonTextActive]}>
                                             Világos
                                         </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
-                                        style={[styles.themeButton, darkMode && styles.themeButtonActive]}
-                                        onPress={() => setDarkMode(true)}
+                                        style={[styles.themeButton, themeMode === 'dark' && styles.themeButtonActive]}
+                                        onPress={() => setThemeMode('dark')}
                                     >
-                                        <Text style={[styles.themeButtonText, darkMode && styles.themeButtonTextActive]}>
+                                        <Text style={[styles.themeButtonText, themeMode === 'dark' && styles.themeButtonTextActive]}>
                                             Sötét
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.themeButton, themeMode === 'system' && styles.themeButtonActive]}
+                                        onPress={() => setThemeMode('system')}
+                                    >
+                                        <Text style={[styles.themeButtonText, themeMode === 'system' && styles.themeButtonTextActive]}>
+                                            Rendszer
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -194,7 +291,7 @@ export default function SettingsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background,
@@ -252,6 +349,11 @@ const styles = StyleSheet.create({
         fontWeight: theme.fontWeight.medium,
         color: theme.colors.textPrimary,
     },
+    menuHelper: {
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textSecondary,
+        marginTop: 2,
+    },
     menuValue: {
         fontSize: theme.fontSize.base,
         color: theme.colors.textSecondary,
@@ -269,6 +371,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: theme.spacing.sm,
         marginTop: theme.spacing.sm,
+        flexWrap: 'wrap',
     },
     themeButton: {
         paddingVertical: theme.spacing.sm,

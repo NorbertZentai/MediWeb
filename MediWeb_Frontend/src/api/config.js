@@ -5,16 +5,17 @@ import { Platform } from "react-native";
 // iOS simulator can use localhost directly
 // Physical devices need the actual LAN IP
 const getApiBaseUrl = () => {
-  // If env var is set and not localhost, use it (e.g., production URL)
-  if (process.env.EXPO_PUBLIC_API_URL && !process.env.EXPO_PUBLIC_API_URL.includes("localhost")) {
+  // Use environment variable if defined (configured in .env)
+  if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
 
-  // For development: use platform-specific localhost access
+  // Fallback defaults if .env is missing
   if (Platform.OS === "android") {
-    return "http://10.0.2.2:8080"; // Android emulator -> host localhost
+    // 10.0.2.2 is for Android Emulator. For physical device, configure .env!
+    return "http://10.0.2.2:8080";
   }
-  return "http://localhost:8080"; // iOS simulator / Web
+  return "http://localhost:8080";
 };
 
 const API_BASE_URL = getApiBaseUrl();
