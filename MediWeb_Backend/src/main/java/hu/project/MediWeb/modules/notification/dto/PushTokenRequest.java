@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class NotificationPreferenceRequest {
-    private boolean emailEnabled;
-    private boolean pushEnabled;
+public class PushTokenRequest {
+    private String token;
 }

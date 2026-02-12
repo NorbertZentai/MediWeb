@@ -58,12 +58,14 @@ public class UserPreferencesDto {
         private Boolean medicationReminders;
         private Boolean summaryEmails;
         private Boolean refillAlerts;
+        private Boolean pushEnabled;
 
         public static NotificationPreferences defaults() {
             return NotificationPreferences.builder()
                     .medicationReminders(true)
                     .summaryEmails(true)
                     .refillAlerts(false)
+                    .pushEnabled(true)
                     .build();
         }
 
@@ -76,6 +78,9 @@ public class UserPreferencesDto {
             }
             if (refillAlerts == null) {
                 refillAlerts = defaults.getRefillAlerts();
+            }
+            if (pushEnabled == null) {
+                pushEnabled = defaults.getPushEnabled();
             }
         }
     }

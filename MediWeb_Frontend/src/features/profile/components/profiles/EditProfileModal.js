@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity } from "react-native";
-import { styles } from "../ProfilesTab.style";
+import { createStyles } from "../ProfilesTab.style";
 import { updateProfile } from "features/profile/profile.api";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function EditProfileModal({ profile, onClose, onProfileUpdated }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [name, setName] = useState(profile.name || "");
   const [notes, setNotes] = useState(profile.notes || "");
 
@@ -35,14 +38,14 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Profil szerkesztése</Text>
 
-            <Text style={styles.modalLabel}>Név</Text>
+            <Text style={styles.sectionHeaderTextInModal}>Név</Text>
             <TextInput
               style={styles.modalInput}
               value={name}
               onChangeText={setName}
             />
 
-            <Text style={styles.modalLabel}>Megjegyzés</Text>
+            <Text style={styles.sectionHeaderTextInModal}>Megjegyzés</Text>
             <TextInput
               style={styles.modalInput}
               value={notes}

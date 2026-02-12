@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import CustomDropdown from "components/CustomDropdown";
 import { FontAwesome } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { renderStars } from "./ReviewStars";
-import { styles } from "./ReviewSection.style";
-import { theme } from "styles/theme";
+import { createStyles } from "./ReviewSection.style";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function ReviewSection({
-  reviews,
-  averageRating,
-  ratingDistribution,
+  reviews = [],
+  averageRating = 0,
+  ratingDistribution = {},
   onSubmit,
   updateReview,
   submitting,
   isLoggedIn,
   userId,
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [rating, setRating] = useState(0);
   const [positive, setPositive] = useState("");
   const [negative, setNegative] = useState("");
@@ -66,7 +68,7 @@ export default function ReviewSection({
       <View style={styles.ratingContainer}>
         <View style={styles.ratingSummary}>
           <Text style={styles.ratingNumber}>{averageRating.toFixed(1)}</Text>
-          {renderStars(averageRating)}
+          {renderStars(averageRating, styles, theme)}
           <Text style={styles.totalRatingsText}>{totalRatings} értékelés</Text>
         </View>
 
@@ -109,6 +111,7 @@ export default function ReviewSection({
             value={positive}
             onChangeText={setPositive}
             placeholder="Mi tetszett?"
+            placeholderTextColor={theme.colors.textTertiary}
             style={styles.reviewTextarea}
             multiline
           />
@@ -118,6 +121,7 @@ export default function ReviewSection({
             value={negative}
             onChangeText={setNegative}
             placeholder="Mi nem tetszett?"
+            placeholderTextColor={theme.colors.textTertiary}
             style={styles.reviewTextarea}
             multiline
           />
@@ -168,7 +172,7 @@ export default function ReviewSection({
         {filteredReviews.length > 0 ? (
           filteredReviews.map((rev, idx) => (
             <View key={idx} style={styles.reviewCard}>
-              <View style={styles.starRow}>{renderStars(rev.rating)}</View>
+              <View style={styles.starRow}>{renderStars(rev.rating, styles, theme)}</View>
               <Text style={styles.reviewMeta}>
                 Beküldte: {rev.author} –{" "}
                 {new Date(rev.createdAt).toLocaleDateString()}

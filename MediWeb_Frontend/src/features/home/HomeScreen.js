@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
-import { styles } from './HomeScreen.style';
-import { theme } from 'styles/theme';
+import { createStyles } from './HomeScreen.style';
+import { useTheme } from 'contexts/ThemeContext';
 import { getHomeDashboard, getPopularMedications } from './home.api';
 import { haptics } from 'utils/haptics';
 import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync } from 'features/medication/medication.api';
@@ -67,6 +67,8 @@ export default function HomeScreen() {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
   const { isMobile } = useResponsiveLayout();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [dashboard, setDashboard] = useState(() => createDefaultDashboard());
   // ... existing state ...
@@ -708,7 +710,7 @@ export default function HomeScreen() {
                               const taken = med.takenFlags?.[idx];
                               return (
                                 <View
-                                  key={`${med.profileMedicationId || med.medicationName}-${time}`}
+                                  key={`${med.profileMedicationId || med.medicationName}-${time}-${idx}`}
                                   style={[
                                     styles.timeChip,
                                     taken ? styles.timeChipTaken : styles.timeChipPending,

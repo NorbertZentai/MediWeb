@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import storage from "utils/storage";
 import { fetchCurrentUser } from 'features/profile/profile.api';
 import { login as apiLogin, register as apiRegister, logout as apiLogout, } from 'features/auth/auth.api';
+import { unregisterPushToken } from 'features/profile/profile.api';
 import { DeviceEventEmitter } from 'react-native';
 import { AUTH_EVENTS } from 'utils/authEvents';
 
@@ -37,6 +38,12 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
+            // Unregister push token before logging out
+            const pushToken = await storage.getItem('expoPushToken');
+            if (pushToken) {
+                await unregisterPushToken(pushToken).catch(() => {});
+                await storage.removeItem('expoPushToken');
+            }
             await apiLogout();
         } catch (error) {
             console.error("Logout failed:", error.response?.data || error.message);

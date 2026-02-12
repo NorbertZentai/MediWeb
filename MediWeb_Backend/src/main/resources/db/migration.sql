@@ -69,6 +69,29 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ensure expo_push_tokens table exists for storing Expo push notification tokens
+CREATE TABLE IF NOT EXISTS expo_push_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Ensure push_notifications_enabled column exists on users
+DO $$
+BEGIN
+    BEGIN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS push_notifications_enabled BOOLEAN DEFAULT TRUE;
+        UPDATE users SET push_notifications_enabled = TRUE WHERE push_notifications_enabled IS NULL;
+        ALTER TABLE users ALTER COLUMN push_notifications_enabled SET DEFAULT TRUE;
+        ALTER TABLE users ALTER COLUMN push_notifications_enabled SET NOT NULL;
+        RAISE NOTICE 'Ensured push_notifications_enabled column exists on users table';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Skipped push_notifications_enabled migration: %', SQLERRM;
+    END;
+END $$;
+
 -- Ensure user_data_requests table exists for export and deletion workflows
 CREATE TABLE IF NOT EXISTS user_data_requests (
     id SERIAL PRIMARY KEY,

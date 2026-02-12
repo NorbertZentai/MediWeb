@@ -54,6 +54,10 @@ public class User {
     @Column(name = "email_notifications_enabled", nullable = false)
     private Boolean emailNotificationsEnabled = true;
 
+    @Builder.Default
+    @Column(name = "push_notifications_enabled", nullable = false)
+    private Boolean pushNotificationsEnabled = true;
+
     @Column(length=10)
     private String language = "hu";
 

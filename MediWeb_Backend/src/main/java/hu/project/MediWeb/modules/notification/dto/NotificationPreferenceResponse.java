@@ -7,4 +7,5 @@ import lombok.Getter;
 @Builder
 public class NotificationPreferenceResponse {
     private final boolean emailEnabled;
+    private final boolean pushEnabled;
 }

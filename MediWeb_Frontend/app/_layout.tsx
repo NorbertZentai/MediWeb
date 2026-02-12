@@ -1,5 +1,5 @@
 import 'react-native-reanimated';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,9 +8,12 @@ import React, { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider } from '@/src/contexts/AuthContext';
+import { ThemeProvider as AppThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { ToastProvider } from '@/src/components/ToastProvider';
 
 import { registerForPushNotificationsAsync } from '@/src/utils/notifications';
+import { registerPushToken, unregisterPushToken } from '@/src/features/profile/profile.api';
+import storage from '@/src/utils/storage';
 import { Logger } from '@/src/utils/Logger';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -43,7 +46,37 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, segments]);
 
+  // Register push token when user is logged in
+  useEffect(() => {
+    if (!user) return;
+
+    const setupPushToken = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (token) {
+          await storage.setItem('expoPushToken', token);
+          await registerPushToken(token);
+          console.log('Push token registered with backend');
+        }
+      } catch (err) {
+        console.log('Push token registration error:', err);
+      }
+    };
+
+    setupPushToken();
+  }, [user]);
+
   return children;
+}
+
+function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
+  const { isDark } = useTheme();
+  return (
+    <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {children}
+    </NavThemeProvider>
+  );
 }
 
 export default function RootLayout() {
@@ -54,32 +87,25 @@ export default function RootLayout() {
     Logger.init(); // Initialize global error handler and check previous crash
 
     SplashScreen.hideAsync();
-
-    // Initialize notifications
-    registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        console.log('Push Token:', token);
-        // Here you would typically send the token to your backend
-      }
-    }).catch(err => console.log('Notification setup error:', err));
   }, []);
 
   return (
     <AuthProvider>
-      <ToastProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <ProtectedRoute>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="register" />
-              <Stack.Screen name="medication/[id]" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </ProtectedRoute>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </ToastProvider>
+      <AppThemeProvider>
+        <ToastProvider>
+          <NavigationThemeWrapper>
+            <ProtectedRoute>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="register" />
+                <Stack.Screen name="medication/[id]" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </ProtectedRoute>
+          </NavigationThemeWrapper>
+        </ToastProvider>
+      </AppThemeProvider>
     </AuthProvider>
   );
 }

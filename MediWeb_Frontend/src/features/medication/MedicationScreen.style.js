@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
-import { theme } from "styles/theme";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   // ===== LAYOUT =====
   container: {
     flex: 1,

@@ -1,16 +1,20 @@
 import { Stack } from 'expo-router';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export default function ProfileLayout() {
+    const { theme } = useTheme();
+
     return (
         <Stack
             screenOptions={{
                 headerShown: true,
                 headerStyle: {
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: theme.colors.background,
                 },
-                headerTintColor: '#2E7D32',
+                headerTintColor: theme.colors.primary,
                 headerTitleStyle: {
                     fontWeight: '600',
+                    color: theme.colors.textPrimary,
                 },
                 headerShadowVisible: false,
                 headerBackTitle: 'Vissza',

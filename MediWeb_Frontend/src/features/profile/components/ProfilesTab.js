@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { toast } from 'utils/toast';
 import ProfileCard from './profiles/ProfileCard';
 import AddProfileModal from './profiles/AddProfileModal';
@@ -8,9 +8,12 @@ import MedicationCard from './profiles/MedicationCard';
 import EditMedicationModal from './profiles/EditMedicationModal';
 import AssignMedicationModal from "./profiles/AssignMedicationModal";
 import { getProfilesForUser, getMedicationsForProfile, deleteProfile, removeMedicationFromProfile } from 'features/profile/profile.api';
-import { styles } from './ProfilesTab.style';
+import { createStyles } from './ProfilesTab.style';
+import { useTheme } from "contexts/ThemeContext";
 
 export default function ProfilesTab() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [profiles, setProfiles] = useState([]);
   const [openProfileIds, setOpenProfileIds] = useState([]);
   const [profileMedications, setProfileMedications] = useState({});
@@ -36,6 +39,7 @@ export default function ProfilesTab() {
 
       if (!profileMedications[profileId]) {
         try {
+          if (!profileId) return;
           const meds = await getMedicationsForProfile(profileId);
           setProfileMedications((prev) => ({ ...prev, [profileId]: meds }));
         } catch {
@@ -59,6 +63,8 @@ export default function ProfilesTab() {
 
   const confirmDeleteMedication = async () => {
     try {
+      if (!activeProfileId || !medicationToDelete?.medicationId) return;
+
       await removeMedicationFromProfile(activeProfileId, medicationToDelete.medicationId);
       setProfileMedications((prev) => ({
         ...prev,
@@ -74,7 +80,10 @@ export default function ProfilesTab() {
   };
 
   return (
-    <View style={styles.tabContent}>
+    <ScrollView
+      style={[styles.tabContent, { padding: 0 }]}
+      contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+    >
       <TouchableOpacity style={styles.addProfileButton} onPress={() => setAddModalVisible(true)}>
         <Text style={styles.addProfileButtonText}>ÚJ PROFIL</Text>
       </TouchableOpacity>
@@ -106,19 +115,15 @@ export default function ProfilesTab() {
               <View style={styles.medicationsWrapper}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionHeaderText}>Gyógyszerek:</Text>
-                  <TouchableOpacity onPress={() => setAssignVisible(true)} style={styles.addMedicationButton}>
+                  <TouchableOpacity onPress={() => {
+                    setActiveProfileId(profile.id);
+                    setAssignVisible(true);
+                  }} style={styles.addMedicationButton}>
                     <Text style={styles.addMedicationButtonText}>Gyógyszer hozzáadása</Text>
                   </TouchableOpacity>
                 </View>
 
-                <AssignMedicationModal
-                  profileId={profile.id}
-                  visible={assignVisible}
-                  onClose={() => setAssignVisible(false)}
-                  onAssigned={(medicationIds) => {
-                    console.log("Hozzáadva:", medicationIds);
-                  }}
-                />
+                {/* Itt javítottam: AssignMedicationModal-t külön kezelem, nem a map()-en belül */}
 
                 {(profileMedications[profile.id]?.length ?? 0) === 0 ? (
                   <Text style={styles.noMedicationsText}>Nincsenek gyógyszerek.</Text>
@@ -143,6 +148,25 @@ export default function ProfilesTab() {
           </View>
         ))}
       </View>
+
+      {/* Modals outside the list */}
+
+      {assignVisible && activeProfileId && (
+        <AssignMedicationModal
+          profileId={activeProfileId}
+          visible={assignVisible}
+          onClose={() => setAssignVisible(false)}
+          onAssigned={async (medicationIds) => {
+            // Refresh medications for this profile
+            try {
+              const meds = await getMedicationsForProfile(activeProfileId);
+              setProfileMedications((prev) => ({ ...prev, [activeProfileId]: meds }));
+            } catch (e) {
+              console.error("Failed to refresh medications", e);
+            }
+          }}
+        />
+      )}
 
       {isAddModalVisible && (
         <AddProfileModal
@@ -186,10 +210,11 @@ export default function ProfilesTab() {
           onClose={() => setMedicationToEdit(null)}
           onUpdated={(updatedMed) => {
             try {
+              // Frissítjük a lokális state-et
               setProfileMedications((prev) => ({
                 ...prev,
                 [activeProfileId]: prev[activeProfileId].map((m) =>
-                  m.medicationId === updatedMed.medicationId ? updatedMed : m
+                  m.medicationId === updatedMed.medicationId ? { ...m, ...updatedMed } : m // Merge updates
                 ),
               }));
               toast.success("Gyógyszer frissítve.");
@@ -268,6 +293,6 @@ export default function ProfilesTab() {
           </View>
         </Modal>
       )}
-    </View>
+    </ScrollView>
   );
 }

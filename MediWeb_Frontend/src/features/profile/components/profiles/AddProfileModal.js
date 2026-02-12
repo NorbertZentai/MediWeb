@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
-import { styles } from "../ProfilesTab.style";
+import { createStyles } from "../ProfilesTab.style";
 import { createProfile } from "features/profile/profile.api";
 import { toast } from 'utils/toast';
+import { useTheme } from "contexts/ThemeContext";
 
 export default function AddProfileModal({ onClose, onProfileCreated }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -34,6 +37,7 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Profil neve"
+              placeholderTextColor={theme.colors.textTertiary}
               value={name}
               onChangeText={setName}
             />
@@ -41,6 +45,7 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Leírás (opcionális)"
+              placeholderTextColor={theme.colors.textTertiary}
               value={description}
               onChangeText={setDescription}
               multiline

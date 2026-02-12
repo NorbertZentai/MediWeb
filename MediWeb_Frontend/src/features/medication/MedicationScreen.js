@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, useWindowDimensions, StatusBar } from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, useWindowDimensions, StatusBar, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomDropdown from "components/CustomDropdown";
 import RenderHtml from "react-native-render-html";
@@ -9,10 +9,10 @@ import { addToFavorites, addMedicationToProfile, getMedicationsForProfile, remov
 import { submitReview, updateReview } from "features/review/review.api";
 import ReviewSection from "features/review/ReviewSection";
 import { useMedicationService } from "./MedicationService";
-import { styles } from "./MedicationScreen.style";
+import { createStyles } from "./MedicationScreen.style";
 import { toast } from "utils/toast";
 import Navbar from "components/Navbar";
-import { theme } from "styles/theme";
+import { useTheme } from "contexts/ThemeContext";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -21,6 +21,9 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 export default function MedicationDetailsScreen() {
   const { id: itemId } = useLocalSearchParams();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const {
     data,
     reviews,
@@ -123,7 +126,7 @@ export default function MedicationDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       <Navbar />
       <View style={styles.backButtonRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -238,7 +241,7 @@ export default function MedicationDetailsScreen() {
                 <TouchableOpacity
                   key={i}
                   style={styles.iconButton}
-                  onPress={() => window.open(doc.url, "_blank")}
+                  onPress={() => Linking.openURL(doc.url)}
                 >
                   <View style={styles.iconCircle}>
                     <FontAwesome5 name={doc.icon} size={20} color={theme.colors.primary} />
@@ -368,6 +371,7 @@ export default function MedicationDetailsScreen() {
               }
             }}
             updateReview={handleUpdateReview}
+            theme={theme}
           />
         </View>
       </ScrollView>
@@ -378,6 +382,8 @@ export default function MedicationDetailsScreen() {
 /* ===== Helper Components ===== */
 
 function AllergyBadge({ label, contains }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={[styles.allergyBadge, contains ? styles.allergyBadgeYes : styles.allergyBadgeNo]}>
       <FontAwesome5
@@ -393,6 +399,8 @@ function AllergyBadge({ label, contains }) {
 }
 
 function InfoItem({ label, value }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={styles.gridItem}>
       <FontAwesome5
@@ -407,6 +415,8 @@ function InfoItem({ label, value }) {
 }
 
 function Detail({ label, value }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -416,6 +426,8 @@ function Detail({ label, value }) {
 }
 
 function Accordion({ title, isOpen, onToggle, children }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={styles.accordionWrapper}>
       <TouchableOpacity onPress={onToggle} style={styles.accordionHeader} activeOpacity={0.7}>

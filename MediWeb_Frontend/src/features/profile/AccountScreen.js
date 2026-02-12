@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
     View,
     Text,
@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { toast } from "utils/toast";
-import { theme } from "styles/theme";
+import { useTheme } from "contexts/ThemeContext";
 import defaultAvatar from "assets/default-avatar.jpg";
 import {
     updateUsername,
@@ -25,6 +25,8 @@ import {
 } from "features/profile/profile.api";
 
 export default function AccountScreen() {
+    const { theme } = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
     const [loading, setLoading] = useState(true);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -264,7 +266,7 @@ export default function AccountScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: theme.colors.background,
@@ -384,8 +386,10 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 14,
         borderRadius: theme.borderRadius.md,
-        backgroundColor: theme.colors.divider,
+        backgroundColor: theme.colors.backgroundElevated,
         alignItems: "center",
+        borderWidth: 1,
+        borderColor: theme.colors.border,
     },
     cancelBtnText: {
         fontSize: theme.fontSize.base,

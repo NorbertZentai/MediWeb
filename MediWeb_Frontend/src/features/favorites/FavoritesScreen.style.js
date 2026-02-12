@@ -1,0 +1,160 @@
+import { StyleSheet } from "react-native";
+
+export const createStyles = (theme) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    content: {
+        padding: theme.spacing.md,
+        paddingBottom: 100,
+    },
+    header: {
+        marginBottom: theme.spacing.lg,
+    },
+    headerTitle: {
+        fontSize: theme.fontSize.xxxl,
+        fontWeight: theme.fontWeight.extrabold,
+        color: theme.colors.textPrimary,
+        marginBottom: theme.spacing.xs,
+    },
+    headerSubtitle: {
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textSecondary,
+    },
+    loadingContainer: {
+        paddingVertical: 80,
+        alignItems: 'center',
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 80,
+    },
+    emptyTitle: {
+        fontSize: theme.fontSize.xl,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textPrimary,
+        marginTop: theme.spacing.lg,
+        marginBottom: theme.spacing.sm,
+    },
+    emptySubtitle: {
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textSecondary,
+        textAlign: 'center',
+        marginBottom: theme.spacing.xl,
+        paddingHorizontal: theme.spacing.xl,
+    },
+    primaryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        backgroundColor: theme.colors.primary,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: theme.borderRadius.md,
+        ...theme.shadows.sm,
+    },
+    primaryButtonText: {
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.white,
+    },
+    list: {
+        gap: theme.spacing.sm,
+    },
+    card: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.colors.backgroundCard,
+        padding: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        ...theme.shadows.sm,
+    },
+    cardIconWrapper: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: theme.colors.primaryLight,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: theme.spacing.md,
+    },
+    cardContent: {
+        flex: 1,
+    },
+    cardTitle: {
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textPrimary,
+        lineHeight: 22,
+    },
+    deleteIconButton: {
+        padding: theme.spacing.sm,
+        marginLeft: theme.spacing.sm,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: theme.components?.modal?.overlay || 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: theme.spacing.xl,
+    },
+    modalContainer: {
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.lg,
+        padding: theme.spacing.lg,
+        width: '100%',
+        maxWidth: 340,
+        alignItems: 'center',
+        ...theme.shadows.lg,
+    },
+    modalTitle: {
+        fontSize: theme.fontSize.lg,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.textPrimary,
+        marginBottom: theme.spacing.sm,
+        textAlign: 'center',
+    },
+    modalSubtitle: {
+        fontSize: theme.fontSize.sm,
+        color: theme.colors.textSecondary,
+        marginBottom: theme.spacing.lg,
+        textAlign: 'center',
+    },
+    modalActions: {
+        flexDirection: 'row',
+        gap: theme.spacing.sm,
+        width: '100%',
+    },
+    cancelButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textSecondary,
+    },
+    deleteButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: theme.borderRadius.md,
+        backgroundColor: theme.colors.error,
+        alignItems: 'center',
+    },
+    deleteButtonText: {
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.white,
+    },
+});

@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { styles } from "../ProfileScreen.style";
-import { theme } from "styles/theme";
+import { createStyles } from "../ProfileScreen.style";
+import { useTheme } from "contexts/ThemeContext";
 
 const tabs = [
   { key: "profiles", label: "Profilok", icon: "user-friends" },
@@ -13,6 +13,9 @@ const tabs = [
 ];
 
 export default function ProfileTabs({ selectedTab, onTabChange }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   return (
     <ScrollView
       horizontal

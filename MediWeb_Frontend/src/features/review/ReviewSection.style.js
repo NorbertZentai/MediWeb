@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
-import { theme } from "styles/theme";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   reviewSection: {
     marginTop: 32,
     padding: 28,
@@ -56,6 +55,7 @@ export const styles = StyleSheet.create({
     width: 28,
     fontWeight: theme.fontWeight.semibold,
     textAlign: "left",
+    color: theme.colors.textPrimary,
   },
   barBackground: {
     height: 10,
@@ -87,6 +87,7 @@ export const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.semibold,
     marginBottom: 6,
     marginTop: 12,
+    color: theme.colors.textPrimary,
   },
   starPicker: {
     flexDirection: "row",
@@ -97,9 +98,10 @@ export const styles = StyleSheet.create({
     padding: 14,
     fontSize: theme.fontSize.base,
     borderRadius: theme.borderRadius.sm,
-    borderColor: theme.colors.borderDark,
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    backgroundColor: theme.colors.backgroundCard,
+    backgroundColor: theme.colors.backgroundElevated,
+    color: theme.colors.textPrimary,
     marginBottom: 14,
   },
   reviewButton: {
@@ -116,7 +118,7 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.base,
   },
   disabledButton: {
-    backgroundColor: theme.colors.secondaryLight,
+    backgroundColor: theme.colors.textTertiary,
   },
   reviewCard: {
     backgroundColor: theme.colors.backgroundElevated,
@@ -181,7 +183,7 @@ export const styles = StyleSheet.create({
     maxWidth: 300,
   },
   loginNotice: {
-    backgroundColor: "#FEF9C3",
+    backgroundColor: theme.colors.warningLight || "#FEF9C3",
     color: theme.colors.textSecondary,
     borderWidth: 1,
     borderColor: theme.colors.warning,

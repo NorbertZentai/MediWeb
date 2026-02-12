@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { styles } from "../ProfilesTab.style";
-import { theme } from "styles/theme";
+import { createStyles } from "../ProfilesTab.style";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function MedicationCard({ medication, onEditNote, onDelete }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const handleDelete = async () => {
     try {
       await onDelete();

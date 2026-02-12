@@ -1,314 +1,163 @@
-import { StyleSheet, Dimensions } from "react-native";
-import { theme } from "styles/theme";
+import { StyleSheet, Platform } from "react-native";
 
-const { width } = Dimensions.get('window');
-
-export const styles = StyleSheet.create({
-  // --- Main Container ---
+export const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    padding: theme.spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 70 : 60,
     paddingBottom: 100,
   },
-
-  tabContent: {
-    flex: 1,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-  },
-
-  // --- Header ---
-  header: {
-    backgroundColor: theme.colors.backgroundCard,
-    paddingTop: 20,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    ...theme.shadows.md,
-  },
-
-  headerTop: {
+  userCard: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    backgroundColor: theme.colors.backgroundCard,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
-
-  imageWrapper: {
-    position: "relative",
-  },
-
-  profileImage: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: theme.colors.border,
     borderWidth: 3,
     borderColor: theme.colors.primaryMuted,
   },
-
-  editImageButton: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.white,
-  },
-
-  headerInfo: {
+  userInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 14,
   },
-
   userName: {
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.textPrimary,
-    marginBottom: 4,
   },
-
   userEmail: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
+    marginTop: 2,
   },
-
-  // --- Info Cards ---
-  infoCardsContainer: {
-    gap: 10,
-  },
-
-  infoCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.backgroundElevated,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-
-  infoCardIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: theme.colors.primaryMuted,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-
-  infoCardContent: {
-    flex: 1,
-  },
-
-  infoCardLabel: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textTertiary,
-    marginBottom: 2,
-  },
-
-  infoCardValue: {
-    fontSize: 15,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-  },
-
-  infoCardEditButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // --- Tabs ---
-  tabsScrollView: {
-    backgroundColor: theme.colors.backgroundCard,
-    marginTop: 16,
-    marginHorizontal: 16,
-    borderRadius: theme.borderRadius.lg,
-    ...theme.shadows.sm,
-  },
-
-  tabs: {
-    flexDirection: "row",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    gap: 6,
-  },
-
-  tabButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: "transparent",
-  },
-
-  tabButtonActive: {
-    backgroundColor: theme.colors.primaryMuted,
-  },
-
-  tabLabel: {
-    fontSize: 13,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textSecondary,
-  },
-
-  tabLabelActive: {
-    color: theme.colors.primary,
-  },
-
-  // --- Modal ---
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: theme.components.modal.overlay,
-    justifyContent: "flex-end",
-    zIndex: 999,
-  },
-
-  modalBox: {
-    backgroundColor: theme.components.modal.background,
-    borderTopLeftRadius: theme.components.modal.borderRadius,
-    borderTopRightRadius: theme.components.modal.borderRadius,
-    padding: theme.spacing.lg,
-    paddingBottom: 40,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-
-  modalHandle: {
+  editButton: {
     width: 40,
-    height: 4,
-    backgroundColor: theme.components.modal.handleColor,
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: 20,
-  },
-
-  modalTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.textPrimary,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-
-  modalInput: {
-    backgroundColor: theme.components.input.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    height: 40,
     borderRadius: theme.borderRadius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    fontSize: theme.fontSize.base,
-    color: theme.colors.textPrimary,
-    marginBottom: 12,
-  },
-
-  modalActions: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
-  },
-
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.divider,
+    justifyContent: "center",
     alignItems: "center",
   },
-
-  cancelButtonText: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textSecondary,
-  },
-
-  saveButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: theme.colors.primary,
-    alignItems: "center",
-  },
-
-  saveButtonText: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.white,
-  },
-
-  uploadButton: {
-    backgroundColor: theme.colors.primaryMuted,
-    paddingVertical: 40,
+  menuContainer: {
+    backgroundColor: theme.colors.backgroundCard,
     borderRadius: theme.borderRadius.lg,
+    overflow: "hidden",
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
+  },
+  menuItem: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    borderStyle: "dashed",
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
   },
-
-  uploadText: {
-    color: theme.colors.primary,
-    fontWeight: theme.fontWeight.semibold,
+  menuItemFirst: {
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+  },
+  menuItemLast: {
+    borderBottomWidth: 0,
+    borderBottomLeftRadius: theme.borderRadius.lg,
+    borderBottomRightRadius: theme.borderRadius.lg,
+  },
+  menuIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.primaryMuted,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  menuTextWrapper: {
+    flex: 1,
+  },
+  menuLabel: {
     fontSize: theme.fontSize.base,
-    marginTop: 8,
-  },
-
-  previewFilename: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-
-  // Legacy support
-  label: {
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.sm,
-    marginRight: 4,
-  },
-  value: {
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
+  },
+  menuDescription: {
+    fontSize: theme.fontSize.xs + 1,
+    color: theme.colors.textTertiary,
+    marginTop: 2,
+  },
+  sectionCard: {
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm + 4,
+  },
+  sectionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+  },
+  sectionAction: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.primary,
+  },
+  emptyState: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textTertiary,
+    textAlign: "center",
+    paddingVertical: theme.spacing.md,
+  },
+  horizontalCard: {
+    width: 140,
+    height: 100,
+    backgroundColor: theme.colors.backgroundElevated,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm + 4,
+    marginRight: theme.spacing.sm + 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  horizontalCardTitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    textAlign: "center",
+  },
+  reviewItem: {
+    paddingVertical: theme.spacing.sm + 4,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  reviewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  reviewMedication: {
+    flex: 1,
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
-  editIcon: {
-    marginLeft: 6,
-    color: theme.colors.textSecondary,
-  },
-  inlineInfoRow: {
-    display: "none",
-  },
-  imageOverlay: {
-    display: "none",
-  },
-  inlineInfoItem: {
-    display: "none",
+  reviewRating: {
+    flexDirection: "row",
+    gap: 2,
   },
 });

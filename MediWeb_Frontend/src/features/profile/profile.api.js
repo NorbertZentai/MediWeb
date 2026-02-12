@@ -139,6 +139,20 @@ export const submitIntake = async ({ profileMedicationId, time, taken }) => {
   return api.post("/api/intake", { profileMedicationId, time, taken });
 };
 
+// PUSH NOTIFICATIONS
+
+export const registerPushToken = async (token) => {
+  const response = await api.post(`/api/notifications/push-token`, { token });
+  return response.data;
+};
+
+export const unregisterPushToken = async (token) => {
+  const response = await api.delete(`/api/notifications/push-token`, {
+    data: { token },
+  });
+  return response.data;
+};
+
 // SETTINGS
 
 export const fetchUserPreferences = async () => {

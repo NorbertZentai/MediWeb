@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
-import { theme } from "styles/theme";
 
-export const styles = StyleSheet.create({
+export const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -19,6 +18,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     gap: 16,
+    ...theme.shadows.sm,
   },
   sectionHeader: {
     gap: 6,
@@ -32,6 +32,40 @@ export const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     lineHeight: 20,
+  },
+  subsectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
+  },
+  subsectionTitle: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textSecondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: 4,
+  },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: theme.colors.primaryMuted || theme.colors.backgroundElevated,
+    borderRadius: theme.borderRadius.md,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + "30",
+  },
+  infoBoxText: {
+    flex: 1,
+    fontSize: 13,
+    color: theme.colors.primary,
+    lineHeight: 18,
   },
   comingSoonText: {
     fontSize: 13,
@@ -70,7 +104,7 @@ export const styles = StyleSheet.create({
   },
   pill: {
     borderWidth: 1,
-    borderColor: theme.colors.borderDark,
+    borderColor: theme.colors.border || theme.colors.borderDark,
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -89,11 +123,11 @@ export const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   pillLabelActive: {
-    color: theme.colors.primaryDark,
+    color: theme.colors.primaryDark || theme.colors.primary,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: theme.colors.borderDark,
+    borderColor: theme.colors.border || theme.colors.borderDark,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -137,6 +171,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 28,
     alignItems: "center",
+    ...theme.shadows.sm,
   },
   saveButtonDisabled: {
     opacity: 0.5,
@@ -149,7 +184,7 @@ export const styles = StyleSheet.create({
   actionButton: {
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: theme.colors.borderDark,
+    borderColor: theme.colors.border || theme.colors.borderDark,
     paddingVertical: 12,
     alignItems: "center",
     backgroundColor: theme.colors.backgroundElevated,

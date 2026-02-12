@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
     View,
     Text,
@@ -12,7 +12,8 @@ import {
     Platform,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { theme } from "styles/theme";
+import { createStyles } from "./CustomDropdown.style";
+import { useTheme } from "contexts/ThemeContext";
 
 /**
  * A custom, styled dropdown replacement for @react-native-picker/picker.
@@ -33,6 +34,8 @@ export default function CustomDropdown({
     disabled = false,
     style,
 }) {
+    const { theme } = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
     const [open, setOpen] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -163,102 +166,3 @@ export default function CustomDropdown({
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        // no fixed width — controlled by parent
-    },
-
-    // Trigger button
-    trigger: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: theme.colors.backgroundCard,
-        borderRadius: theme.borderRadius.md,
-        borderWidth: 1.5,
-        borderColor: theme.colors.border,
-        paddingHorizontal: theme.spacing.md,
-        paddingVertical: 14,
-        minHeight: 52,
-        ...theme.shadows.sm,
-    },
-    triggerOpen: {
-        borderColor: theme.colors.primary,
-    },
-    triggerDisabled: {
-        backgroundColor: theme.colors.backgroundElevated,
-        borderColor: theme.colors.divider,
-    },
-    triggerText: {
-        flex: 1,
-        fontSize: theme.fontSize.base,
-        color: theme.colors.textPrimary,
-        fontWeight: theme.fontWeight.medium,
-        marginRight: theme.spacing.sm,
-    },
-    triggerPlaceholder: {
-        color: theme.colors.textTertiary,
-        fontWeight: theme.fontWeight.normal,
-    },
-    triggerTextDisabled: {
-        color: theme.colors.textTertiary,
-    },
-
-    // Modal overlay
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.35)",
-        justifyContent: "flex-end",
-    },
-
-    // Dropdown card (bottom sheet style)
-    dropdownCard: {
-        backgroundColor: theme.colors.backgroundCard,
-        borderTopLeftRadius: theme.borderRadius.xl,
-        borderTopRightRadius: theme.borderRadius.xl,
-        paddingTop: theme.spacing.sm,
-        paddingBottom: Platform.OS === "ios" ? 34 : theme.spacing.md,
-        maxHeight: Dimensions.get("window").height * 0.5,
-        ...theme.shadows.lg,
-    },
-    dropdownHandle: {
-        width: 40,
-        height: 4,
-        backgroundColor: theme.colors.border,
-        borderRadius: 2,
-        alignSelf: "center",
-        marginBottom: theme.spacing.sm,
-    },
-
-    list: {
-        paddingHorizontal: theme.spacing.md,
-    },
-
-    // Option items
-    option: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 16,
-        paddingHorizontal: theme.spacing.md,
-        borderRadius: theme.borderRadius.sm,
-    },
-    optionSelected: {
-        backgroundColor: theme.colors.primaryLight,
-    },
-    optionBorder: {
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.divider,
-    },
-    optionText: {
-        fontSize: theme.fontSize.base,
-        color: theme.colors.textPrimary,
-        fontWeight: theme.fontWeight.normal,
-        flex: 1,
-    },
-    optionTextSelected: {
-        color: theme.colors.primary,
-        fontWeight: theme.fontWeight.semibold,
-    },
-});

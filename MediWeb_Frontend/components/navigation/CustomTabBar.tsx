@@ -13,7 +13,7 @@ import {
     TAB_BAR_SHADOW,
     TAB_BAR_COLORS,
 } from './constants';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 // Icon mapping for tabs
 const TAB_ICONS: Record<string, string> = {
@@ -26,8 +26,9 @@ const TAB_ICONS: Record<string, string> = {
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
-    const colorScheme = useColorScheme();
-    const colors = TAB_BAR_COLORS[colorScheme ?? 'light'];
+    const { isDark } = useTheme();
+    const colorScheme = isDark ? 'dark' : 'light';
+    const colors = TAB_BAR_COLORS[colorScheme];
 
     // Track tab container width for indicator positioning
     const [containerWidth, setContainerWidth] = useState(0);
@@ -75,8 +76,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
         <View
             style={[
                 styles.container,
-                TAB_BAR_SHADOW,
-                { paddingBottom: bottomPadding },
+                { paddingBottom: bottomPadding, borderTopWidth: 0, elevation: 0 },
             ]}
         >
             {/* Background - Blur on iOS, solid on Android */}
