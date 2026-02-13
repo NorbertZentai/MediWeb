@@ -78,10 +78,12 @@ export default function MedicationDetailsScreen() {
       <RenderHtml
         contentWidth={contentWidth - 64}
         source={{ html }}
+        baseStyle={{ color: theme.colors.textSecondary }}
         tagsStyles={{
-          p: { marginVertical: 4, color: theme.colors.textSecondary },
+          p: { marginVertical: 4 },
           ul: { marginLeft: 16 },
           li: { marginVertical: 2 },
+          a: { color: theme.colors.primary },
         }}
       />
     ) : null;

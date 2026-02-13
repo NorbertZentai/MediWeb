@@ -414,22 +414,23 @@ export default function StatisticsTab() {
               )}
             </View>
 
-            <View style={[styles.card, { alignItems: 'center' }]}>
-              <View style={[styles.cardHeader, { alignItems: 'center' }]}>
-                <Text style={[styles.cardTitle, { textAlign: 'center' }]}>Gyógyszer kategóriák</Text>
-                <Text style={[styles.cardSubtitle, { textAlign: 'center' }]}>Megoszlás kategóriánként</Text>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Gyógyszer kategóriák</Text>
+                <Text style={styles.cardSubtitle}>Megoszlás kategóriánként</Text>
               </View>
               {categoryChartData.length ? (
                 <>
                   <View style={styles.chartWrapper}>
                     <PieChart
                       data={categoryChartData}
-                      width={chartWidth}
+                      width={Math.max(240, chartWidth - 60)}
                       height={220}
                       chartConfig={chartConfig}
                       accessor="population"
                       backgroundColor="transparent"
-                      paddingLeft="8"
+                      paddingLeft="0"
+                      center={[Math.max(240, chartWidth - 60) / 4, 0]}
                       absolute
                       hasLegend={false}
                     />
