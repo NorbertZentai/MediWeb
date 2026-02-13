@@ -494,7 +494,7 @@ export default function HomeScreen() {
     <View style={styles.pageWrapper}>
       <ScrollView
         style={styles.page}
-        contentContainerStyle={styles.pageContent}
+        contentContainerStyle={[styles.pageContent, isMobile && { paddingHorizontal: 16 }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -504,7 +504,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={styles.contentWrapper}>
+        <View style={[styles.contentWrapper, isMobile && { paddingTop: 24 }]}>
           <View style={styles.heroCard}>
             <View style={styles.heroText}>
               <Text style={styles.heroTitle}>Üdv, {user?.name || 'felhasználó'}!</Text>
@@ -641,9 +641,9 @@ export default function HomeScreen() {
             <>
               <View style={styles.summaryRow}>
                 {summaryCards.map((card) => (
-                  <View key={card.title} style={styles.summaryCard}>
-                    <Text style={styles.cardLabel}>{card.title}</Text>
-                    <Text style={styles.cardValue}>{card.value}</Text>
+                  <View key={card.title} style={[styles.summaryCard, isMobile && { minWidth: '44%', flexBasis: '44%' }]}>
+                    <Text style={styles.cardLabel} numberOfLines={1}>{card.title}</Text>
+                    <Text style={styles.cardValue} numberOfLines={1}>{card.value}</Text>
                   </View>
                 ))}
               </View>
@@ -652,7 +652,7 @@ export default function HomeScreen() {
                 <View style={[styles.leftColumn, isMobile && { flex: 1, marginRight: 0, marginBottom: 16 }]}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
+                      <Text style={styles.sectionTitle} numberOfLines={1}>Népszerű gyógyszerek</Text>
                       <TouchableOpacity onPress={() => router.push('/search')}>
                         <Text style={styles.sectionAction}>Összes keresése</Text>
                       </TouchableOpacity>
@@ -670,14 +670,14 @@ export default function HomeScreen() {
                               }
                             }}
                           >
-                            <Text style={styles.popularCardTitle}>{medication.name}</Text>
+                            <Text style={styles.popularCardTitle} numberOfLines={2}>{medication.name}</Text>
                             {medication.searchCount !== undefined && (
                               <Text style={styles.popularCardMeta}>
                                 {medication.searchCount} keresés
                               </Text>
                             )}
                             {medication.shortDescription && (
-                              <Text style={styles.popularCardDescription}>
+                              <Text style={styles.popularCardDescription} numberOfLines={3}>
                                 {medication.shortDescription}
                               </Text>
                             )}
@@ -693,16 +693,25 @@ export default function HomeScreen() {
 
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>Mai gyógyszerbevétel</Text>
+                      <Text style={styles.sectionTitle} numberOfLines={1}>Mai gyógyszerbevétel</Text>
                     </View>
                     {dashboard.todaysMedications?.length ? (
                       dashboard.todaysMedications.map((med) => (
-                        <View
+                        <TouchableOpacity
                           key={med.profileMedicationId || med.medicationName}
                           style={styles.todayCard}
+                          activeOpacity={0.7}
+                          onPress={() => {
+                            const query = med.profileId
+                              ? `?profileId=${med.profileId}`
+                              : med.profileName
+                                ? `?profileName=${encodeURIComponent(med.profileName)}`
+                                : '';
+                            router.push(`/profile/intake${query}`);
+                          }}
                         >
                           <View style={styles.todayCardHeader}>
-                            <Text style={styles.todayCardTitle}>{med.medicationName}</Text>
+                            <Text style={styles.todayCardTitle} numberOfLines={1}>{med.medicationName}</Text>
                             <Text style={styles.todayCardProfile}>{med.profileName}</Text>
                           </View>
                           <View style={styles.timeRow}>
@@ -728,7 +737,7 @@ export default function HomeScreen() {
                               );
                             })}
                           </View>
-                        </View>
+                        </TouchableOpacity>
                       ))
                     ) : (
                       <Text style={styles.emptyState}>
@@ -741,11 +750,11 @@ export default function HomeScreen() {
                 <View style={[styles.rightColumn, isMobile && { flex: 1 }]}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>Következő emlékeztető</Text>
+                      <Text style={styles.sectionTitle} numberOfLines={1}>Következő emlékeztető</Text>
                     </View>
                     {dashboard.upcomingReminder ? (
                       <View style={styles.reminderCard}>
-                        <Text style={styles.reminderTitle}>
+                        <Text style={styles.reminderTitle} numberOfLines={2}>
                           {dashboard.upcomingReminder.medicationName}
                         </Text>
                         <Text style={styles.reminderInfo}>
@@ -759,7 +768,7 @@ export default function HomeScreen() {
 
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>Gyors műveletek</Text>
+                      <Text style={styles.sectionTitle} numberOfLines={1}>Gyors műveletek</Text>
                     </View>
                     <View style={styles.quickActions}>
                       {quickActions.map((action) => (

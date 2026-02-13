@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { getProfilesForUser, getTodaysMedications, submitIntake } from "features/profile/profile.api";
 import { createStyles } from "./ProfilesTab.style";
 import { useTheme } from "contexts/ThemeContext";
@@ -7,6 +8,7 @@ import { useTheme } from "contexts/ThemeContext";
 export default function IntakeTab() {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const { profileId, profileName } = useLocalSearchParams();
   const [profiles, setProfiles] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [medications, setMedications] = useState([]);
@@ -16,15 +18,19 @@ export default function IntakeTab() {
       try {
         const data = await getProfilesForUser();
         setProfiles(data);
-        if (data.length > 0) {
-          setSelectedProfile(data[0]);
-        }
+        const targetId = profileId ? Number(profileId) : null;
+        const match = targetId
+          ? data.find((p) => p.id === targetId)
+          : profileName
+            ? data.find((p) => p.name === profileName)
+            : null;
+        setSelectedProfile(match || data[0] || null);
       } catch (error) {
         console.error("Hiba a profilok betöltésekor:", error);
       }
     };
     fetchProfiles();
-  }, []);
+  }, [profileId, profileName]);
 
   useEffect(() => {
     if (!selectedProfile) return;

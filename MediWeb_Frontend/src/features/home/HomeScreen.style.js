@@ -72,6 +72,7 @@ export const createStyles = (theme) => StyleSheet.create({
     flexGrow: 1,
     flexBasis: 0,
     minWidth: 200,
+    overflow: 'hidden',
     ...theme.shadows.md,
     marginHorizontal: 8,
     marginBottom: 16,
@@ -87,6 +88,7 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: 26,
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.textPrimary,
+    flexShrink: 1,
   },
   gridRow: {
     flexDirection: 'row',
@@ -104,6 +106,7 @@ export const createStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.colors.backgroundCard,
     borderRadius: 22,
     padding: 24,
+    overflow: 'hidden',
     ...theme.shadows.md,
     marginBottom: 24,
   },
@@ -117,11 +120,13 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
+    flex: 1,
   },
   sectionAction: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.primary,
+    flexShrink: 0,
   },
   popularCard: {
     width: 260,
@@ -129,6 +134,7 @@ export const createStyles = (theme) => StyleSheet.create({
     padding: 18,
     backgroundColor: theme.colors.backgroundElevated,
     borderRadius: 18,
+    overflow: 'hidden',
   },
   popularCardTitle: {
     fontSize: theme.fontSize.base,
@@ -202,10 +208,13 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
+    flex: 1,
   },
   todayCardProfile: {
     fontSize: 13,
     color: theme.colors.textTertiary,
+    flexShrink: 0,
+    marginLeft: 8,
   },
   timeRow: {
     flexDirection: 'row',
