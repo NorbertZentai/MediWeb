@@ -14,6 +14,9 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingBottom: 100,
     paddingTop: 12,
     gap: 20,
+    width: "100%",
+    maxWidth: 1000,
+    alignSelf: "center",
   },
   headerRow: {
     flexDirection: "row",

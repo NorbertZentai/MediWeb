@@ -142,11 +142,41 @@ export default function MedicationDetailsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View style={styles.contentWrapper}>
-          {/* Cím */}
-          <Text style={styles.title}>{data.name}</Text>
-          <Text style={styles.subtitle}>
-            Hatóanyag: {data.substance} {data.atcCode ? `• ATC: ${data.atcCode}` : ""}
-          </Text>
+          {/* Header with title and favorite button */}
+          <View style={styles.headerRow}>
+            <View style={styles.headerTextWrapper}>
+              <Text style={styles.title}>{data.name}</Text>
+              <Text style={styles.subtitle}>
+                Hatóanyag: {data.substance} {data.atcCode ? `• ATC: ${data.atcCode}` : ""}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+              onPress={async () => {
+                try {
+                  if (isFavorite && favoriteId) {
+                    await removeFromFavorites(favoriteId);
+                    setIsFavorite(false);
+                    setFavoriteId(null);
+                    toast.success("Eltávolítva a kedvencek közül.");
+                  } else {
+                    const res = await addToFavorites(itemId);
+                    setIsFavorite(true);
+                    setFavoriteId(res.id);
+                    toast.success("Hozzáadva a kedvencekhez.");
+                  }
+                } catch (e) {
+                  toast.error("Nem sikerült módosítani a kedvencek listát.");
+                  console.error(e);
+                }
+              }}
+            >
+              <FontAwesome5 name="heart" size={18} solid={isFavorite} color={isFavorite ? theme.colors.favorite : theme.colors.textTertiary} />
+              <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
+                {isFavorite ? "Kedvencben van" : "Kedvencekhez adás"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Inaktív banner */}
           {data.active === false && (
@@ -157,34 +187,6 @@ export default function MedicationDetailsScreen() {
               </Text>
             </View>
           )}
-
-          {/* Kedvencek gomb */}
-          <TouchableOpacity
-            style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
-            onPress={async () => {
-              try {
-                if (isFavorite && favoriteId) {
-                  await removeFromFavorites(favoriteId);
-                  setIsFavorite(false);
-                  setFavoriteId(null);
-                  toast.success("Eltávolítva a kedvencek közül.");
-                } else {
-                  const res = await addToFavorites(itemId);
-                  setIsFavorite(true);
-                  setFavoriteId(res.id);
-                  toast.success("Hozzáadva a kedvencekhez.");
-                }
-              } catch (e) {
-                toast.error("Nem sikerült módosítani a kedvencek listát.");
-                console.error(e);
-              }
-            }}
-          >
-            <FontAwesome5 name="heart" size={18} solid={isFavorite} color={isFavorite ? theme.colors.favorite : theme.colors.textTertiary} />
-            <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
-              {isFavorite ? "Kedvencben van" : "Kedvencekhez adás"}
-            </Text>
-          </TouchableOpacity>
 
           {/* Profilhoz adás */}
           <View style={styles.profileRow}>

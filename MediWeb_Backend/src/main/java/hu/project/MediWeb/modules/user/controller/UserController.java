@@ -34,9 +34,9 @@ public class UserController {
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication == null || !authentication.isAuthenticated() || 
-            "anonymousUser".equals(authentication.getPrincipal())) {
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
             return null;
         }
 
@@ -54,7 +54,6 @@ public class UserController {
     public User createUser(@RequestBody User user) {
         return userService.saveUser(user);
     }
-
 
     @PutMapping("/username")
     public ResponseEntity<String> updateUsername(@RequestBody String username) {
@@ -160,13 +159,13 @@ public class UserController {
         return ResponseEntity.accepted().build();
     }
 
-    @PostMapping("/account-deletion")
-    public ResponseEntity<Void> requestAccountDeletion(@RequestBody(required = false) Object payload) {
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteCurrentUser() {
         User user = getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        userDataRequestService.submitRequest(user, UserDataRequestType.ACCOUNT_DELETION, payload);
-        return ResponseEntity.accepted().build();
+        userService.deleteUser(user.getId());
+        return ResponseEntity.noContent().build();
     }
 }

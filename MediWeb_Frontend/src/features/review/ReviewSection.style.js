@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 export const createStyles = (theme) => StyleSheet.create({
   reviewSection: {
@@ -103,6 +103,11 @@ export const createStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.colors.backgroundElevated,
     color: theme.colors.textPrimary,
     marginBottom: 14,
+    minHeight: 80,
+    ...(Platform.OS === "web" && {
+      resize: "vertical",
+      maxHeight: 300,
+    }),
   },
   reviewButton: {
     backgroundColor: theme.colors.primary,
