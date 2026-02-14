@@ -1,12 +1,14 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
 import { createStyles } from './HomeScreen.style';
@@ -485,7 +487,7 @@ export default function HomeScreen() {
 
   if (!user) {
     return (
-      <View style={styles.pageWrapper}>
+      <SafeAreaView style={styles.pageWrapper} edges={['top']}>
         <ScrollView
           style={styles.page}
           contentContainerStyle={styles.guestContent}
@@ -512,12 +514,12 @@ export default function HomeScreen() {
             </View>
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.pageWrapper}>
+    <SafeAreaView style={styles.pageWrapper} edges={['top']}>
       <ScrollView
         style={styles.page}
         contentContainerStyle={[styles.pageContent, isMobile && { paddingHorizontal: 16 }]}
@@ -530,7 +532,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={[styles.contentWrapper, isMobile && { paddingTop: 24 }]}>
+        <View style={[styles.contentWrapper, isMobile && { paddingTop: 12 }]}>
           <View style={styles.heroCard}>
             <View style={styles.heroText}>
               <Text style={styles.heroTitle}>Üdv, {user?.name || 'felhasználó'}!</Text>
@@ -831,6 +833,6 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

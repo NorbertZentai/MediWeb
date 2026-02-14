@@ -23,6 +23,9 @@ public interface MedicationRepository extends JpaRepository<Medication, Long>, J
 	@Query("select m.id from Medication m where m.imageUrl is null or m.imageUrl = ''")
 	List<Long> findIdsWithoutImage();
 
+	@Query("select m from Medication m where (m.imageUrl is null or m.imageUrl = '') and m.name is not null and m.name <> ''")
+	List<Medication> findMedicationsWithoutImage();
+
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("update Medication m set m.active = false")
 	int deactivateAll();

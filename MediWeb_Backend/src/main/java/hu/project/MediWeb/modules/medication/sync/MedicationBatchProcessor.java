@@ -92,7 +92,86 @@ public class MedicationBatchProcessor {
     }
 
     public void refreshMissingImages() {
-        processBatch(false, null, true);
+        refreshLocalImages();
+    }
+
+    /**
+     * Iterates over medications in our local DB that have no image,
+     * and fetches images from Google API only (no OGYEI scraping).
+     */
+    private void refreshLocalImages() {
+        log.info("🖼️ [IMAGE-SYNC] Starting local image sync — scanning local DB for medications without images");
+        cancellationRequested.set(false);
+
+        List<Medication> medications = medicationService.findMedicationsWithoutImage();
+        int total = medications.size();
+
+        if (total == 0) {
+            log.info("✅ [IMAGE-SYNC] All medications already have images — nothing to do");
+            statusTracker.markStarted(0, 2.0, parallelism, medicationService.countStoredMedications());
+            statusTracker.markDiscoveryComplete(0);
+            statusTracker.markFinished("Minden gyógyszerhez van már kép");
+            return;
+        }
+
+        log.info("🖼️ [IMAGE-SYNC] Found {} medications without images in local DB", total);
+        int persistedCount = medicationService.countStoredMedications();
+        statusTracker.markStarted(total, 2.0, parallelism, persistedCount);
+        statusTracker.markDiscoveryComplete(total);
+
+        ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, parallelism));
+        List<Future<?>> futures = new ArrayList<>();
+        AtomicInteger fetched = new AtomicInteger(0);
+        AtomicInteger skippedCount = new AtomicInteger(0);
+        AtomicInteger failedCount = new AtomicInteger(0);
+
+        try {
+            for (Medication med : medications) {
+                if (isCancellationRequested()) {
+                    break;
+                }
+                futures.add(executor.submit(() -> {
+                    if (isCancellationRequested() || Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+                    try {
+                        boolean found = medicationService.fetchImageForMedication(med);
+                        if (found) {
+                            fetched.incrementAndGet();
+                            statusTracker.incrementImageFetched();
+                            statusTracker.incrementProcessed(true, "✅ Kép mentve: " + med.getName());
+                        } else {
+                            skippedCount.incrementAndGet();
+                            statusTracker.incrementImageSkipped();
+                            statusTracker.incrementProcessed(true, "⏭️ Nincs kép: " + med.getName());
+                        }
+                    } catch (Exception ex) {
+                        failedCount.incrementAndGet();
+                        statusTracker.incrementProcessed(false, "❌ Hiba: " + med.getName() + " — " + ex.getMessage());
+                        log.error("❌ [IMAGE-SYNC] Unexpected error for medication id={}", med.getId(), ex);
+                    } finally {
+                        sleep(delayBetweenRequestsMs);
+                    }
+                }));
+            }
+        } finally {
+            if (isCancellationRequested()) {
+                cancelFutures(futures);
+            }
+            waitForFutures(futures);
+            shutdownExecutor(executor);
+
+            String summary = String.format(
+                    "Képszinkron kész — összesen: %d, képet találtunk: %d, nem találtunk: %d, hiba: %d",
+                    total, fetched.get(), skippedCount.get(), failedCount.get());
+            log.info("🖼️ [IMAGE-SYNC] {}", summary);
+
+            if (isCancellationRequested()) {
+                statusTracker.markCancelled("Képszinkron manuálisan leállítva", medicationService.countStoredMedications());
+            } else {
+                statusTracker.markFinished(summary);
+            }
+        }
     }
 
     private void processBatch(boolean forceResync, Integer limitOverride, boolean onlyMissingImages) {

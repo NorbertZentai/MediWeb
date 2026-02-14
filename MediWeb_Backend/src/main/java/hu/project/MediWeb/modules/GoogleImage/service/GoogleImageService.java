@@ -25,14 +25,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Service
 public class GoogleImageService {
 
-    private static final long MIN_DELAY_MS = 1000L;
+    private static final long MIN_DELAY_MS = 100L;
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(45);
 
     private final WebClient webClient;
     private final GoogleConfig googleConfig;
     private final ReentrantLock rateLimitLock = new ReentrantLock();
     private final ReentrantLock quotaLock = new ReentrantLock();
-    private final Semaphore inFlightSemaphore = new Semaphore(1, true);
+    // Permit 3 concurrent requests (rate limiter enforces 20 req/min ceiling)
+    private final Semaphore inFlightSemaphore = new Semaphore(3, true);
     private volatile long lastRequestAtMs = 0L;
     private volatile long minuteWindowStartMs = 0L;
     private volatile int minuteRequestCount = 0;
@@ -136,7 +137,11 @@ public class GoogleImageService {
                 .retrieve()
                 .bodyToMono(GoogleSearchResponse.class)
                 .map(resp -> {
-                    System.out.println("✅ [GOOGLE-IMG] Successfully found images for: " + enhancedQuery);
+                    if (resp.items() == null || resp.items().isEmpty()) {
+                        System.out.println("⚠️ [GOOGLE-IMG] No results returned for: " + enhancedQuery);
+                        return (GoogleImageResult) null;
+                    }
+                    System.out.println("✅ [GOOGLE-IMG] Successfully found " + resp.items().size() + " images for: " + enhancedQuery);
                     return resp.items().stream()
                             .map(item -> new GoogleImageResult(item.title(), item.link(), item.displayLink()))
                             .max(Comparator.comparingInt(image -> score(query, image)))
