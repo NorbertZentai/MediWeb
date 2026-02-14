@@ -13,7 +13,7 @@ import { createStyles } from './HomeScreen.style';
 import { useTheme } from 'contexts/ThemeContext';
 import { getHomeDashboard, getPopularMedications } from './home.api';
 import { haptics } from 'utils/haptics';
-import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync } from 'features/medication/medication.api';
+import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync, startImageSync } from 'features/medication/medication.api';
 
 const DEFAULT_DASHBOARD_TEMPLATE = {
   summary: {
@@ -81,6 +81,7 @@ export default function HomeScreen() {
   const [isStoppingSync, setIsStoppingSync] = useState(false);
   const [manualSyncError, setManualSyncError] = useState(null);
   const [pendingStartType, setPendingStartType] = useState(null);
+  const [isImageSyncStarting, setIsImageSyncStarting] = useState(false);
 
   const fetchSyncStatus = useCallback(async () => {
     try {
@@ -95,7 +96,7 @@ export default function HomeScreen() {
         return status;
       }
     } catch (statusError) {
-      console.error('Gyógyszer adatbázis szinkron státusz lekérdezési hiba:', statusError);
+      console.error('Gyógyszer adatbázis szinkron státusz lekérdezési hiba:', statusError.message || 'Unknown error');
     }
     return null;
   }, []);
@@ -130,7 +131,7 @@ export default function HomeScreen() {
               : popular?.medications || popular?.data || [];
             data.popularMedications = popularList;
           } catch (popularError) {
-            console.warn('Popular medications endpoint is not available yet.', popularError);
+            console.warn('Popular medications endpoint is not available yet.', popularError.message || 'Unknown error');
           }
         }
 
@@ -143,7 +144,7 @@ export default function HomeScreen() {
         setErrorMessage(null);
         await fetchSyncStatus();
       } catch (dashboardError) {
-        console.error('Dashboard betöltési hiba:', dashboardError);
+        console.error('Dashboard betöltési hiba:', dashboardError.message || 'Unknown error');
         setDashboard(createDefaultDashboard());
         setErrorMessage('Nem sikerült betölteni a vezérlőpult adatait.');
       } finally {
@@ -237,7 +238,7 @@ export default function HomeScreen() {
         }));
         await fetchSyncStatus();
       } catch (error) {
-        console.error('Nem sikerült elindítani a gyógyszer szinkront:', error);
+        console.error('Nem sikerült elindítani a gyógyszer szinkront:', error.message || 'Unknown error');
         const message = limit !== null && limit !== undefined
           ? 'Nem sikerült elindítani a teszt szinkront.'
           : 'Nem sikerült elindítani a gyógyszer frissítést.';
@@ -258,6 +259,31 @@ export default function HomeScreen() {
     triggerSync({ force: false, limit: TEST_SYNC_LIMIT, variant: 'limited' });
   }, [triggerSync]);
 
+  const handleImageSync = useCallback(async () => {
+    if (isImageSyncStarting || isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested) {
+      return;
+    }
+
+    setIsImageSyncStarting(true);
+    setManualSyncError(null);
+    try {
+      await startImageSync();
+      setSyncStatus((prev) => ({
+        ...prev,
+        running: true,
+        cancellationRequested: false,
+        lastMessage: 'Képkeresés indítása...',
+        phase: 'ID_DISCOVERY',
+      }));
+      await fetchSyncStatus();
+    } catch (error) {
+      console.error('Nem sikerült elindítani a képkeresést:', error.message || 'Unknown error');
+      setManualSyncError('Nem sikerült elindítani a hiányzó képek keresését.');
+    } finally {
+      setIsImageSyncStarting(false);
+    }
+  }, [isImageSyncStarting, isStartingSync, isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
+
   const handleStopSync = useCallback(async () => {
     if (isStoppingSync || !syncStatus.running || syncStatus.cancellationRequested) {
       return;
@@ -275,7 +301,7 @@ export default function HomeScreen() {
       }));
       await fetchSyncStatus();
     } catch (error) {
-      console.error('Nem sikerült leállítani a gyógyszer szinkront:', error);
+      console.error('Nem sikerült leállítani a gyógyszer szinkront:', error.message || 'Unknown error');
       setManualSyncError('Nem sikerült leállítani a gyógyszer frissítést.');
     } finally {
       setIsStoppingSync(false);
@@ -596,6 +622,22 @@ export default function HomeScreen() {
                     <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
                     <Text style={styles.debugButtonText}>{`Debug: ${TEST_SYNC_LIMIT} elem teszt`}</Text>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.debugButton,
+                    styles.debugButtonStart,
+                    startDisabled && styles.debugButtonDisabled,
+                    { backgroundColor: '#8E24AA' }
+                  ]}
+                  onPress={handleImageSync}
+                  disabled={startDisabled}
+                >
+                  {isImageSyncStarting ? (
+                    <ActivityIndicator size="small" color={theme.colors.white} />
+                  ) : (
+                    <Text style={styles.debugButtonText}>Debug: Képkeresés (Hiányzók)</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity

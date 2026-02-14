@@ -102,3 +102,6 @@ CREATE TABLE IF NOT EXISTS user_data_requests (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP
 );
+
+-- Add recorded_at column to medication_intake_log for tracking when intake was recorded
+ALTER TABLE medication_intake_log ADD COLUMN IF NOT EXISTS recorded_at TIMESTAMP;

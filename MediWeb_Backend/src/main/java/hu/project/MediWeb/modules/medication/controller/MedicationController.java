@@ -106,6 +106,25 @@ public class MedicationController {
         return ResponseEntity.accepted().body(body);
     }
 
+    @PostMapping("/sync/images")
+    public ResponseEntity<Map<String, Object>> startImageSync() {
+        if (medicationSyncStatusTracker.isRunning()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of(
+                            "message", "A szinkronizáció már folyamatban van",
+                            "running", true));
+        }
+
+        CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshMissingImages());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "A hiányzó képek frissítése elindult");
+        body.put("running", true);
+        body.put("type", "MISSING_IMAGES");
+
+        return ResponseEntity.accepted().body(body);
+    }
+
     @PostMapping("/sync/stop")
     public ResponseEntity<Map<String, Object>> stopSync() {
         if (!medicationSyncStatusTracker.isRunning()) {

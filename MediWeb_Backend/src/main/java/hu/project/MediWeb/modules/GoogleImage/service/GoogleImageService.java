@@ -17,6 +17,7 @@ import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
@@ -98,7 +99,8 @@ public class GoogleImageService {
             return Mono.empty();
         }
 
-        System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + query);
+        String enhancedQuery = query + " gyógyszer doboz";
+        System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + enhancedQuery);
         return Mono.defer(() -> {
             final AtomicBoolean permitAcquired = new AtomicBoolean(false);
             try {
@@ -124,17 +126,19 @@ public class GoogleImageService {
                                 .queryParam("key", googleConfig.getKey())
                                 .queryParam("cx", googleConfig.getCx())
                                 .queryParam("searchType", "image")
-                                .queryParam("num", 5)
-                                .queryParam("q", query)
+                                .queryParam("imgType", "photo")
+                                .queryParam("lr", "lang_hu")
+                                .queryParam("num", 10)
+                                .queryParam("q", enhancedQuery)
                                 .build()
                 )
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(GoogleSearchResponse.class)
                 .map(resp -> {
-                    System.out.println("✅ [GOOGLE-IMG] Successfully found images for: " + query);
+                    System.out.println("✅ [GOOGLE-IMG] Successfully found images for: " + enhancedQuery);
                     return resp.items().stream()
-                            .map(item -> new GoogleImageResult(item.title(), item.link()))
+                            .map(item -> new GoogleImageResult(item.title(), item.link(), item.displayLink()))
                             .max(Comparator.comparingInt(image -> score(query, image)))
                             .orElse(null);
                 })
@@ -155,21 +159,87 @@ public class GoogleImageService {
         });
     }
 
+    private static final List<String> TRUSTED_DOMAINS = List.of(
+            "hazipatika.com", "patika24.hu", "benu.hu",
+            "pharmaclub.hu", "vatera.hu", "ogyei.gov.hu",
+            "gyogyszertarat.hu", "gyogyszertar.hu",
+            "egeszsegkalauz.hu", "webbeteg.hu"
+    );
+
+    private static final List<String> MED_URL_KEYWORDS = List.of(
+            "patika", "gyogyszer", "pharma", "medicina",
+            "egeszseg", "tablet", "kapszula"
+    );
+
+    private static final List<String> STOCK_SITES = List.of(
+            "shutterstock", "istockphoto", "gettyimages",
+            "dreamstime", "depositphotos", "123rf",
+            "stock.adobe", "freepik", "pixabay"
+    );
+
+    private static final List<String> NEGATIVE_TITLE_KEYWORDS = List.of(
+            "banner", "hirdetés", "promo", "logo", "icon",
+            "vector", "illusztráció", "stock photo", "clip art"
+    );
+
+    private static final List<String> FORM_KEYWORDS = List.of(
+            "tabletta", "kapszula", "filmtabletta", "mg",
+            "doboz", "csomag", "gyógyszer"
+    );
+
     private int score(String query, GoogleImageResult image) {
-        String lowerTitle = image.title().toLowerCase();
+        String lowerTitle = (image.title() != null ? image.title() : "").toLowerCase();
+        String lowerLink = (image.link() != null ? image.link() : "").toLowerCase();
+        String lowerDisplayLink = (image.displayLink() != null ? image.displayLink() : "").toLowerCase();
         String[] queryWords = query.toLowerCase().split("\\s+");
         int score = 0;
 
+        // 1. Cím egyezés — szavanként +10 (csak 3+ karakteres szavak)
         for (String word : queryWords) {
-            if (lowerTitle.contains(word)) {
+            if (word.length() >= 3 && lowerTitle.contains(word)) {
                 score += 10;
             }
         }
 
-        if (lowerTitle.contains("banner")) score -= 10;
-        if (lowerTitle.contains("hirdetés") || lowerTitle.contains("promo")) score -= 5;
-        if (lowerTitle.contains("100ml")) score += 3;
-        if (lowerTitle.contains("szuszpenzió")) score += 3;
+        // 2. Megbízható magyar gyógyszeres domain-ek — +25
+        for (String domain : TRUSTED_DOMAINS) {
+            if (lowerDisplayLink.contains(domain) || lowerLink.contains(domain)) {
+                score += 25;
+                break;
+            }
+        }
+
+        // 3. Gyógyszer-specifikus URL kulcsszavak — +8
+        for (String kw : MED_URL_KEYWORDS) {
+            if (lowerLink.contains(kw) || lowerDisplayLink.contains(kw)) {
+                score += 8;
+                break;
+            }
+        }
+
+        // 4. Negatív — stock fotó oldalak — -30
+        for (String stock : STOCK_SITES) {
+            if (lowerLink.contains(stock) || lowerDisplayLink.contains(stock)) {
+                score -= 30;
+                break;
+            }
+        }
+
+        // 5. Negatív — reklám / irreleváns cím tartalom — -10
+        for (String neg : NEGATIVE_TITLE_KEYWORDS) {
+            if (lowerTitle.contains(neg)) {
+                score -= 10;
+                break;
+            }
+        }
+
+        // 6. Pozitív — gyógyszerforma kulcsszavak a címben — +5
+        for (String form : FORM_KEYWORDS) {
+            if (lowerTitle.contains(form)) {
+                score += 5;
+                break;
+            }
+        }
 
         return score;
     }

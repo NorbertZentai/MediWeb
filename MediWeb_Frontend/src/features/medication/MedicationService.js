@@ -25,7 +25,7 @@ export function useMedicationService(medicationId) {
       setData(result);
       setError(null);
     } catch (e) {
-      console.error("Hiba a részletek betöltésekor:", e);
+      console.error("Hiba a részletek betöltésekor:", e.message || e);
 
       // Check if it's a 503 Service Unavailable error (timeout)
       if (e.response?.status === 503) {
@@ -62,7 +62,7 @@ export function useMedicationService(medicationId) {
       setAverageRating(res.averageRating || 0);
       setRatingDistribution(res.ratingDistribution || {});
     } catch (e) {
-      console.error("Hiba a review-k betöltésekor:", e);
+      console.error("Hiba a review-k betöltésekor:", e.message || e);
     }
   }, [medicationId]);
 
@@ -75,7 +75,7 @@ export function useMedicationService(medicationId) {
       setIsFavorite(!!fav);
       setFavoriteId(fav?.id || null);
     } catch (e) {
-      console.error("Hiba a kedvencek betöltésekor:", e);
+      console.error("Hiba a kedvencek betöltésekor:", e.message || e);
     }
   }, [medicationId]);
 
@@ -84,7 +84,7 @@ export function useMedicationService(medicationId) {
       const res = await getProfilesForUser();
       setProfiles(Array.isArray(res) ? res : []);
     } catch (e) {
-      console.error("Nem sikerült betölteni a profilokat:", e);
+      console.error("Nem sikerült betölteni a profilokat:", e.message || e);
     }
   }, []);
 
@@ -98,7 +98,7 @@ export function useMedicationService(medicationId) {
         await fetchProfiles();
       })
       .catch((e) => {
-        console.error("Nem sikerült betölteni a felhasználót:", e);
+        console.error("Nem sikerült betölteni a felhasználót:", e.message || e);
       });
   }, [fetchDetails, fetchReviews, fetchFavorites, fetchProfiles]);
 

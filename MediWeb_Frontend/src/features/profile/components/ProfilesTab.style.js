@@ -613,4 +613,51 @@ export const createStyles = (theme) => StyleSheet.create({
   intakeButtonTextProfileSelected: {
     color: theme.colors.white,
   },
+
+  // --- Missed Medications Section ---
+
+  missedSectionHeader: {
+    fontWeight: theme.fontWeight.bold,
+    fontSize: theme.fontSize.lg,
+    color: theme.colors.error,
+    marginTop: theme.spacing.xl,
+    marginBottom: theme.spacing.md,
+  },
+
+  missedScheduledText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+  },
+
+  missedTimeButton: {
+    backgroundColor: theme.colors.backgroundElevated,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    minWidth: 120,
+    alignItems: "center",
+  },
+
+  missedTimeButtonText: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+
+  missedSubmitButton: {
+    backgroundColor: theme.colors.secondary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginLeft: theme.spacing.sm,
+  },
+
+  missedSubmitButtonText: {
+    color: theme.colors.white,
+    fontWeight: theme.fontWeight.bold,
+    fontSize: theme.fontSize.sm,
+  },
 });
