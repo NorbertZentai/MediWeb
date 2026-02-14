@@ -11,6 +11,9 @@ export const createStyles = (theme) => StyleSheet.create({
     content: {
         padding: theme.spacing.md,
         paddingBottom: 100,
+        width: "100%",
+        maxWidth: 1000,
+        alignSelf: "center",
     },
     header: {
         marginBottom: theme.spacing.lg,

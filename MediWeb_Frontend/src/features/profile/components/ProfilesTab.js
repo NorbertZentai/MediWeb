@@ -82,7 +82,7 @@ export default function ProfilesTab() {
   return (
     <ScrollView
       style={[styles.tabContent, { padding: 0 }]}
-      contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+      contentContainerStyle={styles.profileListContent}
     >
       <TouchableOpacity style={styles.addProfileButton} onPress={() => setAddModalVisible(true)}>
         <Text style={styles.addProfileButtonText}>ÚJ PROFIL</Text>

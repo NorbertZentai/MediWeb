@@ -7,6 +7,13 @@ export const createStyles = (theme) => StyleSheet.create({
     padding: 20,
     backgroundColor: theme.colors.background,
   },
+  profileListContent: {
+    padding: 20,
+    paddingBottom: 100,
+    width: "100%",
+    maxWidth: 1000,
+    alignSelf: "center",
+  },
   centered: {
     flex: 1,
     alignItems: "center",
@@ -207,6 +214,12 @@ export const createStyles = (theme) => StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Default overlay color
     justifyContent: "flex-end",
   },
+  modalOverlayWeb: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+  },
   modalDeleteContainer: {
     backgroundColor: theme.colors.backgroundCard,
     borderTopLeftRadius: theme.borderRadius.xl,
@@ -237,6 +250,18 @@ export const createStyles = (theme) => StyleSheet.create({
     maxHeight: "90%",
     ...theme.shadows.lg,
   },
+  modalContainerWeb: {
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.xl,
+    paddingHorizontal: 20,
+    paddingTop: theme.borderRadius.md,
+    paddingBottom: 20,
+    width: "100%",
+    maxWidth: 500,
+    maxHeight: "85%",
+    ...theme.shadows.lg,
+    overflow: "hidden",
+  },
   editMedicationModalContainer: {
     backgroundColor: theme.colors.backgroundCard,
     borderTopLeftRadius: theme.borderRadius.xl,
@@ -246,6 +271,18 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingBottom: 40,
     maxHeight: "90%",
     ...theme.shadows.lg,
+  },
+  editMedicationModalWeb: {
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: theme.borderRadius.xl,
+    paddingHorizontal: 0,
+    paddingTop: theme.borderRadius.md,
+    paddingBottom: 20,
+    width: "100%",
+    maxWidth: 600,
+    maxHeight: "85%",
+    ...theme.shadows.lg,
+    overflow: "hidden", // Ensure content doesn't bleed
   },
   modalContent: {
     paddingBottom: theme.spacing.lg,
@@ -511,6 +548,9 @@ export const createStyles = (theme) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     flexGrow: 1,
+    width: "100%",
+    maxWidth: 1000,
+    alignSelf: "center",
   },
   intakeHeaderText: {
     fontWeight: theme.fontWeight.bold,

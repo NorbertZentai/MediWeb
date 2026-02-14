@@ -15,8 +15,9 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000", 
-            "https://mediweb-frontend.onrender.com" // Correct frontend URL from error log
+            "http://localhost:3000",
+            "http://localhost:8081",
+            "https://mediweb-frontend.onrender.com"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

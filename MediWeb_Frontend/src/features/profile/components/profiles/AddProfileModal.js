@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from "react-native";
 import { createStyles } from "../ProfilesTab.style";
 import { createProfile } from "features/profile/profile.api";
 import { toast } from 'utils/toast';
@@ -28,8 +28,8 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
 
   return (
     <Modal visible={true} transparent={true} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+      <View style={Platform.OS === 'web' ? styles.modalOverlayWeb : styles.modalOverlay}>
+        <View style={Platform.OS === 'web' ? styles.modalContainerWeb : styles.modalContainer}>
           <View style={styles.modalHandle} />
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Text style={styles.modalTitle}>Új profil létrehozása</Text>

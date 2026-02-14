@@ -97,4 +97,30 @@ export const createStyles = (theme) => StyleSheet.create({
         color: theme.colors.primary,
         fontWeight: theme.fontWeight.semibold,
     },
+
+    // Web-specific dropdown menu (positioned below trigger)
+    webDropdownMenu: {
+        position: "absolute",
+        top: "100%",
+        left: 0,
+        right: 0,
+        marginTop: 4,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1.5,
+        borderColor: theme.colors.border,
+        maxHeight: 300,
+        overflow: "hidden",
+        zIndex: 1000,
+        ...theme.shadows.lg,
+    },
+
+    // Web-specific option items
+    webOption: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 12,
+        paddingHorizontal: theme.spacing.md,
+    },
 });

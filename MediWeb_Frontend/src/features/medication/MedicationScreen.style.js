@@ -5,9 +5,12 @@ export const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    alignItems: "center",
   },
 
   contentWrapper: {
+    width: "100%",
+    maxWidth: 1000,
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
   },
@@ -21,6 +24,8 @@ export const createStyles = (theme) => StyleSheet.create({
 
   // ===== BACK BUTTON =====
   backButtonRow: {
+    width: "100%",
+    maxWidth: 1000,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
   },
@@ -41,6 +46,20 @@ export const createStyles = (theme) => StyleSheet.create({
   },
 
   // ===== HEADER =====
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: theme.spacing.md,
+    gap: theme.spacing.md,
+    flexWrap: "wrap",
+  },
+
+  headerTextWrapper: {
+    flex: 1,
+    minWidth: 250,
+  },
+
   title: {
     fontSize: theme.fontSize.xxxl,
     fontWeight: theme.fontWeight.extrabold,
@@ -52,7 +71,6 @@ export const createStyles = (theme) => StyleSheet.create({
   subtitle: {
     fontSize: theme.fontSize.base,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.md,
     lineHeight: 22,
   },
 
@@ -90,7 +108,6 @@ export const createStyles = (theme) => StyleSheet.create({
     borderRadius: theme.borderRadius.full,
     borderWidth: 1.5,
     borderColor: theme.colors.border,
-    marginBottom: theme.spacing.md,
     ...theme.shadows.sm,
   },
 
@@ -116,10 +133,12 @@ export const createStyles = (theme) => StyleSheet.create({
     alignItems: "center",
     marginBottom: theme.spacing.lg,
     gap: theme.spacing.sm,
+    maxWidth: 500,
   },
 
   profilePickerWrapper: {
     flex: 1,
+    minWidth: 200,
   },
 
   addButton: {

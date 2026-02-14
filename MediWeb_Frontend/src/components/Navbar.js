@@ -19,7 +19,11 @@ export default function Navbar() {
   const navLinks = [
     { to: "/", label: "Főoldal", icon: "home" },
     { to: "/search", label: "Keresés", icon: "search" },
-    ...(user ? [{ to: "/profile", label: "Profil", icon: "user-circle" }] : []),
+    ...(user ? [
+      { to: "/favorites", label: "Kedvencek", icon: "heart" },
+      { to: "/profile", label: "Profil", icon: "user-circle" },
+      { to: "/settings", label: "Beállítások", icon: "cog" }
+    ] : []),
   ];
 
   const handleNav = (to) => {

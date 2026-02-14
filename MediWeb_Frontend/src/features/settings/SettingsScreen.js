@@ -13,8 +13,10 @@ import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { AuthContext } from 'contexts/AuthContext';
 import { useTheme } from 'contexts/ThemeContext';
-import { fetchUserPreferences, updateUserPreferences } from 'features/profile/profile.api';
+import { fetchUserPreferences, updateUserPreferences, deleteAccount } from 'features/profile/profile.api';
 import { registerForPushNotificationsAsync, getPushPermissionStatus } from 'utils/notifications';
+import PrivacyPolicyModal from './components/PrivacyPolicyModal';
+import TermsModal from './components/TermsModal';
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -23,6 +25,8 @@ export default function SettingsScreen() {
     const [emailEnabled, setEmailEnabled] = useState(true);
     const [pushEnabled, setPushEnabled] = useState(true);
     const [preferences, setPreferences] = useState(null);
+    const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
+    const [termsModalVisible, setTermsModalVisible] = useState(false);
 
     const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -101,6 +105,31 @@ export default function SettingsScreen() {
         );
     };
 
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            'Fiók törlése',
+            'Biztosan törölni szeretnéd a fiókodat? Ez a művelet NEM vonható vissza, és minden adatod elvész!',
+            [
+                { text: 'Mégse', style: 'cancel' },
+                {
+                    text: 'Végleges törlés',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await deleteAccount();
+                            logout();
+                            router.replace('/');
+                            Alert.alert('Fiók törölve', 'A fiókod sikeresen törlésre került.');
+                        } catch (error) {
+                            console.error("Account deletion failed:", error);
+                            Alert.alert('Hiba', 'Nem sikerült törölni a fiókot. Kérjük, próbáld újra később.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     return (
         <View style={styles.container}>
             <ScrollView
@@ -172,12 +201,12 @@ export default function SettingsScreen() {
 
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => {/* TODO: Navigate to privacy settings */ }}
+                            onPress={handleDeleteAccount}
                         >
-                            <View style={styles.menuIconWrapper}>
-                                <FontAwesome5 name="lock" size={18} color={theme.colors.primary} />
+                            <View style={[styles.menuIconWrapper, { backgroundColor: theme.colors.errorLight || '#FEE2E2' }]}>
+                                <FontAwesome5 name="user-slash" size={16} color={theme.colors.error} />
                             </View>
-                            <Text style={styles.menuLabel}>Adatvédelem</Text>
+                            <Text style={[styles.menuLabel, { color: theme.colors.error }]}>Fiók törlése</Text>
                             <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
                     </View>
@@ -254,7 +283,7 @@ export default function SettingsScreen() {
 
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => {/* TODO: Terms of Service */ }}
+                            onPress={() => setTermsModalVisible(true)}
                         >
                             <View style={styles.menuIconWrapper}>
                                 <FontAwesome5 name="file-alt" size={18} color={theme.colors.primary} />
@@ -267,7 +296,7 @@ export default function SettingsScreen() {
 
                         <TouchableOpacity
                             style={styles.menuItem}
-                            onPress={() => {/* TODO: Privacy Policy */ }}
+                            onPress={() => setPrivacyModalVisible(true)}
                         >
                             <View style={styles.menuIconWrapper}>
                                 <FontAwesome5 name="shield-alt" size={18} color={theme.colors.primary} />
@@ -287,7 +316,16 @@ export default function SettingsScreen() {
                     <Text style={styles.logoutText}>Kijelentkezés</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </View>
+
+            <PrivacyPolicyModal
+                visible={privacyModalVisible}
+                onClose={() => setPrivacyModalVisible(false)}
+            />
+            <TermsModal
+                visible={termsModalVisible}
+                onClose={() => setTermsModalVisible(false)}
+            />
+        </View >
     );
 }
 
@@ -303,6 +341,9 @@ const createStyles = (theme) => StyleSheet.create({
         padding: theme.spacing.md,
         paddingTop: Platform.OS === 'ios' ? 70 : 60,
         paddingBottom: 100,
+        width: "100%",
+        maxWidth: 1000,
+        alignSelf: "center",
     },
     header: {
         marginBottom: theme.spacing.lg,

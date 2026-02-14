@@ -272,6 +272,9 @@ const createStyles = (theme) => StyleSheet.create({
         backgroundColor: theme.colors.background,
     },
     content: {
+        width: "100%",
+        maxWidth: 1000,
+        alignSelf: "center",
         padding: theme.spacing.md,
         paddingBottom: 40,
     },

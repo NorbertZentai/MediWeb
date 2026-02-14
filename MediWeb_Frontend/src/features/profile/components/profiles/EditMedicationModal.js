@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Platform } from "react-native";
 import { createStyles } from "../ProfilesTab.style";
 import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
 import { useTheme } from "contexts/ThemeContext";
@@ -105,8 +105,8 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
 
   return (
     <Modal visible={true} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.editMedicationModalContainer}>
+      <View style={Platform.OS === 'web' ? styles.modalOverlayWeb : styles.modalOverlay}>
+        <View style={Platform.OS === 'web' ? styles.editMedicationModalWeb : styles.editMedicationModalContainer}>
           <View style={styles.modalHandle} />
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Text style={styles.modalTitle}>Gyógyszer szerkesztése</Text>

@@ -114,7 +114,7 @@ export const getMedicationsForProfile = async (profileId) => {
 };
 
 export const addMedicationToProfile = async (profileId, itemId) => {
-  const response = await api.post(`/api/profiles/addMedication/${profileId}`, { itemId: parseInt(itemId) } );
+  const response = await api.post(`/api/profiles/addMedication/${profileId}`, { itemId: parseInt(itemId) });
   return response.data;
 };
 
@@ -170,8 +170,8 @@ export const requestDataExport = async () => {
   return response.data;
 };
 
-export const requestAccountDeletion = async () => {
-  const response = await api.post(`/api/users/account-deletion`);
+export const deleteAccount = async () => {
+  const response = await api.delete(`/api/users/me`);
   return response.data;
 };
 

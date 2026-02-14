@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
 import { createStyles } from "../ProfilesTab.style";
 import { updateProfile } from "features/profile/profile.api";
 import { useTheme } from "contexts/ThemeContext";
@@ -32,8 +32,8 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+      <View style={Platform.OS === 'web' ? styles.modalOverlayWeb : styles.modalOverlay}>
+        <View style={Platform.OS === 'web' ? styles.modalContainerWeb : styles.modalContainer}>
           <View style={styles.modalHandle} />
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Profil szerkesztése</Text>
