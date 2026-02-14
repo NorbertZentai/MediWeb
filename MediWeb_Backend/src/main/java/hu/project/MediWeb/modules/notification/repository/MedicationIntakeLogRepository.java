@@ -22,4 +22,10 @@ public interface MedicationIntakeLogRepository extends JpaRepository<MedicationI
         LocalDate startDate,
         LocalDate endDate
     );
+
+    boolean existsByProfileMedicationAndIntakeDateAndIntakeTime(
+            ProfileMedication profileMedication,
+            LocalDate intakeDate,
+            LocalTime intakeTime
+    );
 }

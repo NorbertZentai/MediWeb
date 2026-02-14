@@ -88,9 +88,18 @@ public class MedicationBatchProcessor {
     }
 
     public void refreshAllMedications(boolean forceResync, Integer limitOverride) {
+        processBatch(forceResync, limitOverride, false);
+    }
+
+    public void refreshMissingImages() {
+        processBatch(false, null, true);
+    }
+
+    private void processBatch(boolean forceResync, Integer limitOverride, boolean onlyMissingImages) {
         int effectiveLimit = resolveDiscoveryLimit(limitOverride);
         Object limitLabel = effectiveLimit > 0 ? effectiveLimit : "unbounded";
-        log.info("Medication sync started (forceResync={}, limit={})", forceResync, limitLabel);
+        log.info("Medication batch processing started (forceResync={}, limit={}, onlyMissingImages={})",
+                forceResync, limitLabel, onlyMissingImages);
         cancellationRequested.set(false);
         int persistedBeforeSync;
         try {
@@ -106,22 +115,40 @@ public class MedicationBatchProcessor {
         List<Long> skippedIds = new ArrayList<>();
         List<Long> succeededIds = Collections.synchronizedList(new ArrayList<>());
         List<Long> failedIds = Collections.synchronizedList(new ArrayList<>());
-    List<Medication> preparedMedications = Collections.synchronizedList(new ArrayList<>());
+        List<Medication> preparedMedications = Collections.synchronizedList(new ArrayList<>());
         Set<Long> reviewOnlyIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
         ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, parallelism));
         List<Future<?>> futures = new ArrayList<>();
         boolean completed = false;
         String failureMessage = null;
         boolean cancelled = false;
-    AtomicInteger persistedCountHolder = new AtomicInteger(latestPersistedCount);
+        AtomicInteger persistedCountHolder = new AtomicInteger(latestPersistedCount);
 
         try {
             Set<Long> existingIds = medicationService.fetchExistingMedicationIds();
-            LinkedHashSet<Long> discoveredIds = searchService.fetchAllMedicationIds((scannedDelta, newDelta) -> {
-                statusTracker.incrementDiscovery(scannedDelta, newDelta);
-            }, effectiveLimit > 0 ? effectiveLimit : null, existingIds);
+            LinkedHashSet<Long> discoveredIds;
+
+            if (onlyMissingImages) {
+                Set<Long> missingImageIds = medicationService.findIdsWithoutImage();
+                discoveredIds = new LinkedHashSet<>(missingImageIds);
+                if (effectiveLimit > 0 && discoveredIds.size() > effectiveLimit) {
+                    // Truncate if limit is set (though usually not used for this mode)
+                    List<Long> limited = new ArrayList<>(discoveredIds).subList(0, effectiveLimit);
+                    discoveredIds = new LinkedHashSet<>(limited);
+                }
+                statusTracker.incrementDiscovery(0, discoveredIds.size());
+            } else {
+                discoveredIds = searchService.fetchAllMedicationIds((scannedDelta, newDelta) -> {
+                    statusTracker.incrementDiscovery(scannedDelta, newDelta);
+                }, effectiveLimit > 0 ? effectiveLimit : null, existingIds);
+            }
+
             if (discoveredIds.isEmpty()) {
-                throw new IllegalStateException("Az OGYEI teljes lista üres eredményt adott vissza");
+                if (onlyMissingImages) {
+                    throw new IllegalStateException("Nincs olyan gyógyszer, aminek hiányzik a képe");
+                } else {
+                    throw new IllegalStateException("Az OGYEI teljes lista üres eredményt adott vissza");
+                }
             }
 
             statusTracker.markDiscoveryComplete(discoveredIds.size());
@@ -152,7 +179,8 @@ public class MedicationBatchProcessor {
                 }
                 final Long currentId = itemId;
                 futures.add(executor.submit(() -> {
-                    processItem(currentId, null, succeededIds, failedIds, preparedMedications, reviewOnlyIds, persistedCountHolder);
+                    processItem(currentId, null, succeededIds, failedIds, preparedMedications, reviewOnlyIds,
+                            persistedCountHolder);
                     return null;
                 }));
             }
@@ -165,7 +193,8 @@ public class MedicationBatchProcessor {
                 Medication existing = medicationService.findMedicationById(currentId).orElse(null);
                 if (existing == null) {
                     futures.add(executor.submit(() -> {
-                        processItem(currentId, null, succeededIds, failedIds, preparedMedications, reviewOnlyIds, persistedCountHolder);
+                        processItem(currentId, null, succeededIds, failedIds, preparedMedications, reviewOnlyIds,
+                                persistedCountHolder);
                         return null;
                     }));
                     continue;
@@ -179,7 +208,8 @@ public class MedicationBatchProcessor {
 
                 Medication finalExisting = existing;
                 futures.add(executor.submit(() -> {
-                    processItem(currentId, finalExisting, succeededIds, failedIds, preparedMedications, reviewOnlyIds, persistedCountHolder);
+                    processItem(currentId, finalExisting, succeededIds, failedIds, preparedMedications, reviewOnlyIds,
+                            persistedCountHolder);
                     return null;
                 }));
             }
@@ -208,7 +238,8 @@ public class MedicationBatchProcessor {
 
             if (cancelled || isCancellationRequested()) {
                 if (pendingSnapshotCount > 0 || pendingReviewCount > 0) {
-                    log.warn("Megszakítás után {} gyógyszer és {} felülvizsgálati jelölés vár újrapróbálkozásra", pendingSnapshotCount, pendingReviewCount);
+                    log.warn("Megszakítás után {} gyógyszer és {} felülvizsgálati jelölés vár újrapróbálkozásra",
+                            pendingSnapshotCount, pendingReviewCount);
                 }
 
                 int persistedAfterCancel;
@@ -232,15 +263,17 @@ public class MedicationBatchProcessor {
                         latestPersistedCount,
                         false,
                         cancelMessage,
-                        forceResync
-                );
+                        forceResync);
                 return;
             }
 
-            boolean allItemsSkipped = failureMessage == null && succeededIds.isEmpty() && failedIds.isEmpty() && !skippedIds.isEmpty();
+            boolean allItemsSkipped = failureMessage == null && succeededIds.isEmpty() && failedIds.isEmpty()
+                    && !skippedIds.isEmpty();
             if (allItemsSkipped && !forceResync) {
-                String autoMessage = "Minden tétel kihagyva a " + skipRecentDays + " napos frissítési ablak miatt, erőltetett újraindítás indul.";
-                log.warn("Medication sync finished without processed items ({} skipped). Restarting in force mode.", skippedIds.size());
+                String autoMessage = "Minden tétel kihagyva a " + skipRecentDays
+                        + " napos frissítési ablak miatt, erőltetett újraindítás indul.";
+                log.warn("Medication sync finished without processed items ({} skipped). Restarting in force mode.",
+                        skippedIds.size());
                 statusTracker.markFinished(autoMessage);
                 writeSyncSummaryLog(
                         processedIds,
@@ -250,8 +283,7 @@ public class MedicationBatchProcessor {
                         latestPersistedCount,
                         false,
                         autoMessage,
-                        forceResync
-                );
+                        forceResync);
                 Integer nextLimit = effectiveLimit > 0 ? effectiveLimit : null;
                 refreshAllMedications(true, nextLimit);
                 return;
@@ -259,7 +291,8 @@ public class MedicationBatchProcessor {
 
             if (allItemsSkipped && forceResync) {
                 failureMessage = "Minden tétel kihagyva még erőltetett módban is. Ellenőrizd a szűrési beállításokat.";
-                log.warn("Medication sync skipped every item even in force mode. {} skipped entries.", skippedIds.size());
+                log.warn("Medication sync skipped every item even in force mode. {} skipped entries.",
+                        skippedIds.size());
             }
 
             if ((pendingSnapshotCount > 0 || pendingReviewCount > 0) && failureMessage == null) {
@@ -275,7 +308,8 @@ public class MedicationBatchProcessor {
             }
 
             if (pendingSnapshotCount > 0 || pendingReviewCount > 0) {
-                log.warn("Szinkron lezárult, de {} gyógyszer és {} felülvizsgálati jelölés ismételt mentésre vár", pendingSnapshotCount, pendingReviewCount);
+                log.warn("Szinkron lezárult, de {} gyógyszer és {} felülvizsgálati jelölés ismételt mentésre vár",
+                        pendingSnapshotCount, pendingReviewCount);
             }
             if (completed) {
                 medicationService.updateActiveStatuses(new HashSet<>(processedIds));
@@ -296,19 +330,18 @@ public class MedicationBatchProcessor {
                     latestPersistedCount,
                     completed,
                     failureMessage,
-                    forceResync
-            );
+                    forceResync);
             statusTracker.updatePersistedCount(latestPersistedCount);
         }
     }
 
     private void processItem(Long itemId,
-                             Medication existing,
-                             List<Long> succeededIds,
-                             List<Long> failedIds,
-                             List<Medication> preparedMedications,
-                             Set<Long> reviewOnlyIds,
-                             AtomicInteger persistedCountHolder) {
+            Medication existing,
+            List<Long> succeededIds,
+            List<Long> failedIds,
+            List<Medication> preparedMedications,
+            Set<Long> reviewOnlyIds,
+            AtomicInteger persistedCountHolder) {
         if (isCancellationRequested() || Thread.currentThread().isInterrupted()) {
             return;
         }
@@ -344,7 +377,8 @@ public class MedicationBatchProcessor {
         }
     }
 
-    private MedicationService.MedicationRefreshResult fetchSnapshotWithRetry(Long itemId, Medication existing) throws Exception {
+    private MedicationService.MedicationRefreshResult fetchSnapshotWithRetry(Long itemId, Medication existing)
+            throws Exception {
         Exception lastException = null;
         for (int attempt = 0; attempt <= retryAttempts; attempt++) {
             if (isCancellationRequested() || Thread.currentThread().isInterrupted()) {
@@ -354,7 +388,8 @@ public class MedicationBatchProcessor {
                 return medicationService.refreshMedicationSnapshot(itemId, existing);
             } catch (Exception ex) {
                 lastException = ex;
-                log.warn("Nem sikerült feldolgozni az {} azonosítót ({} / {})", itemId, attempt + 1, retryAttempts + 1, ex);
+                log.warn("Nem sikerült feldolgozni az {} azonosítót ({} / {})", itemId, attempt + 1, retryAttempts + 1,
+                        ex);
                 sleep(delayBetweenRequestsMs * Math.max(1, attempt + 1));
             }
         }
@@ -395,9 +430,9 @@ public class MedicationBatchProcessor {
     }
 
     private void maybeFlushProgress(List<Medication> preparedMedications,
-                                    Set<Long> reviewOnlyIds,
-                                    boolean force,
-                                    AtomicInteger persistedCountHolder) {
+            Set<Long> reviewOnlyIds,
+            boolean force,
+            AtomicInteger persistedCountHolder) {
         if ((preparedMedications.isEmpty() && reviewOnlyIds.isEmpty()) && !force) {
             return;
         }
@@ -467,7 +502,8 @@ public class MedicationBatchProcessor {
             log.error("Nem sikerült a gyógyszeradatok részleges mentése ({} tétel)", batch.size(), ex);
             int fallbackSize = Math.max(persistenceFallbackChunkSize, 1);
             if (batch.size() <= fallbackSize) {
-                log.warn("A részleges mentés sikertelen volt, és a csomag már kisebb nem bontható ({} elem)", batch.size());
+                log.warn("A részleges mentés sikertelen volt, és a csomag már kisebb nem bontható ({} elem)",
+                        batch.size());
                 return new ArrayList<>(batch);
             }
 
@@ -500,11 +536,13 @@ public class MedicationBatchProcessor {
             log.error("Nem sikerült a felülvizsgált gyógyszerek részleges mentése ({} tétel)", batch.size(), ex);
             int fallbackSize = Math.max(persistenceFallbackChunkSize, 1);
             if (batch.size() <= fallbackSize) {
-                log.warn("A felülvizsgált tételek frissítése sikertelen, és a csomag már kisebb nem bontható ({} elem)", batch.size());
+                log.warn("A felülvizsgált tételek frissítése sikertelen, és a csomag már kisebb nem bontható ({} elem)",
+                        batch.size());
                 return new LinkedHashSet<>(batch);
             }
 
-            log.warn("Felülvizsgálati dátum frissítése sikertelen – újrapróbálkozás kisebb, {} elemű csomagokkal", fallbackSize);
+            log.warn("Felülvizsgálati dátum frissítése sikertelen – újrapróbálkozás kisebb, {} elemű csomagokkal",
+                    fallbackSize);
             Set<Long> failed = new LinkedHashSet<>();
             List<Long> ids = new ArrayList<>(batch);
             for (int start = 0; start < ids.size(); start += fallbackSize) {
@@ -512,7 +550,8 @@ public class MedicationBatchProcessor {
                 try {
                     medicationService.updateLastReviewed(chunk);
                 } catch (Exception chunkEx) {
-                    log.error("Nem sikerült a felülvizsgált gyógyszerek fallback mentése ({} tétel)", chunk.size(), chunkEx);
+                    log.error("Nem sikerült a felülvizsgált gyógyszerek fallback mentése ({} tétel)", chunk.size(),
+                            chunkEx);
                     failed.addAll(updateReviewFlagsIndividually(chunk));
                 }
             }
@@ -530,7 +569,8 @@ public class MedicationBatchProcessor {
                 medicationService.saveMedicationsBulk(Collections.singletonList(medication));
                 verifyPartialPersistence(persistedCountHolder, 1, "single");
             } catch (Exception ex) {
-                log.error("Nem sikerült a(z) {} azonosítójú gyógyszer mentése egyedi próbálkozás után sem", medication.getId(), ex);
+                log.error("Nem sikerült a(z) {} azonosítójú gyógyszer mentése egyedi próbálkozás után sem",
+                        medication.getId(), ex);
                 failed.add(medication);
             }
         }
@@ -546,7 +586,9 @@ public class MedicationBatchProcessor {
             try {
                 medicationService.updateLastReviewed(Collections.singleton(id));
             } catch (Exception ex) {
-                log.error("Nem sikerült a(z) {} azonosítójú gyógyszer felülvizsgálati jelölése egyedi próbálkozás után sem", id, ex);
+                log.error(
+                        "Nem sikerült a(z) {} azonosítójú gyógyszer felülvizsgálati jelölése egyedi próbálkozás után sem",
+                        id, ex);
                 failed.add(id);
             }
         }
@@ -558,20 +600,21 @@ public class MedicationBatchProcessor {
             int persistedCount = medicationService.countStoredMedications();
             persistedCountHolder.set(persistedCount);
             statusTracker.updatePersistedCount(persistedCount);
-            log.debug("Részleges mentés megerősítve ({} tétel, mód: {}) – tárolt összesen: {}", attempted, channel, persistedCount);
+            log.debug("Részleges mentés megerősítve ({} tétel, mód: {}) – tárolt összesen: {}", attempted, channel,
+                    persistedCount);
         } catch (Exception countEx) {
             log.warn("Nem sikerült ellenőrizni a részleges mentést ({} tétel, mód: {})", attempted, channel, countEx);
         }
     }
 
     private void writeSyncSummaryLog(Set<Long> processedIds,
-                                     List<Long> succeededIds,
-                                     List<Long> failedIds,
-                                     List<Long> skippedIds,
-                                     int totalPersisted,
-                                     boolean completed,
-                                     String failureMessage,
-                                     boolean forceResync) {
+            List<Long> succeededIds,
+            List<Long> failedIds,
+            List<Long> skippedIds,
+            int totalPersisted,
+            boolean completed,
+            String failureMessage,
+            boolean forceResync) {
         try {
             java.nio.file.Path logDir = java.nio.file.Paths.get("logs");
             java.nio.file.Files.createDirectories(logDir);
@@ -622,7 +665,8 @@ public class MedicationBatchProcessor {
             double baselineSeconds = averageSecondsPerItem > 0 ? averageSecondsPerItem : 10.0d;
             double effectiveSeconds = baselineSeconds / Math.max(parallelism, 1);
             long estimatedTotalSeconds = Math.max(0L, Math.round(Math.max(totalKnownItems, 0) * effectiveSeconds));
-            long estimatedRemainingSeconds = Math.max(0L, Math.round(Math.max(totalKnownItems - processedIds.size(), 0) * effectiveSeconds));
+            long estimatedRemainingSeconds = Math.max(0L,
+                    Math.round(Math.max(totalKnownItems - processedIds.size(), 0) * effectiveSeconds));
 
             lines.add("- Becsült teljes idő: " + formatDuration(estimatedTotalSeconds));
             lines.add("- Becsült hátralévő idő: " + formatDuration(estimatedRemainingSeconds));

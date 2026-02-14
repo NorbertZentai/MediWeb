@@ -114,6 +114,10 @@ public class MedicationService {
         return new HashSet<>(medicationRepository.findAllIds());
     }
 
+    public Set<Long> findIdsWithoutImage() {
+        return new HashSet<>(medicationRepository.findIdsWithoutImage());
+    }
+
     public Optional<Medication> findMedicationById(Long itemId) {
         if (itemId == null) {
             return Optional.empty();

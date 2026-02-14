@@ -1,5 +1,7 @@
 import axios from "axios";
 import { Platform } from "react-native";
+import storage from "utils/storage";
+import { emitLogout } from "utils/authEvents";
 
 // Android emulator uses 10.0.2.2 to access host machine's localhost
 // iOS simulator can use localhost directly
@@ -33,8 +35,6 @@ const api = axios.create({
   // Remove withCredentials for JWT authentication
 });
 
-import storage from "utils/storage";
-
 // Request interceptor for JWT token and debugging
 api.interceptors.request.use(
   async (config) => {
@@ -55,8 +55,6 @@ api.interceptors.request.use(
   }
 );
 
-import { emitLogout } from "utils/authEvents";
-
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
@@ -72,7 +70,9 @@ api.interceptors.response.use(
     }
 
     if (status !== 401 && status !== 403 && status !== 409) {
-      console.error("API Error:", error.response?.data || error.message);
+      // Safer logging to avoid crashes on mobile with complex objects
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message || 'Unknown API Error';
+      console.error("API Error:", errorMsg, status ? `(Status: ${status})` : '');
     }
     return Promise.reject(error);
   }

@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
     intake_date DATE NOT NULL,
     intake_time TIME NOT NULL,
     taken BOOLEAN NOT NULL,
+    recorded_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (profile_medication_id, intake_date, intake_time)
 );

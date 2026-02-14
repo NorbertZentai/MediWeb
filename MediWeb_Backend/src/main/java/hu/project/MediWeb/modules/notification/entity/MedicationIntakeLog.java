@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -34,4 +35,7 @@ public class MedicationIntakeLog {
 
     @Column(name = "taken", nullable = false)
     private boolean taken;
+
+    @Column(name = "recorded_at")
+    private LocalDateTime recordedAt;
 }

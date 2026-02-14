@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider } from '@/src/contexts/AuthContext';
@@ -16,6 +17,8 @@ import { registerPushToken, unregisterPushToken } from '@/src/features/profile/p
 import storage from '@/src/utils/storage';
 import { Logger } from '@/src/utils/Logger';
 
+console.log('[APP] _layout.tsx module loaded');
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -25,8 +28,56 @@ import { useRouter, useSegments } from 'expo-router';
 import { AuthContext } from '@/src/contexts/AuthContext';
 import { useContext } from 'react';
 
+// ErrorBoundary to catch render crashes and display useful error info
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null; errorInfo: string }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: '' };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    const componentStack = errorInfo.componentStack || '';
+    console.error('[APP] ErrorBoundary caught:', error.message);
+    console.error('[APP] Stack:', error.stack);
+    console.error('[APP] Component stack:', componentStack);
+    this.setState({ errorInfo: componentStack });
+    Logger.error('ErrorBoundary caught crash', {
+      message: error.message,
+      stack: error.stack,
+      componentStack,
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: '#c00' }}>
+            Az alkalmazás hibába ütközött
+          </Text>
+          <Text style={{ fontSize: 14, color: '#333', textAlign: 'center', marginBottom: 10 }}>
+            {this.state.error?.message || 'Ismeretlen hiba'}
+          </Text>
+          <Text style={{ fontSize: 11, color: '#888', textAlign: 'left', fontFamily: 'monospace' }}>
+            {this.state.error?.stack?.substring(0, 500) || ''}
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Handle protected routes
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  console.log('[APP] ProtectedRoute render');
   const { user, loading } = useContext(AuthContext);
   const segments = useSegments();
   const router = useRouter();
@@ -70,6 +121,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
+  console.log('[APP] NavigationThemeWrapper render');
   const { isDark } = useTheme();
   return (
     <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
@@ -80,33 +132,42 @@ function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  console.log('[APP] RootLayout render');
   const colorScheme = useColorScheme();
 
   // Hide splash screen immediately since we're not loading custom fonts
   useEffect(() => {
-    Logger.init(); // Initialize global error handler and check previous crash
+    console.log('[APP] RootLayout useEffect - initializing');
+    Logger.init().then(() => {
+      console.log('[APP] Logger initialized');
+    }).catch((err) => {
+      console.error('[APP] Logger init failed:', err);
+    });
 
     SplashScreen.hideAsync();
   }, []);
 
+  console.log('[APP] RootLayout rendering providers...');
+
   return (
-    <AuthProvider>
-      <AppThemeProvider>
-        <ToastProvider>
-          <NavigationThemeWrapper>
-            <ProtectedRoute>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="login" />
-                <Stack.Screen name="register" />
-                <Stack.Screen name="medication/[id]" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            </ProtectedRoute>
-          </NavigationThemeWrapper>
-        </ToastProvider>
-      </AppThemeProvider>
-    </AuthProvider>
+    <AppErrorBoundary>
+      <AuthProvider>
+        <AppThemeProvider>
+          <ToastProvider>
+            <NavigationThemeWrapper>
+              <ProtectedRoute>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="login" />
+                  <Stack.Screen name="register" />
+                  <Stack.Screen name="medication/[id]" />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </ProtectedRoute>
+            </NavigationThemeWrapper>
+          </ToastProvider>
+        </AppThemeProvider>
+      </AuthProvider>
+    </AppErrorBoundary>
   );
 }
-
