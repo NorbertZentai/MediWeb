@@ -25,6 +25,9 @@ public class MedicationSyncStatusTracker {
     private final AtomicInteger succeeded = new AtomicInteger();
     private final AtomicInteger failed = new AtomicInteger();
     private final AtomicInteger skipped = new AtomicInteger();
+    private final AtomicInteger imagesCached = new AtomicInteger();
+    private final AtomicInteger imagesFetched = new AtomicInteger();
+    private final AtomicInteger imagesSkipped = new AtomicInteger();
     private final AtomicBoolean cancellationRequested = new AtomicBoolean();
     private volatile int totalKnownItems;
     private volatile int totalPersisted;
@@ -47,6 +50,9 @@ public class MedicationSyncStatusTracker {
             succeeded.set(0);
             failed.set(0);
             skipped.set(0);
+            imagesCached.set(0);
+            imagesFetched.set(0);
+            imagesSkipped.set(0);
             cancellationRequested.set(false);
             this.totalKnownItems = Math.max(totalKnownItems, 0);
             this.totalPersisted = Math.max(totalPersisted, 0);
@@ -78,7 +84,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     "OGYEI azonosítók kigyűjtése folyamatban",
-                    cancellationRequested.get()
+                    cancellationRequested.get(),
+                    0,
+                    0,
+                    0
             );
         } finally {
             lock.unlock();
@@ -116,6 +125,18 @@ public class MedicationSyncStatusTracker {
         updateSnapshot(discovered.get(), discoveryScanned.get(), processedValue, succeeded.get(), failed.get(), skippedValue, message);
     }
 
+    public void incrementImageCached() {
+        imagesCached.incrementAndGet();
+    }
+
+    public void incrementImageFetched() {
+        imagesFetched.incrementAndGet();
+    }
+
+    public void incrementImageSkipped() {
+        imagesSkipped.incrementAndGet();
+    }
+
     public boolean requestCancellation(String message) {
         lock.lock();
         try {
@@ -151,7 +172,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     effectiveMessage,
-                    cancellationRequested.get()
+                    cancellationRequested.get(),
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
             );
             return true;
         } finally {
@@ -193,7 +217,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     message,
-                    false
+                    false,
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
             );
         } finally {
             lock.unlock();
@@ -230,7 +257,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     (message != null && !message.isBlank()) ? message : "Szinkron manuálisan leállítva",
-                    false
+                    false,
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
             );
         } finally {
             lock.unlock();
@@ -276,7 +306,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     message,
-                    cancellationRequested.get()
+                    cancellationRequested.get(),
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
             );
         } finally {
             lock.unlock();
@@ -317,7 +350,10 @@ public class MedicationSyncStatusTracker {
                     this.phase,
                     this.discoveryCompleted,
                     effectiveMessage,
-                    cancellationRequested.get()
+                    cancellationRequested.get(),
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
             );
         } finally {
             lock.unlock();

@@ -118,6 +118,50 @@ public class MedicationService {
         return new HashSet<>(medicationRepository.findIdsWithoutImage());
     }
 
+    public List<Medication> findMedicationsWithoutImage() {
+        return medicationRepository.findMedicationsWithoutImage();
+    }
+
+    /**
+     * Fetches an image for an existing medication from Google API only (no OGYEI scraping).
+     * Returns true if a new image was found and saved, false otherwise.
+     */
+    @Transactional
+    public boolean fetchImageForMedication(Medication medication) {
+        if (medication == null || !StringUtils.hasText(medication.getName())) {
+            return false;
+        }
+
+        // Skip if already has a fresh image
+        if (StringUtils.hasText(medication.getImageUrl())) {
+            log.info("⏭️ [IMAGE-SYNC] Skipping '{}' (id={}) — already has image", medication.getName(), medication.getId());
+            return false;
+        }
+
+        log.info("🔍 [IMAGE-SYNC] Searching image for '{}' (id={})", medication.getName(), medication.getId());
+        try {
+            String imageUrl = googleImageService
+                    .searchImages(medication.getName())
+                    .map(result -> result != null ? result.link() : null)
+                    .blockOptional()
+                    .orElse(null);
+
+            if (StringUtils.hasText(imageUrl)) {
+                medication.setImageUrl(imageUrl);
+                medication.setLastUpdated(LocalDateTime.now());
+                medicationRepository.save(medication);
+                log.info("✅ [IMAGE-SYNC] Saved image for '{}' (id={}): {}", medication.getName(), medication.getId(), imageUrl);
+                return true;
+            } else {
+                log.info("⚠️ [IMAGE-SYNC] No image found for '{}' (id={})", medication.getName(), medication.getId());
+                return false;
+            }
+        } catch (RuntimeException ex) {
+            log.warn("❌ [IMAGE-SYNC] Error fetching image for '{}' (id={}): {}", medication.getName(), medication.getId(), ex.getMessage());
+            return false;
+        }
+    }
+
     public Optional<Medication> findMedicationById(Long itemId) {
         if (itemId == null) {
             return Optional.empty();
@@ -318,9 +362,12 @@ public class MedicationService {
     private String resolveImageUrl(String medicationName, Medication existing) {
         boolean shouldRefresh = shouldRefreshImage(existing);
         if (!shouldRefresh) {
+            log.debug("✅ [IMAGE-CACHE] Cache hit for: {} (last updated: {})",
+                medicationName, existing != null ? existing.getLastUpdated() : "N/A");
             return existing != null ? existing.getImageUrl() : null;
         }
 
+        log.debug("🔍 [IMAGE-FETCH] Fetching from Google API for: {}", medicationName);
         try {
             String fetched = googleImageService
                     .searchImages(medicationName)
@@ -329,7 +376,11 @@ public class MedicationService {
                     .orElse(null);
 
             if (!StringUtils.hasText(fetched) && existing != null) {
+                log.debug("⚠️ [IMAGE-FETCH] No result from Google API, using existing image for: {}", medicationName);
                 return existing.getImageUrl();
+            }
+            if (StringUtils.hasText(fetched)) {
+                log.debug("✅ [IMAGE-FETCH] Successfully fetched image from Google API for: {}", medicationName);
             }
             return fetched;
         } catch (RuntimeException ex) {
@@ -350,22 +401,32 @@ public class MedicationService {
 
     private boolean shouldRefreshImage(Medication existing) {
         if (existing == null) {
+            log.debug("🔍 [IMAGE-REFRESH] New medication, will fetch image");
             return true;
         }
         if (!StringUtils.hasText(existing.getImageUrl())) {
+            log.debug("🔍 [IMAGE-REFRESH] No existing image for medication id={}, will fetch", existing.getId());
             return true;
         }
         if (imageRefreshDays <= 0) {
+            log.debug("🔍 [IMAGE-REFRESH] Image refresh disabled (refresh-days={}), will fetch", imageRefreshDays);
             return true;
         }
 
         LocalDateTime lastUpdated = existing.getLastUpdated();
         if (lastUpdated == null) {
+            log.debug("🔍 [IMAGE-REFRESH] No lastUpdated timestamp for medication id={}, will fetch", existing.getId());
             return true;
         }
 
         LocalDateTime threshold = LocalDateTime.now().minusDays(imageRefreshDays);
-        return lastUpdated.isBefore(threshold);
+        boolean isOld = lastUpdated.isBefore(threshold);
+        if (isOld) {
+            log.debug("🔍 [IMAGE-REFRESH] Image older than {} days for medication id={}, will refresh", imageRefreshDays, existing.getId());
+        } else {
+            log.debug("⏭️ [IMAGE-SKIP] Image is fresh (updated: {}), skipping refresh for medication id={}", lastUpdated, existing.getId());
+        }
+        return isOld;
     }
 
     private LocalDate parseAuthorizationDate(String date, Long itemId) {

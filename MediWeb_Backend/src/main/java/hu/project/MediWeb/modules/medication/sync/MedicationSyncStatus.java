@@ -22,7 +22,10 @@ public record MedicationSyncStatus(
         String phase,
         boolean discoveryCompleted,
         String lastMessage,
-        boolean cancellationRequested
+        boolean cancellationRequested,
+        int imagesCached,
+        int imagesFetched,
+        int imagesSkipped
 ) {
     public static MedicationSyncStatus idle() {
         return new MedicationSyncStatus(
@@ -45,7 +48,10 @@ public record MedicationSyncStatus(
                 "IDLE",
                 true,
                 null,
-                false
+                false,
+                0, // imagesCached
+                0, // imagesFetched
+                0  // imagesSkipped
         );
     }
 }

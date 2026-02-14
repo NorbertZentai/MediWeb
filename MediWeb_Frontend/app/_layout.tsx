@@ -1,6 +1,5 @@
 import 'react-native-reanimated';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -13,16 +12,12 @@ import { ThemeProvider as AppThemeProvider, useTheme } from '@/src/contexts/Them
 import { ToastProvider } from '@/src/components/ToastProvider';
 
 import { registerForPushNotificationsAsync } from '@/src/utils/notifications';
-import { registerPushToken, unregisterPushToken } from '@/src/features/profile/profile.api';
+import { registerPushToken } from '@/src/features/profile/profile.api';
 import storage from '@/src/utils/storage';
 import { Logger } from '@/src/utils/Logger';
 
-console.log('[APP] _layout.tsx module loaded');
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
-// ...
 
 import { useRouter, useSegments } from 'expo-router';
 import { AuthContext } from '@/src/contexts/AuthContext';
@@ -77,7 +72,6 @@ class AppErrorBoundary extends React.Component<
 
 // Handle protected routes
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  console.log('[APP] ProtectedRoute render');
   const { user, loading } = useContext(AuthContext);
   const segments = useSegments();
   const router = useRouter();
@@ -107,10 +101,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
         if (token) {
           await storage.setItem('expoPushToken', token);
           await registerPushToken(token);
-          console.log('Push token registered with backend');
         }
-      } catch (err) {
-        console.log('Push token registration error:', err);
+      } catch (_err) {
+        // Push token registration failed silently
       }
     };
 
@@ -121,7 +114,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
-  console.log('[APP] NavigationThemeWrapper render');
   const { isDark } = useTheme();
   return (
     <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
@@ -132,22 +124,12 @@ function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  console.log('[APP] RootLayout render');
   const colorScheme = useColorScheme();
 
-  // Hide splash screen immediately since we're not loading custom fonts
   useEffect(() => {
-    console.log('[APP] RootLayout useEffect - initializing');
-    Logger.init().then(() => {
-      console.log('[APP] Logger initialized');
-    }).catch((err) => {
-      console.error('[APP] Logger init failed:', err);
-    });
-
+    Logger.init().catch(() => {});
     SplashScreen.hideAsync();
   }, []);
-
-  console.log('[APP] RootLayout rendering providers...');
 
   return (
     <AppErrorBoundary>
