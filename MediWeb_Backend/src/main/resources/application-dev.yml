@@ -72,8 +72,8 @@ cors:
   allowed-headers: "*"
 
 jwt:
-  secret: ${JWT_SECRET:dev-secret-dev-secret-dev-secret-1234567890}
-  expiration: 604800000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION_MS}
 
 notification:
   email:
