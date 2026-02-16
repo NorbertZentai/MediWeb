@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: MediWeb
+
+server:
+  port: ${PORT:8080}
+
+notification:
+  email:
+    from: ${MAIL_FROM:noreply@mediweb.app}
+    manage-preferences-url: ${NOTIFICATION_MANAGE_URL:https://app.mediweb.app/settings/notifications}
+    support-email: ${SUPPORT_EMAIL:support@mediweb.app}
