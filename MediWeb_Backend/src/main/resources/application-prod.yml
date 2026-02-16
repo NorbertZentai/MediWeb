@@ -5,13 +5,58 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      max-lifetime: 600000
+      connection-timeout: 30000
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
     show-sql: false
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    root: info
+    org.springframework.web: warn
+    org.hibernate: error
+
+google:
+  api:
+    key: ${GOOGLE_API_KEY:${GOOGLE_CUSTOM_SEARCH_KEY:}}
+    cx: ${GOOGLE_CX:${GOOGLE_SEARCH_ENGINE_ID:}}
+    request-delay-ms: ${GOOGLE_SEARCH_REQUEST_DELAY_MS:200}
+    max-requests-per-minute: ${GOOGLE_SEARCH_MAX_PER_MINUTE:90}
+    max-requests-per-day: ${GOOGLE_SEARCH_MAX_PER_DAY:10000}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: LAX
 
 cors:
   allowed-origins:
@@ -19,8 +64,40 @@ cors:
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: "*"
 
-logging:
-  level:
-    root: info
-    org.springframework.web: warn
-    org.hibernate: error
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION_MS:604800000}
+
+notification:
+  email:
+    from: ${MAIL_FROM:MediWeb <noreply@mediweb.app>}
+    manage-preferences-url: ${NOTIFICATION_MANAGE_URL:https://app.mediweb.app/settings/notifications}
+    support-email: ${SUPPORT_EMAIL:support@mediweb.app}
+
+medication:
+  image:
+    refresh-days: ${MEDICATION_IMAGE_REFRESH_DAYS:30}
+  sync:
+    parallelism: ${MEDICATION_SYNC_PARALLELISM:4}
+    discovery-parallelism: ${MEDICATION_DISCOVERY_PARALLELISM:3}
+    delay-ms: ${MEDICATION_SYNC_DELAY_MS:300}
+    retry-attempts: ${MEDICATION_SYNC_RETRY_ATTEMPTS:3}
+    discovery-delay-ms: ${MEDICATION_DISCOVERY_DELAY_MS:600}
+    discovery-retry-attempts: ${MEDICATION_DISCOVERY_RETRY_ATTEMPTS:5}
+    cron: ${MEDICATION_SYNC_CRON:0 0 2 1 * ?}
+    enabled: ${MEDICATION_SYNC_ENABLED:true}
+
+rate-limiting:
+  enabled: ${RATE_LIMITING_ENABLED:true}
+  window-seconds: ${RATE_LIMITING_WINDOW_SECONDS:60}
+  limit: ${RATE_LIMITING_LIMIT:10}
+  whitelist-paths:
+    - /actuator/health
+    - /actuator/info
+    - /auth/login
+    - /auth/register
+
+management:
+  health:
+    mail:
+      enabled: false
