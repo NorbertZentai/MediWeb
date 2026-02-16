@@ -57,11 +57,6 @@ out/
 # Environment / secret files
 .env
 .env.*
-application.properties
-application.yml
-application-dev.yml
-application-prod.yml
-application-local.yml
 
 # Docker
 **/docker-compose.override.yml

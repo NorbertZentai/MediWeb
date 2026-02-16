@@ -1,0 +1,110 @@
+spring:
+  config:
+    import: optional:dotenv:./.env,optional:dotenv:./.env.development
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/mediweb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    hikari:
+      max-lifetime: 600000
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+
+logging:
+  level:
+    root: info
+    org.springframework.web: warn
+    org.hibernate: error
+
+google:
+  api:
+    key: ${GOOGLE_API_KEY:${GOOGLE_CUSTOM_SEARCH_KEY:}}
+    cx: ${GOOGLE_CX:${GOOGLE_SEARCH_ENGINE_ID:}}
+    request-delay-ms: ${GOOGLE_SEARCH_REQUEST_DELAY_MS:200}
+    max-requests-per-minute: ${GOOGLE_SEARCH_MAX_PER_MINUTE:90}
+    max-requests-per-day: ${GOOGLE_SEARCH_MAX_PER_DAY:10000}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+        http-only: true
+        same-site: LAX
+
+cors:
+  allowed-origins:
+    - http://localhost:3000
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+
+jwt:
+  secret: ${JWT_SECRET:dev-secret-dev-secret-dev-secret-1234567890}
+  expiration: 604800000
+
+notification:
+  email:
+    from: ${MAIL_FROM:noreply@mediweb.app}
+    manage-preferences-url: ${NOTIFICATION_MANAGE_URL:http://localhost:3000/settings/notifications}
+    support-email: ${SUPPORT_EMAIL:support@mediweb.app}
+
+medication:
+  image:
+    refresh-days: ${MEDICATION_IMAGE_REFRESH_DAYS:30}
+  sync:
+    parallelism: 4
+    discovery-parallelism: 3
+    delay-ms: 300
+    retry-attempts: 3
+    discovery-delay-ms: 600
+    discovery-retry-attempts: 5
+    cron: ${MEDICATION_SYNC_CRON:0 0 2 1 * ?}
+    enabled: ${MEDICATION_SYNC_ENABLED:true}
+
+rate-limiting:
+  enabled: true
+  window-seconds: 60
+  limit: 10
+  whitelist-paths:
+    - /actuator/health
+    - /actuator/info
+    - /auth/login
+    - /auth/register
+
+management:
+  health:
+    mail:
+      enabled: false

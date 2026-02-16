@@ -19,7 +19,4 @@ RUN mvn clean package -DskipTests
 EXPOSE 8080
 
 # Run with correct PostgreSQL URL format (host:port/database)
-CMD java -Dspring.datasource.url="jdbc:postgresql://dpg-d2cu8qre5dus73dtiv90-a:5432/mediweb_db" \
-         -Dspring.datasource.username="mediweb_user" \
-         -Dspring.datasource.password="8C0GeWooZ8sjiBoRtZyjkZoJqXBpduGd" \
-         -jar target/*.jar
+CMD ["sh","-lc","java -Dserver.port=${PORT:-8080} -jar target/*.jar"]
