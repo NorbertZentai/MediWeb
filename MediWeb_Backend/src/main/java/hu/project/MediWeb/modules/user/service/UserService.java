@@ -7,6 +7,7 @@ import hu.project.MediWeb.modules.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public User getCurrentUser(HttpServletRequest request) {
         return (User) request.getSession().getAttribute("user");
@@ -53,6 +56,9 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
+        jdbcTemplate.update("DELETE FROM favorites WHERE user_id = ?", id);
+        jdbcTemplate.update("DELETE FROM reviews WHERE user_id = ?", id);
+        jdbcTemplate.update("DELETE FROM profiles WHERE user_id = ?", id);
         userRepository.deleteById(id);
     }
 
