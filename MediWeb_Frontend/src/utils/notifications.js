@@ -1,7 +1,12 @@
-import { Platform } from 'react-native';
+import { Platform, LogBox } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+
+// Suppress the Expo Go warning for Android push notifications in SDK 53
+if (Platform.OS !== 'web') {
+    LogBox.ignoreLogs(['expo-notifications: Android Push notifications']);
+}
 
 // Configure how notifications behave when the app is in foreground
 Notifications.setNotificationHandler({
