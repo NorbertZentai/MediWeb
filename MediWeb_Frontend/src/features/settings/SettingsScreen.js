@@ -88,6 +88,14 @@ export default function SettingsScreen() {
     };
 
     const handleLogout = () => {
+        if (Platform.OS === 'web') {
+            if (window.confirm('Akarod folytatni a kijelentkezést? Biztosan ki szeretnél jelentkezni?')) {
+                logout();
+                router.replace('/');
+            }
+            return;
+        }
+        
         Alert.alert(
             'Kijelentkezés',
             'Biztosan ki szeretnél jelentkezni?',
@@ -106,9 +114,28 @@ export default function SettingsScreen() {
     };
 
     const handleDeleteAccount = () => {
+        const warningMessage = 'Biztosan törölni szeretnéd a fiókodat? Ez a művelet NEM vonható vissza, és minden adatod elvész!';
+        
+        if (Platform.OS === 'web') {
+            if (window.confirm(warningMessage)) {
+                (async () => {
+                    try {
+                        await deleteAccount();
+                        logout();
+                        router.replace('/');
+                        window.alert('A fiókod sikeresen törlésre került.');
+                    } catch (error) {
+                        console.error('Account deletion failed:', error);
+                        window.alert('Nem sikerült törölni a fiókot. Kérjük, próbáld újra később.');
+                    }
+                })();
+            }
+            return;
+        }
+
         Alert.alert(
             'Fiók törlése',
-            'Biztosan törölni szeretnéd a fiókodat? Ez a művelet NEM vonható vissza, és minden adatod elvész!',
+            warningMessage,
             [
                 { text: 'Mégse', style: 'cancel' },
                 {
