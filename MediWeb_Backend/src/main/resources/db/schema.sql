@@ -59,10 +59,6 @@ CREATE TABLE IF NOT EXISTS public.medications (
     defective_forms_json TEXT,
     hazipatika_json TEXT,
     fokozott_felugyelet BOOLEAN NOT NULL DEFAULT FALSE,
-    packaging VARCHAR(100),
-    release_date DATE,
-    description TEXT,
-    manufacturer VARCHAR(200),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_reviewed TIMESTAMP
 );
