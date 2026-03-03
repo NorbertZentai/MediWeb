@@ -1,6 +1,8 @@
 spring:
   application:
     name: MediWeb
+  profiles:
+    active: dev
 
 server:
   port: ${PORT:8080}
