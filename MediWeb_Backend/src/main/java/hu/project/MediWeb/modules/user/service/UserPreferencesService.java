@@ -22,7 +22,10 @@ public class UserPreferencesService {
 
     @Transactional(readOnly = true)
     public UserPreferencesDto getPreferencesFor(User user) {
-        return preferencesRepository.findByUser(user)
+        if (user == null || user.getId() == null) {
+            return UserPreferencesDto.defaultPreferences();
+        }
+        return preferencesRepository.findById(user.getId())
                 .map(this::deserializePayload)
                 .orElseGet(UserPreferencesDto::defaultPreferences)
                 .withDefaults();
@@ -36,7 +39,11 @@ public class UserPreferencesService {
 
         String payload = serializePayload(safePreferences);
 
-        UserPreferences entity = preferencesRepository.findByUser(user)
+        if (user == null || user.getId() == null) {
+            return safePreferences;
+        }
+
+        UserPreferences entity = preferencesRepository.findById(user.getId())
                 .map(existing -> {
                     existing.setPreferencesPayload(payload);
                     return existing;
