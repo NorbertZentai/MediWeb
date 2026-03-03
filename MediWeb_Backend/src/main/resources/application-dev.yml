@@ -18,7 +18,7 @@ spring:
           starttls:
             enable: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5434/mediweb}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mediweb}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     hikari:
@@ -72,8 +72,8 @@ cors:
   allowed-headers: "*"
 
 jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION_MS}
+  secret: ${JWT_SECRET:devDefaultSecretKeyThatIsLongEnoughForHS512Algorithm1234567890abcdefghij}
+  expiration: ${JWT_EXPIRATION_MS:86400000}
 
 notification:
   email:
