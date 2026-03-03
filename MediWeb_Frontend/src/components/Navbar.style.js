@@ -10,10 +10,15 @@ export const createStyles = (theme) => StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 32,
         backgroundColor: theme.colors.backgroundCard, // Changed from white
-        shadowColor: theme.colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
+        ...Platform.select({
+            web: { boxShadow: '0px 2px 16px rgba(0, 0, 0, 0.06)' },
+            default: {
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 16,
+            }
+        }),
         elevation: 4,
         zIndex: 1000,
         borderBottomWidth: 1,
@@ -118,10 +123,15 @@ export const createStyles = (theme) => StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 16,
         backgroundColor: theme.colors.backgroundCard, // Changed from white
-        shadowColor: theme.colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
+        ...Platform.select({
+            web: { boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.06)' },
+            default: {
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+            }
+        }),
         elevation: 3,
         zIndex: 1000,
     },
@@ -163,10 +173,15 @@ export const createStyles = (theme) => StyleSheet.create({
         marginHorizontal: 16,
         borderRadius: 20,
         padding: 20,
-        shadowColor: theme.colors.shadow,
-        shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.2,
-        shadowRadius: 32,
+        ...Platform.select({
+            web: { boxShadow: '0px 16px 32px rgba(0, 0, 0, 0.2)' },
+            default: {
+                shadowColor: theme.colors.shadow,
+                shadowOffset: { width: 0, height: 16 },
+                shadowOpacity: 0.2,
+                shadowRadius: 32,
+            }
+        }),
         elevation: 12,
     },
     mobileMenuHeader: {

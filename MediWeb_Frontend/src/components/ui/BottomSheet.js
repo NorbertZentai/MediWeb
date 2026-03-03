@@ -38,11 +38,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 40,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
+    ...Platform.select({
+      web: { boxShadow: '0px -8px 24px rgba(0, 0, 0, 0.15)' },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 24,
+        elevation: 20,
+      }
+    }),
   },
   handle: {
     width: 40,

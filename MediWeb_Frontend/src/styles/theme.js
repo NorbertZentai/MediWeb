@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 const shared = {
   spacing: {
     xs: 4,
@@ -31,27 +33,36 @@ const shared = {
     extrabold: "800",
   },
   shadows: {
-    sm: {
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
-    },
-    md: {
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    lg: {
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 5,
-    },
+    sm: Platform.select({
+      web: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)' },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+      }
+    }),
+    md: Platform.select({
+      web: { boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)' },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }
+    }),
+    lg: Platform.select({
+      web: { boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)' },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 5,
+      }
+    }),
   },
 };
 
@@ -139,7 +150,7 @@ export const darkTheme = {
   ...shared,
   colors: {
     // Primary — Forest Green (Slightly lighter for dark mode readability)
-    primary: "#4CAF50", 
+    primary: "#4CAF50",
     primaryDark: "#2E7D32",
     primaryLight: "#1B5E20", // Darker background for primary light areas
     primaryMuted: "rgba(46, 125, 50, 0.15)", // Translucent for dark mode
