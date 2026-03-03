@@ -3,12 +3,9 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 
 let Notifications = null;
-try {
-    // Hide the require from Metro's static dependency analyzer using a template string
-    Notifications = require(`expo-notifications`);
-} catch (e) {
-    console.warn("expo-notifications module is not available in this environment. Push notifications will be disabled.");
-}
+// Push notifications are currently mocked out because expo-notifications crashes in Expo Go Android SDK 53+
+console.warn("expo-notifications is mocked in this environment to prevent Expo Go crashes.");
+
 
 // Suppress the Expo Go warning for Android push notifications in SDK 53
 if (Platform.OS !== 'web') {
