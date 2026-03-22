@@ -172,6 +172,20 @@ export const createStyles = (theme) => StyleSheet.create({
     ...theme.shadows.md,
   },
 
+  imagePlaceholder: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderStyle: "dashed",
+  },
+
+  imagePlaceholderText: {
+    marginTop: theme.spacing.sm,
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+  },
+
   // ===== DOCUMENT ICON ROW =====
   iconRow: {
     flexDirection: "row",

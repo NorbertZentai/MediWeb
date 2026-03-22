@@ -33,10 +33,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register", "/api/**", "/actuator/**").permitAll()
-                        .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/review/**").authenticated()
-                        .anyRequest().permitAll()
+                        // Public: auth endpoints
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+                        // Public: read-only medication data, search, filters, images, reviews
+                        .requestMatchers(HttpMethod.GET, "/api/medication/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/filters/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+
+
+                        // Public: actuator health check
+                        .requestMatchers("/actuator/health").permitAll()
+                        // Authenticated: everything else
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session

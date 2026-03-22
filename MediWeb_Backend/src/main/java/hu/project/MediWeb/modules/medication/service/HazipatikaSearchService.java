@@ -39,6 +39,9 @@ public class HazipatikaSearchService {
                     if (bestMatch != null) {
                         Document detailDoc = Jsoup.connect(bestMatch.url).get();
 
+                        // Termékkép kinyerése
+                        String imageUrl = extractProductImage(detailDoc);
+
                         // Betegtájékoztató részek feldolgozása
                         Element contentDiv = detailDoc.selectFirst("div.o-article__paragraph.-medicines");
                         List<HazipatikaResponse.Section> sections = contentDiv != null
@@ -112,7 +115,8 @@ public class HazipatikaSearchService {
                                 outsidePharmacy,
                                 euSupportable,
                                 euPrioritySupport,
-                                accidentCoverage
+                                accidentCoverage,
+                                imageUrl
                         );
                     }
                 }
@@ -175,6 +179,28 @@ public class HazipatikaSearchService {
             }
         }
         return score;
+    }
+
+    private String extractProductImage(Document doc) {
+        // Try og:image meta tag first (most reliable)
+        Element ogImage = doc.selectFirst("meta[property=og:image]");
+        if (ogImage != null) {
+            String url = ogImage.attr("content");
+            if (url != null && !url.isBlank() && !url.contains("placeholder") && !url.contains("default")) {
+                return url;
+            }
+        }
+
+        // Try product image container
+        Element productImg = doc.selectFirst("div.o-article__image img, div.m-media img, figure img");
+        if (productImg != null) {
+            String src = productImg.absUrl("src");
+            if (src != null && !src.isBlank() && !src.contains("placeholder") && !src.contains("default")) {
+                return src;
+            }
+        }
+
+        return null;
     }
 
     private record ResultItem(String title, String url) {}

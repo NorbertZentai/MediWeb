@@ -13,6 +13,7 @@ import { createStyles } from "./MedicationScreen.style";
 import { toast } from "utils/toast";
 import Navbar from "components/Navbar";
 import { useTheme } from "contexts/ThemeContext";
+import { addRecentlyViewed } from "utils/recentlyViewed";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -51,8 +52,19 @@ export default function MedicationDetailsScreen() {
     defectiveForms: false,
   });
 
+  // Track recently viewed
+  React.useEffect(() => {
+    if (data && data.name && itemId) {
+      addRecentlyViewed({
+        medicationId: itemId,
+        medicationName: data.name
+      });
+    }
+  }, [data, itemId]);
+
   const [selectedProfileId, setSelectedProfileId] = useState(null);
   const [profileHasMedication, setProfileHasMedication] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const toggleSection = (key) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -232,11 +244,21 @@ export default function MedicationDetailsScreen() {
           </View>
 
           {/* Kép */}
-          {data.imageUrl && (
-            <View style={styles.imageSection}>
-              <Image source={{ uri: data.imageUrl }} resizeMode="contain" style={styles.mainImage} />
-            </View>
-          )}
+          <View style={styles.imageSection}>
+            {data.imageUrl && !imageError ? (
+              <Image
+                source={{ uri: data.imageUrl }}
+                resizeMode="contain"
+                style={styles.mainImage}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <View style={[styles.mainImage, styles.imagePlaceholder]}>
+                <FontAwesome5 name="pills" size={48} color={theme.colors.textSecondary} />
+                <Text style={styles.imagePlaceholderText}>Nincs kép</Text>
+              </View>
+            )}
+          </View>
 
           {/* Dokumentum ikonok */}
           {docs.length > 0 && (
@@ -385,7 +407,7 @@ export default function MedicationDetailsScreen() {
 
 /* ===== Helper Components ===== */
 
-function AllergyBadge({ label, contains }) {
+const AllergyBadge = React.memo(function AllergyBadge({ label, contains }) {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
@@ -400,9 +422,9 @@ function AllergyBadge({ label, contains }) {
       </Text>
     </View>
   );
-}
+});
 
-function InfoItem({ label, value }) {
+const InfoItem = React.memo(function InfoItem({ label, value }) {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
@@ -416,9 +438,9 @@ function InfoItem({ label, value }) {
       <Text style={[styles.gridItemText, value && styles.gridItemTextActive]}>{label}</Text>
     </View>
   );
-}
+});
 
-function Detail({ label, value }) {
+const Detail = React.memo(function Detail({ label, value }) {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
@@ -427,9 +449,9 @@ function Detail({ label, value }) {
       <Text style={styles.detailValue}>{value || "—"}</Text>
     </View>
   );
-}
+});
 
-function Accordion({ title, isOpen, onToggle, children }) {
+const Accordion = React.memo(function Accordion({ title, isOpen, onToggle, children }) {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
@@ -441,4 +463,4 @@ function Accordion({ title, isOpen, onToggle, children }) {
       {isOpen && <View style={styles.accordionBody}>{children}</View>}
     </View>
   );
-}
+});

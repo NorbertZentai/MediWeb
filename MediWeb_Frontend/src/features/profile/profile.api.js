@@ -89,6 +89,15 @@ export const removeFromFavorites = async (favoriteId) => {
   return response.data;
 };
 
+// REVIEWS
+
+export const getUserReviews = async () => {
+  const response = await api.get(`/api/reviews/me`);
+  return response.data;
+};
+
+
+
 // PROFILE ENTITIES
 
 export const getProfilesForUser = async () => {

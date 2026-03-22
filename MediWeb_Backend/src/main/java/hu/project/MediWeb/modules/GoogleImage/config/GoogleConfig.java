@@ -1,9 +1,11 @@
 package hu.project.MediWeb.modules.GoogleImage.config;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "google.api")
@@ -47,18 +49,18 @@ public class GoogleConfig {
     }
     
     public void logConfiguration() {
-        System.out.println("⚙️ [GOOGLE-CONFIG] === Configuration Debug ===");
-        System.out.println("⚙️ [GOOGLE-CONFIG] Environment variable GOOGLE_API_KEY: " + System.getenv("GOOGLE_API_KEY"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Environment variable GOOGLE_SEARCH_ENGINE_ID: " + System.getenv("GOOGLE_SEARCH_ENGINE_ID"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Environment variable GOOGLE_CX: " + System.getenv("GOOGLE_CX"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Loaded google.api.key: " + (key != null ? key.substring(0, Math.min(10, key.length())) + "..." : "null"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Loaded google.api.cx: " + (cx != null ? cx : "null"));
+        log.debug("[GOOGLE-CONFIG] === Configuration Debug ===");
+        log.debug("[GOOGLE-CONFIG] Environment variable GOOGLE_API_KEY present: {}", System.getenv("GOOGLE_API_KEY") != null);
+        log.debug("[GOOGLE-CONFIG] Environment variable GOOGLE_SEARCH_ENGINE_ID present: {}", System.getenv("GOOGLE_SEARCH_ENGINE_ID") != null);
+        log.debug("[GOOGLE-CONFIG] Environment variable GOOGLE_CX present: {}", System.getenv("GOOGLE_CX") != null);
+        log.debug("[GOOGLE-CONFIG] Loaded google.api.key present: {}", key != null && !key.isEmpty());
+        log.debug("[GOOGLE-CONFIG] Loaded google.api.cx present: {}", cx != null && !cx.isEmpty());
         String resolvedKey = getKey();
-        System.out.println("⚙️ [GOOGLE-CONFIG] Final getKey() result: " + (resolvedKey != null ? resolvedKey.substring(0, Math.min(10, resolvedKey.length())) + "..." : "null"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Final getCx() result: " + getCx());
-        System.out.println("⚙️ [GOOGLE-CONFIG] Configured request delay: " + requestDelayMs + " ms");
-        System.out.println("⚙️ [GOOGLE-CONFIG] Max requests per minute: " + (maxRequestsPerMinute > 0 ? maxRequestsPerMinute : "nincs korlát"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] Max requests per day: " + (maxRequestsPerDay > 0 ? maxRequestsPerDay : "nincs korlát"));
-        System.out.println("⚙️ [GOOGLE-CONFIG] === End Configuration ===");
+        log.debug("[GOOGLE-CONFIG] Final getKey() present: {}", resolvedKey != null && !resolvedKey.isEmpty());
+        log.debug("[GOOGLE-CONFIG] Final getCx() present: {}", getCx() != null && !getCx().isEmpty());
+        log.debug("[GOOGLE-CONFIG] Configured request delay: {} ms", requestDelayMs);
+        log.debug("[GOOGLE-CONFIG] Max requests per minute: {}", maxRequestsPerMinute > 0 ? maxRequestsPerMinute : "nincs korlat");
+        log.debug("[GOOGLE-CONFIG] Max requests per day: {}", maxRequestsPerDay > 0 ? maxRequestsPerDay : "nincs korlat");
+        log.debug("[GOOGLE-CONFIG] === End Configuration ===");
     }
 }

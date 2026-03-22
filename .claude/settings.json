@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c \"CMD='$TOOL_INPUT'; if echo \\\"$CMD\\\" | grep -qiE '\\bgit\\s+commit\\b|\\bgit\\s+push\\b|\\bgh\\s+pr\\s+create\\b|\\bgit\\s+checkout\\s+-b\\b|\\bgit\\s+branch\\s+-[dD]\\b|\\bgit\\s+reset\\s+--hard\\b|\\bgit\\s+push\\s+--force\\b|\\bgit\\s+push\\s+-f\\b'; then echo 'DENY: Git write operations are blocked by agent system. Output the commands for the user to run manually.' && exit 1; fi\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/platform-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Platform guard check..."
+          }
+        ]
+      }
+    ]
+  }
+}

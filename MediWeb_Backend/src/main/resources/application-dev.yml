@@ -22,8 +22,11 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
       max-lifetime: 600000
-      connection-timeout: 30000
+      connection-timeout: 10000
+      leak-detection-threshold: 60000
   jpa:
     hibernate:
       ddl-auto: update
@@ -85,12 +88,15 @@ medication:
   image:
     refresh-days: ${MEDICATION_IMAGE_REFRESH_DAYS:30}
   sync:
-    parallelism: 4
-    discovery-parallelism: 3
-    delay-ms: 300
-    retry-attempts: 3
-    discovery-delay-ms: 600
+    parallelism: 30
+    max-concurrent-requests: 30
+    http-timeout-seconds: 30
+    discovery-parallelism: 8
+    delay-ms: 0
+    retry-attempts: 2
+    discovery-delay-ms: 200
     discovery-retry-attempts: 5
+    image-concurrency: 5
     cron: ${MEDICATION_SYNC_CRON:0 0 2 1 * ?}
     enabled: ${MEDICATION_SYNC_ENABLED:true}
 

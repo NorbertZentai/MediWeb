@@ -163,4 +163,58 @@ export const createStyles = (theme) => StyleSheet.create({
     flexDirection: "row",
     gap: 2,
   },
+  // Table styles
+  tableContainer: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.divider,
+    borderRadius: theme.borderRadius.md,
+    overflow: "hidden",
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.backgroundElevated,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+  },
+  tableRow: {
+    flexDirection: "row",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.divider,
+    alignItems: "center",
+  },
+  tableHeaderCell: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textSecondary,
+    textTransform: "uppercase",
+  },
+  tableCell: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textPrimary,
+  },
+  tableCellSub: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textTertiary,
+    marginTop: 2,
+  },
+  colMedication: {
+    flex: 2.5,
+  },
+  colRating: {
+    flex: 1.2,
+    alignItems: "center",
+  },
+  colDate: {
+    flex: 1.2,
+    alignItems: "flex-end",
+  },
+  colReview: {
+    flex: 3,
+    paddingLeft: 12,
+  },
 });

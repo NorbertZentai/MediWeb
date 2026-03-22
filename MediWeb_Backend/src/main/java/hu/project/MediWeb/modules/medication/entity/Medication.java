@@ -21,7 +21,7 @@ public class Medication {
     @Column(nullable = false, length = 200)
     private String name;
 
-    @Column(length = 200)
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(length = 100)

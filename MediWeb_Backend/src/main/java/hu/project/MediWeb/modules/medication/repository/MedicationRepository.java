@@ -26,6 +26,9 @@ public interface MedicationRepository extends JpaRepository<Medication, Long>, J
 	@Query("select m from Medication m where (m.imageUrl is null or m.imageUrl = '') and m.name is not null and m.name <> ''")
 	List<Medication> findMedicationsWithoutImage();
 
+	@Query("select m from Medication m where m.name is not null and m.name <> '' and m.active = true")
+	List<Medication> findAllActiveMedicationsWithName();
+
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("update Medication m set m.active = false")
 	int deactivateAll();
@@ -41,4 +44,11 @@ public interface MedicationRepository extends JpaRepository<Medication, Long>, J
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query("update Medication m set m.lastReviewedAt = :reviewedAt where m.id in :ids")
 	int updateLastReviewedAt(@Param("ids") Collection<Long> ids, @Param("reviewedAt") LocalDateTime reviewedAt);
+
+	@Query("select m.id, m.imageUrl from Medication m where m.imageUrl is not null and m.imageUrl <> '' and m.active = true")
+	List<Object[]> findActiveImageUrlPairs();
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("update Medication m set m.imageUrl = null where m.id in :ids")
+	int clearImageUrls(@Param("ids") Collection<Long> ids);
 }

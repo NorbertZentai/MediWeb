@@ -5,6 +5,7 @@ import hu.project.MediWeb.modules.GoogleImage.dto.GoogleImageResult;
 import hu.project.MediWeb.modules.GoogleImage.dto.GoogleSearchResponse;
 import jakarta.annotation.PostConstruct;
 import io.netty.channel.ChannelOption;
+import lombok.extern.slf4j.Slf4j;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
+@Slf4j
 @Service
 public class GoogleImageService {
 
@@ -58,50 +60,50 @@ public class GoogleImageService {
 
     @PostConstruct
     public void init() {
-        System.out.println("🚀 [GOOGLE-IMG] === Service Initialization ===");
+        log.debug("[GOOGLE-IMG] === Service Initialization ===");
         googleConfig.logConfiguration();
-        System.out.println("🚀 [GOOGLE-IMG] Google API Key configured: " + (googleConfig.getKey() != null && !googleConfig.getKey().isEmpty()));
-        System.out.println("🚀 [GOOGLE-IMG] Google CX configured: " + (googleConfig.getCx() != null && !googleConfig.getCx().isEmpty()));
+        log.debug("[GOOGLE-IMG] Google API Key configured: {}", googleConfig.getKey() != null && !googleConfig.getKey().isEmpty());
+        log.debug("[GOOGLE-IMG] Google CX configured: {}", googleConfig.getCx() != null && !googleConfig.getCx().isEmpty());
         if (googleConfig.getKey() != null && !googleConfig.getKey().isEmpty()) {
-            System.out.println("🚀 [GOOGLE-IMG] API Key starts with: " + googleConfig.getKey().substring(0, Math.min(10, googleConfig.getKey().length())) + "...");
+            log.debug("[GOOGLE-IMG] API Key starts with: {}...", googleConfig.getKey().substring(0, Math.min(4, googleConfig.getKey().length())));
         } else {
-            System.out.println("🚀 [GOOGLE-IMG] API Key is null or empty");
+            log.debug("[GOOGLE-IMG] API Key is null or empty");
         }
         if (googleConfig.getCx() != null && !googleConfig.getCx().isEmpty()) {
-            System.out.println("🚀 [GOOGLE-IMG] CX value: " + googleConfig.getCx());
+            log.debug("[GOOGLE-IMG] CX configured: true");
         } else {
-            System.out.println("🚀 [GOOGLE-IMG] CX is null or empty");
+            log.debug("[GOOGLE-IMG] CX is null or empty");
         }
-        System.out.println("🚀 [GOOGLE-IMG] === End Initialization ===");
+        log.debug("[GOOGLE-IMG] === End Initialization ===");
     }
 
     public Mono<GoogleImageResult> searchImages(String query) {
         // Detailed logging for Google API credentials debugging
-        System.out.println("🔍 [GOOGLE-IMG] === Google API Configuration Debug ===");
-        System.out.println("🔍 [GOOGLE-IMG] Query: " + query);
-        System.out.println("🔍 [GOOGLE-IMG] API Key present: " + (googleConfig.getKey() != null));
-        System.out.println("🔍 [GOOGLE-IMG] API Key length: " + (googleConfig.getKey() != null ? googleConfig.getKey().length() : 0));
-        System.out.println("🔍 [GOOGLE-IMG] API Key starts with: " + (googleConfig.getKey() != null && googleConfig.getKey().length() > 10 ? googleConfig.getKey().substring(0, 10) + "..." : "null"));
-        System.out.println("🔍 [GOOGLE-IMG] CX present: " + (googleConfig.getCx() != null));
-        System.out.println("🔍 [GOOGLE-IMG] CX length: " + (googleConfig.getCx() != null ? googleConfig.getCx().length() : 0));
-        System.out.println("🔍 [GOOGLE-IMG] CX value: " + (googleConfig.getCx() != null ? googleConfig.getCx() : "null"));
-        System.out.println("🔍 [GOOGLE-IMG] === End Debug ===");
+        log.debug("[GOOGLE-IMG] === Google API Configuration Debug ===");
+        log.debug("[GOOGLE-IMG] Query: {}", query);
+        log.debug("[GOOGLE-IMG] API Key present: {}", googleConfig.getKey() != null);
+        log.debug("[GOOGLE-IMG] API Key length: {}", googleConfig.getKey() != null ? googleConfig.getKey().length() : 0);
+        log.debug("[GOOGLE-IMG] API Key starts with: {}...", googleConfig.getKey() != null && googleConfig.getKey().length() > 4 ? googleConfig.getKey().substring(0, 4) : "null");
+        log.debug("[GOOGLE-IMG] CX present: {}", googleConfig.getCx() != null);
+        log.debug("[GOOGLE-IMG] CX length: {}", googleConfig.getCx() != null ? googleConfig.getCx().length() : 0);
+        log.debug("[GOOGLE-IMG] CX present: {}", googleConfig.getCx() != null && !googleConfig.getCx().isEmpty());
+        log.debug("[GOOGLE-IMG] === End Debug ===");
         
         // Check if Google API credentials are configured
         if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty() ||
             googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
-            System.out.println("❌ [GOOGLE-IMG] API credentials not configured, skipping image search for: " + query);
+            log.warn("[GOOGLE-IMG] API credentials not configured, skipping image search for: {}", query);
             if (googleConfig.getKey() == null || googleConfig.getKey().isEmpty()) {
-                System.out.println("❌ [GOOGLE-IMG] Missing or empty API Key");
+                log.warn("[GOOGLE-IMG] Missing or empty API Key");
             }
             if (googleConfig.getCx() == null || googleConfig.getCx().isEmpty()) {
-                System.out.println("❌ [GOOGLE-IMG] Missing or empty Search Engine CX");
+                log.warn("[GOOGLE-IMG] Missing or empty Search Engine CX");
             }
             return Mono.empty();
         }
 
         String enhancedQuery = query + " gyógyszer doboz";
-        System.out.println("🔍 [GOOGLE-IMG] Searching images for: " + enhancedQuery);
+        log.info("[GOOGLE-IMG] Searching images for: {}", enhancedQuery);
         return Mono.defer(() -> {
             final AtomicBoolean permitAcquired = new AtomicBoolean(false);
             try {
@@ -138,18 +140,18 @@ public class GoogleImageService {
                 .bodyToMono(GoogleSearchResponse.class)
                 .map(resp -> {
                     if (resp.items() == null || resp.items().isEmpty()) {
-                        System.out.println("⚠️ [GOOGLE-IMG] No results returned for: " + enhancedQuery);
+                        log.warn("[GOOGLE-IMG] No results returned for: {}", enhancedQuery);
                         return (GoogleImageResult) null;
                     }
-                    System.out.println("✅ [GOOGLE-IMG] Successfully found " + resp.items().size() + " images for: " + enhancedQuery);
+                    log.info("[GOOGLE-IMG] Successfully found {} images for: {}", resp.items().size(), enhancedQuery);
                     return resp.items().stream()
                             .map(item -> new GoogleImageResult(item.title(), item.link(), item.displayLink()))
                             .max(Comparator.comparingInt(image -> score(query, image)))
                             .orElse(null);
                 })
                 .onErrorResume(error -> {
-                    System.err.println("❌ [GOOGLE-IMG] Error searching images for: " + query);
-                    System.err.println("❌ [GOOGLE-IMG] Error: " + error.getMessage());
+                    log.error("[GOOGLE-IMG] Error searching images for: {}", query);
+                    log.error("[GOOGLE-IMG] Error: {}", error.getMessage());
                     if (error instanceof WebClientResponseException tooManyRequests && tooManyRequests.getStatusCode().value() == 429) {
                         applyThrottleBackoff();
                     }
@@ -284,7 +286,7 @@ public class GoogleImageService {
         } finally {
             rateLimitLock.unlock();
         }
-        System.err.println("⏳ [GOOGLE-IMG] Too many requests detected, applying backoff of " + backoff + " ms");
+        log.warn("[GOOGLE-IMG] Too many requests detected, applying backoff of {} ms", backoff);
     }
 
     private boolean reserveQuota(String query) {
@@ -301,7 +303,7 @@ public class GoogleImageService {
                     minuteRequestCount = 0;
                 }
                 if (minuteRequestCount >= perMinuteLimit) {
-                    System.err.println("⏳ [GOOGLE-IMG] Per-minute kvóta elérve, kihagyjuk a keresést: " + query);
+                    log.warn("[GOOGLE-IMG] Per-minute kvota elerve, kihagyjuk a keresest: {}", query);
                     return false;
                 }
             }
@@ -313,7 +315,7 @@ public class GoogleImageService {
                     dayRequestCount = 0;
                 }
                 if (dayRequestCount >= perDayLimit) {
-                    System.err.println("⏳ [GOOGLE-IMG] Napi kvóta elérve, kihagyjuk a keresést: " + query);
+                    log.warn("[GOOGLE-IMG] Napi kvota elerve, kihagyjuk a keresest: {}", query);
                     return false;
                 }
             }

@@ -112,6 +112,43 @@ CREATE TABLE IF NOT EXISTS public.user_data_requests (
     processed_at TIMESTAMP
 );
 
+-- ==================== INDEXES ====================
+
+-- users: email lookup (login, JWT validation)
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
+
+-- profiles: user's profiles lookup
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
+
+-- medications: active medication filtering + search
+CREATE INDEX IF NOT EXISTS idx_medications_active_status ON public.medications(is_active, status);
+CREATE INDEX IF NOT EXISTS idx_medications_atc_code ON public.medications(atc_code);
+CREATE INDEX IF NOT EXISTS idx_medications_name ON public.medications(name);
+CREATE INDEX IF NOT EXISTS idx_medications_last_updated ON public.medications(last_updated);
+
+-- profile_medications: compound lookup
+CREATE INDEX IF NOT EXISTS idx_profile_medications_profile ON public.profile_medications(profile_id);
+CREATE INDEX IF NOT EXISTS idx_profile_medications_medication ON public.profile_medications(medication_id);
+
+-- favorites: user's favorites lookup
+CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON public.favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_medication_id ON public.favorites(medication_id);
+
+-- reviews: medication reviews + user history
+CREATE INDEX IF NOT EXISTS idx_reviews_item_id ON public.reviews(item_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON public.reviews(user_id);
+
+-- medication_intake_log: date range queries for statistics
+CREATE INDEX IF NOT EXISTS idx_intake_log_profile_med ON public.medication_intake_log(profile_medication_id);
+CREATE INDEX IF NOT EXISTS idx_intake_log_date ON public.medication_intake_log(intake_date);
+CREATE INDEX IF NOT EXISTS idx_intake_log_taken ON public.medication_intake_log(profile_medication_id, taken);
+
+-- user_data_requests: GDPR request tracking
+CREATE INDEX IF NOT EXISTS idx_data_requests_user_status ON public.user_data_requests(user_id, status);
+
+-- expo_push_tokens: push notification delivery (table may not exist yet)
+-- CREATE INDEX IF NOT EXISTS idx_push_tokens_user_id ON public.expo_push_tokens(user_id);
+
 -- Admin felhasználó beszúrása (egyedi email alapján)
 INSERT INTO users (name, email, password, role, is_active, registration_date)
 VALUES ('Admin', 'zentai.norbert96@gmail.com', 'adminpass', 'ADMIN', true, now())
