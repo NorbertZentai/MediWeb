@@ -21,8 +21,10 @@ export const startMedicationSync = async (force = false, extraParams = {}) => {
   return response.data;
 };
 
-export const startImageSync = async () => {
-  const response = await api.post('/api/medication/sync/images');
+export const startImageSync = async (force = false, cleanup = false) => {
+  const response = await api.post('/api/medication/sync/images', null, {
+    params: { force, cleanup },
+  });
   return response.data;
 };
 

@@ -13,9 +13,11 @@ import { useRouter } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
 import { createStyles } from './HomeScreen.style';
 import { useTheme } from 'contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 import { getHomeDashboard, getPopularMedications } from './home.api';
 import { haptics } from 'utils/haptics';
 import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync, startImageSync } from 'features/medication/medication.api';
+import { toast } from 'utils/toast';
 
 const DEFAULT_DASHBOARD_TEMPLATE = {
   summary: {
@@ -59,9 +61,23 @@ const DEFAULT_SYNC_STATUS = {
   discoveryCompleted: true,
   lastMessage: null,
   cancellationRequested: false,
+  imagesCached: 0,
+  imagesFetched: 0,
+  imagesSkipped: 0,
 };
 
-const TEST_SYNC_LIMIT = 1000;
+const TEST_SYNC_LIMIT = 500;
+
+const PHASE_LABELS = {
+  IDLE: 'Tétlen',
+  ID_DISCOVERY: 'ID-k felderítése',
+  ITEM_PROCESSING: 'Feldolgozás',
+  COMPLETED: 'Befejezve',
+  STOPPING: 'Leállítás...',
+  CANCELLED: 'Megszakítva',
+  IMAGE_CLEANUP: 'Képek ellenőrzése',
+  IMAGE_FETCH: 'Képek keresése',
+};
 
 import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 
@@ -70,7 +86,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { isMobile } = useResponsiveLayout();
   const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, isMobile), [theme, isMobile]);
 
   const [dashboard, setDashboard] = useState(() => createDefaultDashboard());
   // ... existing state ...
@@ -211,6 +227,9 @@ export default function HomeScreen() {
   }, [syncStatus.running, syncStatus.discoveryCompleted, syncStatus.cancellationRequested]);
 
   const isDiscoveryPhase = syncStatus.running && syncStatus.phase === 'ID_DISCOVERY';
+  const isImageCleanupPhase = syncStatus.running && syncStatus.phase === 'IMAGE_CLEANUP';
+  const isImageFetchPhase = syncStatus.running && syncStatus.phase === 'IMAGE_FETCH';
+  const isImagePhase = isImageCleanupPhase || isImageFetchPhase;
 
   const triggerSync = useCallback(
     async ({ force = false, limit = null, variant = 'standard' } = {}) => {
@@ -269,15 +288,25 @@ export default function HomeScreen() {
     setIsImageSyncStarting(true);
     setManualSyncError(null);
     try {
-      await startImageSync();
+      // Single async call: cleanup broken URLs + fetch missing images
+      await startImageSync(false, true);
       setSyncStatus((prev) => ({
         ...prev,
         running: true,
         cancellationRequested: false,
-        lastMessage: 'Képkeresés indítása...',
-        phase: 'ID_DISCOVERY',
+        lastMessage: 'Hibás képek ellenőrzése és frissítés...',
+        phase: 'IMAGE_CLEANUP',
       }));
-      await fetchSyncStatus();
+      // Poll quickly to catch fast completions and show result
+      const status = await fetchSyncStatus();
+      if (status && !status.running) {
+        const msg = status.lastMessage || status.finishMessage;
+        if (msg) {
+          toast.info(msg);
+        } else {
+          toast.info('Minden gyógyszerhez van már kép az adatbázisban.');
+        }
+      }
     } catch (error) {
       console.error('Nem sikerült elindítani a képkeresést:', error.message || 'Unknown error');
       setManualSyncError('Nem sikerült elindítani a hiányzó képek keresését.');
@@ -320,6 +349,8 @@ export default function HomeScreen() {
       {
         label: 'Gyógyszer keresése',
         description: 'Találd meg gyorsan a szükséges gyógyszert',
+        icon: 'search',
+        color: '#3B82F6',
         onPress: () => {
           haptics.light();
           router.push('/search');
@@ -328,6 +359,8 @@ export default function HomeScreen() {
       {
         label: 'Profilok kezelése',
         description: 'Kapcsolt felhasználók és emlékeztetők áttekintése',
+        icon: 'people',
+        color: '#10B981',
         onPress: () => {
           haptics.light();
           router.push('/profile');
@@ -336,6 +369,8 @@ export default function HomeScreen() {
       {
         label: 'Gyógyszer felvétele',
         description: 'Adj hozzá új gyógyszert a profilokhoz',
+        icon: 'add-circle',
+        color: '#F59E0B',
         onPress: () => {
           haptics.light();
           router.push('/search?intent=add');
@@ -358,18 +393,22 @@ export default function HomeScreen() {
       {
         title: 'Aktív gyógyszerek',
         value: dashboard.summary?.totalMedications ?? '—',
+        icon: 'medical',
       },
       {
         title: 'Mai emlékeztetők',
         value: dashboard.summary?.remindersToday ?? '—',
+        icon: 'notifications',
       },
       {
         title: 'Adherencia',
         value: adherenceText,
+        icon: 'checkmark-circle',
       },
       {
         title: 'Utolsó keresés',
         value: dashboard.summary?.lastSearch ?? '—',
+        icon: 'time',
       },
     ];
   }, [dashboard.summary]);
@@ -522,7 +561,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.pageWrapper} edges={['top']}>
       <ScrollView
         style={styles.page}
-        contentContainerStyle={[styles.pageContent, isMobile && { paddingHorizontal: 16 }]}
+        contentContainerStyle={styles.pageContent}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -532,14 +571,20 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={[styles.contentWrapper, isMobile && { paddingTop: 12 }]}>
+        <View style={styles.contentWrapper}>
           <View style={styles.heroCard}>
             <View style={styles.heroText}>
               <Text style={styles.heroTitle}>Üdv, {user?.name || 'felhasználó'}!</Text>
               <Text style={styles.heroSubtitle}>
                 Vezérlőpultod együtt mutatja a gyógyszerbevételeket, emlékeztetőket és keresési
-                trendeket. Maradj naprakész egyetlen helyen.
+                trendeket. Maradj naprakész.
               </Text>
+              <TouchableOpacity
+                style={styles.heroButton}
+                onPress={() => router.push('/search')}
+              >
+                <Text style={styles.heroButtonText}>Gyógyszer keresése</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -557,22 +602,39 @@ export default function HomeScreen() {
                 style={styles.syncSpinner}
               />
               <View style={styles.syncTextWrapper}>
-                <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
-                {isDiscoveryPhase ? (
+                {isImageCleanupPhase ? (
                   <>
+                    <Text style={styles.syncTitle}>Kép URL-ek ellenőrzése</Text>
+                    <Text style={styles.syncSubtitle}>{`Ellenőrizve: ${syncProgressText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Érvényes: ${formatCount(syncStatus.succeeded)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
+                    <Text style={styles.syncMeta}>{`${syncStatus.parallelism || 1}x párhuzamos • Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
+                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText}`}</Text>
+                  </>
+                ) : isImageFetchPhase ? (
+                  <>
+                    <Text style={styles.syncTitle}>Hiányzó képek keresése</Text>
+                    <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Képet találtunk: ${formatCount(syncStatus.imagesFetched)} • Nem található: ${formatCount(syncStatus.imagesSkipped)} • Hiba: ${formatCount(syncStatus.failed)}`}</Text>
+                    <Text style={styles.syncMeta}>{`${syncStatus.parallelism || 1}x párhuzamos • Átlag: ${averageSecondsText}s/elem`}</Text>
+                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
+                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText} • Teljes: ${estimatedTotalDurationText}`}</Text>
+                  </>
+                ) : isDiscoveryPhase ? (
+                  <>
+                    <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
                     <Text style={styles.syncSubtitle}>{`Új azonosítók: ${discoveryNewText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Átnézett OGYEI találatok: ${discoveryScannedText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Cél: ${discoveryTargetText === '—' ? 'teljes adatbázis' : `${discoveryTargetText} új elem`} • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
-                    <Text style={styles.syncMeta}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
-                    <Text style={styles.syncMeta}>{`Állapot: gyógyszer ID-k összegyűjtése folyamatban...`}</Text>
+                    <Text style={styles.syncMeta}>{`Átnézett OGYEI oldalak: ${discoveryScannedText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Cél: ${discoveryTargetText === '—' ? 'teljes adatbázis' : `${discoveryTargetText} elem`} • ${syncStatus.parallelism || 1}x párhuzamos`}</Text>
+                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
                   </>
                 ) : (
                   <>
+                    <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
                     <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Sikeres: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Sikertelen: ${syncStatus.failed}`}</Text>
-                    <Text style={styles.syncMeta}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} tétel • Átlag: ${averageSecondsText}s/elem • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x`}</Text>
-                    <Text style={styles.syncMeta}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
-                    <Text style={styles.syncMeta}>{`Hátralévő idő: ${estimatedRemainingDurationText} • Várható teljes idő: ${estimatedTotalDurationText}`}</Text>
+                    <Text style={styles.syncMeta}>{`Feldolgozva: ${syncSuccessText} • Változatlan: ${formatCount(syncStatus.skipped)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
+                    <Text style={styles.syncMeta}>{`OGYEI állomány: ${formatCount(syncStatus.totalKnown) || '—'} • ${syncStatus.parallelism || 1}x párhuzamos • Átlag: ${averageSecondsText}s/elem`}</Text>
+                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
+                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText} • Teljes: ${estimatedTotalDurationText}`}</Text>
                   </>
                 )}
               </View>
@@ -584,11 +646,17 @@ export default function HomeScreen() {
               {manualSyncError ? (
                 <Text style={styles.debugError}>{manualSyncError}</Text>
               ) : null}
-              <Text style={styles.debugInfo}>{`Adatbázisban tárolt gyógyszerek: ${formatCount(syncStatus.totalPersisted)} tétel`}</Text>
-              <Text style={styles.debugInfoSecondary}>{`Fázis: ${syncStatus.phase || '—'}`}</Text>
-              <Text style={styles.debugInfoSecondary}>{`Új azonosítók: ${discoveryNewText}`}</Text>
-              <Text style={styles.debugInfoSecondary}>{`Átnézett OGYEI találatok: ${discoveryScannedText}`}</Text>
-              <Text style={styles.debugInfoSecondary}>{`Gyors teszt limit: ${TEST_SYNC_LIMIT} tétel`}</Text>
+              <Text style={styles.debugInfo}>{`Adatbázis: ${formatCount(syncStatus.totalPersisted)} gyógyszer | Async pipeline: ${syncStatus.parallelism || 1}x párhuzamos`}</Text>
+              <Text style={styles.debugInfoSecondary}>{`Fázis: ${PHASE_LABELS[syncStatus.phase] || syncStatus.phase || '—'}`}</Text>
+              {syncStatus.running && !isDiscoveryPhase && !isImagePhase && (
+                <Text style={styles.debugInfoSecondary}>{`Smart diff: ${formatCount(syncStatus.skipped)} változatlan (kihagyva) | ${formatCount(syncStatus.succeeded)} feldolgozva | ${formatCount(syncStatus.failed)} hibás`}</Text>
+              )}
+              {syncStatus.running && isImageCleanupPhase && (
+                <Text style={styles.debugInfoSecondary}>{`URL ellenőrzés: ${formatCount(syncStatus.processed)} / ${formatCount(syncStatus.totalKnown)} | hibás: ${formatCount(syncStatus.failed)}`}</Text>
+              )}
+              {syncStatus.running && isImageFetchPhase && (
+                <Text style={styles.debugInfoSecondary}>{`Képkeresés: ${formatCount(syncStatus.imagesFetched)} mentve | ${formatCount(syncStatus.imagesSkipped)} nem található | ${formatCount(syncStatus.failed)} hiba`}</Text>
+              )}
               {syncStatus.lastMessage ? (
                 <Text style={styles.debugInfoSecondary}>{`Állapot: ${syncStatus.lastMessage}`}</Text>
               ) : null}
@@ -608,7 +676,7 @@ export default function HomeScreen() {
                   {isStandardStartPending ? (
                     <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
-                    <Text style={styles.debugButtonText}>Debug: szinkron indítása</Text>
+                    <Text style={styles.debugButtonText}>Teljes szinkron</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -623,7 +691,7 @@ export default function HomeScreen() {
                   {isTestStartPending ? (
                     <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
-                    <Text style={styles.debugButtonText}>{`Debug: ${TEST_SYNC_LIMIT} elem teszt`}</Text>
+                    <Text style={styles.debugButtonText}>{`Teszt (${TEST_SYNC_LIMIT} elem)`}</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -639,7 +707,7 @@ export default function HomeScreen() {
                   {isImageSyncStarting ? (
                     <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
-                    <Text style={styles.debugButtonText}>Debug: Képkeresés (Hiányzók)</Text>
+                    <Text style={styles.debugButtonText}>Hiányzó képek</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -654,7 +722,7 @@ export default function HomeScreen() {
                   {stopInFlight ? (
                     <ActivityIndicator size="small" color={theme.colors.white} />
                   ) : (
-                    <Text style={styles.debugButtonText}>Debug: szinkron leállítása</Text>
+                    <Text style={styles.debugButtonText}>Leállítás</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -663,14 +731,9 @@ export default function HomeScreen() {
 
           {!syncStatus.running && syncStatus.finishedAt && (
             <View style={styles.syncBannerIdle}>
-              <Text style={styles.syncIdleTitle}>Legutóbbi gyógyszer frissítés lezárva</Text>
-              <Text style={styles.syncIdleSubtitle}>{`Összesen: ${syncSuccessText} • Kihagyott: ${syncStatus.skipped} • Hibás: ${syncStatus.failed}`}</Text>
-              <Text style={styles.syncMetaSecondary}>{`Teljes OGYEI állomány: ${syncStatus.totalKnown || '—'} • Párhuzamos szálak: ${(syncStatus.parallelism || 1)}x • Becsült teljes idő: ${estimatedTotalDurationText}`}</Text>
-              <Text style={styles.syncMetaSecondary}>{`Adatbázisban tárolt: ${formatCount(syncStatus.totalPersisted)}`}</Text>
-              <Text style={styles.syncMetaSecondary}>{`Átlag: ${averageSecondsText}s/elem`}</Text>
-              {syncStatus.estimatedRemainingSeconds > 0 ? (
-                <Text style={styles.syncMetaSecondary}>{`Becsült hátralévő idő: ${idleRemainingDurationText}`}</Text>
-              ) : null}
+              <Text style={styles.syncIdleTitle}>Legutóbbi frissítés lezárva</Text>
+              <Text style={styles.syncIdleSubtitle}>{`Feldolgozva: ${syncSuccessText} • Változatlan: ${formatCount(syncStatus.skipped)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
+              <Text style={styles.syncMetaSecondary}>{`OGYEI állomány: ${formatCount(syncStatus.totalKnown) || '—'} • Adatbázisban: ${formatCount(syncStatus.totalPersisted)} • Idő: ${estimatedTotalDurationText}`}</Text>
               {syncFinishedAtText ? (
                 <Text style={styles.syncMetaSecondary}>{`Befejezve: ${syncFinishedAtText}`}</Text>
               ) : null}
@@ -685,18 +748,23 @@ export default function HomeScreen() {
             <>
               <View style={styles.summaryRow}>
                 {summaryCards.map((card) => (
-                  <View key={card.title} style={[styles.summaryCard, isMobile && { minWidth: '44%', flexBasis: '44%' }]}>
-                    <Text style={styles.cardLabel} numberOfLines={1}>{card.title}</Text>
-                    <Text style={styles.cardValue} numberOfLines={1}>{card.value}</Text>
+                  <View key={card.title} style={styles.summaryCard}>
+                    <View style={styles.summaryIconWrapper}>
+                      <Ionicons name={card.icon} size={22} color={theme.colors.primary} />
+                    </View>
+                    <View>
+                      <Text style={styles.cardLabel} numberOfLines={1}>{card.title}</Text>
+                      <Text style={styles.cardValue} numberOfLines={1}>{card.value}</Text>
+                    </View>
                   </View>
                 ))}
               </View>
 
-              <View style={[styles.gridRow, isMobile && { flexDirection: 'column' }]}>
-                <View style={[styles.leftColumn, isMobile && { flex: 1, marginRight: 0, marginBottom: 16 }]}>
+              <View style={styles.gridRow}>
+                <View style={styles.leftColumn}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle} numberOfLines={1}>Népszerű gyógyszerek</Text>
+                      <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
                       <TouchableOpacity onPress={() => router.push('/search')}>
                         <Text style={styles.sectionAction}>Összes keresése</Text>
                       </TouchableOpacity>
@@ -791,10 +859,10 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                <View style={[styles.rightColumn, isMobile && { flex: 1 }]}>
+                <View style={styles.rightColumn}>
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle} numberOfLines={1}>Következő emlékeztető</Text>
+                      <Text style={styles.sectionTitle}>Következő emlékeztető</Text>
                     </View>
                     {dashboard.upcomingReminder ? (
                       <View style={styles.reminderCard}>
@@ -818,11 +886,17 @@ export default function HomeScreen() {
                       {quickActions.map((action) => (
                         <TouchableOpacity
                           key={action.label}
-                          style={[styles.quickActionCard, isMobile && { flexBasis: '100%' }]}
+                          style={styles.quickActionCard}
                           onPress={action.onPress}
                         >
-                          <Text style={styles.quickActionLabel}>{action.label}</Text>
-                          <Text style={styles.quickActionDescription}>{action.description}</Text>
+                          <View style={[styles.quickActionIconWrapper, { backgroundColor: `${action.color}15` }]}>
+                            <Ionicons name={action.icon} size={24} color={action.color} />
+                          </View>
+                          <View style={styles.quickActionContent}>
+                            <Text style={styles.quickActionLabel}>{action.label}</Text>
+                            <Text style={styles.quickActionDescription}>{action.description}</Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={18} color={theme.colors.textTertiary} />
                         </TouchableOpacity>
                       ))}
                     </View>

@@ -15,5 +15,7 @@ public class ReviewDTO {
     private String positive;
     private String negative;
     private String author;
+    private Integer medicationId;
+    private String medicationName;
     private LocalDateTime createdAt;
 }

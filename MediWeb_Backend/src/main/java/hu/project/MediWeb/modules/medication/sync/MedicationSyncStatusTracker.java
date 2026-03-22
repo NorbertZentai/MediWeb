@@ -16,6 +16,8 @@ public class MedicationSyncStatusTracker {
     private static final String PHASE_COMPLETED = "COMPLETED";
     private static final String PHASE_STOPPING = "STOPPING";
     private static final String PHASE_CANCELLED = "CANCELLED";
+    private static final String PHASE_IMAGE_CLEANUP = "IMAGE_CLEANUP";
+    private static final String PHASE_IMAGE_FETCH = "IMAGE_FETCH";
 
     private final ReentrantLock lock = new ReentrantLock();
     private volatile MedicationSyncStatus status = MedicationSyncStatus.idle();
@@ -42,6 +44,10 @@ public class MedicationSyncStatusTracker {
     }
 
     public void markStarted(int totalKnownItems, double averageSecondsPerItem, int parallelism, int totalPersisted) {
+        markStarted(totalKnownItems, averageSecondsPerItem, parallelism, totalPersisted, "OGYEI azonosítók kigyűjtése folyamatban");
+    }
+
+    public void markStarted(int totalKnownItems, double averageSecondsPerItem, int parallelism, int totalPersisted, String initialMessage) {
         lock.lock();
         try {
             discovered.set(0);
@@ -83,7 +89,7 @@ public class MedicationSyncStatusTracker {
                     totalSeconds,
                     this.phase,
                     this.discoveryCompleted,
-                    "OGYEI azonosítók kigyűjtése folyamatban",
+                    initialMessage,
                     cancellationRequested.get(),
                     0,
                     0,
@@ -268,7 +274,12 @@ public class MedicationSyncStatusTracker {
     }
 
     public MedicationSyncStatus snapshot() {
-        return status;
+        lock.lock();
+        try {
+            return status;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void markDiscoveryComplete(int totalDiscovered) {
@@ -358,6 +369,72 @@ public class MedicationSyncStatusTracker {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Transitions to a new phase within a running sync, resetting progress counters
+     * but keeping running=true and preserving startedAt. Used for multi-phase operations
+     * like IMAGE_CLEANUP → IMAGE_FETCH.
+     */
+    public void transitionToPhase(String newPhase, int newTotalItems, int newParallelism, double newAvgSeconds, String message) {
+        lock.lock();
+        try {
+            this.phase = newPhase;
+            this.totalKnownItems = Math.max(newTotalItems, 0);
+            this.discoveryTarget = this.totalKnownItems;
+            this.discoveryCompleted = true;
+            this.parallelism = Math.max(newParallelism, 1);
+            this.averageSecondsPerItem = newAvgSeconds > 0 ? newAvgSeconds : 2.0d;
+            processed.set(0);
+            succeeded.set(0);
+            failed.set(0);
+            skipped.set(0);
+            discovered.set(newTotalItems);
+            discoveryScanned.set(0);
+            if (PHASE_IMAGE_FETCH.equals(newPhase)) {
+                imagesCached.set(0);
+                imagesFetched.set(0);
+                imagesSkipped.set(0);
+            }
+            OffsetDateTime startedAt = status.startedAt();
+            double perItemSeconds = baselinePerItemSeconds();
+            long totalSeconds = estimateTotalSeconds(perItemSeconds, startedAt, 0);
+            status = new MedicationSyncStatus(
+                    true,
+                    startedAt,
+                    null,
+                    newTotalItems,
+                    0,
+                    this.discoveryTarget,
+                    0, 0, 0, 0,
+                    this.totalKnownItems,
+                    this.totalPersisted,
+                    this.averageSecondsPerItem,
+                    this.parallelism,
+                    totalSeconds,
+                    totalSeconds,
+                    this.phase,
+                    true,
+                    message,
+                    cancellationRequested.get(),
+                    imagesCached.get(),
+                    imagesFetched.get(),
+                    imagesSkipped.get()
+            );
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Sets absolute progress values (not incremental). Used by cleanup phase
+     * where progress is tracked externally and reported in bulk.
+     */
+    public void updateProgress(int processedValue, int succeededValue, int failedValue, String message) {
+        processed.set(processedValue);
+        succeeded.set(succeededValue);
+        failed.set(failedValue);
+        updateSnapshot(discovered.get(), discoveryScanned.get(), processedValue, succeededValue, failedValue, skipped.get(), message);
     }
 
     public void updatePersistedCount(int totalPersisted) {

@@ -33,9 +33,12 @@ export default function ReviewSection({
     }
   }, [ownReview]);
 
-  const totalRatings = Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
+  const totalRatings = useMemo(
+    () => Object.values(ratingDistribution).reduce((a, b) => a + b, 0),
+    [ratingDistribution]
+  );
 
-  const sortedReviews = [...reviews].sort((a, b) => {
+  const sortedReviews = useMemo(() => [...reviews].sort((a, b) => {
     switch (sortOption) {
       case "highest":
         return b.rating - a.rating;
@@ -47,9 +50,12 @@ export default function ReviewSection({
       default:
         return new Date(b.createdAt) - new Date(a.createdAt);
     }
-  });
+  }), [reviews, sortOption]);
 
-  const filteredReviews = sortedReviews.filter((rev) => rev.userId !== userId);
+  const filteredReviews = useMemo(
+    () => sortedReviews.filter((rev) => rev.userId !== userId),
+    [sortedReviews, userId]
+  );
 
   const handleSubmit = () => {
     const payload = { rating, positive, negative, userId };

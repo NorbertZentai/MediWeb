@@ -17,11 +17,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,38 +95,99 @@ public class MedicationBatchProcessor {
     }
 
     public void refreshMissingImages() {
-        refreshLocalImages();
+        refreshLocalImages(false, false);
+    }
+
+    public void refreshMissingImages(boolean force) {
+        refreshLocalImages(force, false);
+    }
+
+    public void refreshMissingImages(boolean force, boolean cleanup) {
+        refreshLocalImages(force, cleanup);
     }
 
     /**
-     * Iterates over medications in our local DB that have no image,
-     * and fetches images from Google API only (no OGYEI scraping).
+     * Iterates over medications in our local DB that have no image (or all active meds if force=true),
+     * and fetches images from web search / Google API only (no OGYEI scraping).
+     * If cleanup=true, first validates existing image URLs and clears broken ones.
+     *
+     * Runs as a SINGLE continuous operation with two phases:
+     * Phase 1 (IMAGE_CLEANUP): validate existing URLs via HEAD requests, clear broken ones
+     * Phase 2 (IMAGE_FETCH): fetch images for medications without images
+     * One markStarted at the beginning (from controller), one markFinished at the end.
      */
-    private void refreshLocalImages() {
-        log.info("🖼️ [IMAGE-SYNC] Starting local image sync — scanning local DB for medications without images");
+    private void refreshLocalImages(boolean force, boolean cleanup) {
+        log.info("🖼️ [IMAGE-SYNC] Starting local image sync (force={}, cleanup={}) — scanning local DB", force, cleanup);
         cancellationRequested.set(false);
 
-        List<Medication> medications = medicationService.findMedicationsWithoutImage();
+        int cleaned = 0;
+
+        // Phase 1: optionally validate & clear broken image URLs
+        if (cleanup && !force) {
+            // Transition to IMAGE_CLEANUP phase — 10 threads, ~0.5s per URL check
+            statusTracker.transitionToPhase("IMAGE_CLEANUP", 0, 10, 0.5, "Kép URL-ek ellenőrzése indul...");
+
+            try {
+                cleaned = medicationService.cleanupBrokenImageUrls(progress -> {
+                    int checked = progress[0];
+                    int total = progress[1];
+                    int broken = progress[2];
+                    if (checked == 0 && total > 0) {
+                        // Initial callback — now we know the total, update the phase
+                        statusTracker.transitionToPhase("IMAGE_CLEANUP", total, 10, 0.5,
+                                String.format("Kép URL-ek ellenőrzése: 0 / %d", total));
+                    } else {
+                        statusTracker.updateProgress(checked, checked - broken, broken,
+                                String.format("Kép URL-ek ellenőrzése: %d / %d (hibás: %d)", checked, total, broken));
+                    }
+                });
+
+                if (cleaned > 0) {
+                    log.info("🖼️ [IMAGE-SYNC] Cleanup cleared {} broken image URLs", cleaned);
+                } else {
+                    log.info("🖼️ [IMAGE-SYNC] Cleanup found no broken URLs");
+                }
+            } catch (Exception e) {
+                log.error("🖼️ [IMAGE-SYNC] Cleanup failed: {}", e.getMessage(), e);
+            }
+
+            if (isCancellationRequested()) {
+                statusTracker.markCancelled("Képszinkron megszakítva", medicationService.countStoredMedications());
+                return;
+            }
+        }
+
+        // Phase 2: fetch missing images
+        List<Medication> medications = force
+                ? medicationService.findAllActiveMedicationsWithName()
+                : medicationService.findMedicationsWithoutImage();
         int total = medications.size();
 
         if (total == 0) {
-            log.info("✅ [IMAGE-SYNC] All medications already have images — nothing to do");
-            statusTracker.markStarted(0, 2.0, parallelism, medicationService.countStoredMedications());
-            statusTracker.markDiscoveryComplete(0);
-            statusTracker.markFinished("Minden gyógyszerhez van már kép");
+            log.info("✅ [IMAGE-SYNC] No medications to process — nothing to do");
+            String msg = cleanup && cleaned > 0
+                    ? String.format("%d hibás kép URL törölve. Minden gyógyszerhez van már kép.", cleaned)
+                    : force
+                            ? "Nincs aktív gyógyszer az adatbázisban"
+                            : "Minden gyógyszerhez van már kép";
+            statusTracker.markFinished(msg);
             return;
         }
 
-        log.info("🖼️ [IMAGE-SYNC] Found {} medications without images in local DB", total);
-        int persistedCount = medicationService.countStoredMedications();
-        statusTracker.markStarted(total, 2.0, parallelism, persistedCount);
-        statusTracker.markDiscoveryComplete(total);
+        log.info("🖼️ [IMAGE-SYNC] Found {} medications to process in local DB", total);
 
-        ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, parallelism));
+        // Transition to IMAGE_FETCH phase — 2 threads, ~2s per image search
+        int imageThreads = Math.max(1, Math.min(parallelism, 2));
+        statusTracker.transitionToPhase("IMAGE_FETCH", total, imageThreads, 2.0,
+                String.format("Hiányzó képek keresése: 0 / %d", total));
+
+        ExecutorService executor = Executors.newFixedThreadPool(imageThreads);
         List<Future<?>> futures = new ArrayList<>();
         AtomicInteger fetched = new AtomicInteger(0);
         AtomicInteger skippedCount = new AtomicInteger(0);
         AtomicInteger failedCount = new AtomicInteger(0);
+
+        log.info("🖼️ [IMAGE-SYNC] Using {} threads for image sync", imageThreads);
 
         try {
             for (Medication med : medications) {
@@ -135,22 +199,23 @@ public class MedicationBatchProcessor {
                         return;
                     }
                     try {
-                        boolean found = medicationService.fetchImageForMedication(med);
+                        boolean found = medicationService.fetchImageForMedication(med, force);
                         if (found) {
                             fetched.incrementAndGet();
                             statusTracker.incrementImageFetched();
-                            statusTracker.incrementProcessed(true, "✅ Kép mentve: " + med.getName());
+                            statusTracker.incrementProcessed(true, "Kép mentve: " + med.getName());
                         } else {
                             skippedCount.incrementAndGet();
                             statusTracker.incrementImageSkipped();
-                            statusTracker.incrementProcessed(true, "⏭️ Nincs kép: " + med.getName());
+                            statusTracker.incrementProcessed(true, "Nincs kép: " + med.getName());
                         }
                     } catch (Exception ex) {
                         failedCount.incrementAndGet();
-                        statusTracker.incrementProcessed(false, "❌ Hiba: " + med.getName() + " — " + ex.getMessage());
-                        log.error("❌ [IMAGE-SYNC] Unexpected error for medication id={}", med.getId(), ex);
+                        statusTracker.incrementProcessed(false, "Hiba: " + med.getName() + " — " + ex.getMessage());
+                        log.error("❌ [IMAGE-SYNC] Unexpected error for medication id={}: {} [{}]",
+                                med.getId(), ex.getMessage(), ex.getClass().getName(), ex);
                     } finally {
-                        sleep(delayBetweenRequestsMs);
+                        sleep(1500); // throttle to avoid Bing rate limiting
                     }
                 }));
             }
@@ -161,9 +226,16 @@ public class MedicationBatchProcessor {
             waitForFutures(futures);
             shutdownExecutor(executor);
 
-            String summary = String.format(
-                    "Képszinkron kész — összesen: %d, képet találtunk: %d, nem találtunk: %d, hiba: %d",
-                    total, fetched.get(), skippedCount.get(), failedCount.get());
+            String summary;
+            if (cleanup && cleaned > 0) {
+                summary = String.format(
+                        "Képszinkron kész — hibás URL törölve: %d, keresve: %d, képet találtunk: %d, nem találtunk: %d, hiba: %d",
+                        cleaned, total, fetched.get(), skippedCount.get(), failedCount.get());
+            } else {
+                summary = String.format(
+                        "Képszinkron kész — összesen: %d, képet találtunk: %d, nem találtunk: %d, hiba: %d",
+                        total, fetched.get(), skippedCount.get(), failedCount.get());
+            }
             log.info("🖼️ [IMAGE-SYNC] {}", summary);
 
             if (isCancellationRequested()) {
@@ -414,6 +486,11 @@ public class MedicationBatchProcessor {
         }
     }
 
+    /**
+     * Async processItem: uses CompletableFuture-based OGYÉI scraping.
+     * Phase 1: Fast OGYÉI-only scrape for all items.
+     * Phase 2: If changes detected or new item → also fetches Hazipatika + images.
+     */
     private void processItem(Long itemId,
             Medication existing,
             List<Long> succeededIds,
@@ -425,7 +502,39 @@ public class MedicationBatchProcessor {
             return;
         }
         try {
-            MedicationService.MedicationRefreshResult result = fetchSnapshotWithRetry(itemId, existing);
+            // Phase 1: fast OGYÉI-only scrape (uses async HTTP client with Semaphore)
+            MedicationService.MedicationRefreshResult result;
+            boolean isNew = (existing == null);
+            boolean needsEnrichment;
+
+            if (isNew) {
+                // New medication — do full scrape (OGYÉI + Hazipatika + image)
+                var response = medicationService.scrapeFullAsync(itemId, null).join();
+                result = new MedicationService.MedicationRefreshResult(
+                        buildEntityFromResponse(itemId, response, null), response);
+                needsEnrichment = false; // already enriched
+            } else {
+                // Existing — fast OGYÉI-only scrape first
+                var ogyeiResponse = medicationService.scrapeOgyeiOnlyAsync(itemId).join();
+                boolean hasChanges = medicationService.hasMeaningfulChanges(existing, ogyeiResponse);
+                boolean needsImage = !org.springframework.util.StringUtils.hasText(existing.getImageUrl());
+
+                if (hasChanges || needsImage) {
+                    // Phase 2: enrich with Hazipatika + image
+                    var fullResponse = medicationService.scrapeFullAsync(itemId, existing).join();
+                    result = new MedicationService.MedicationRefreshResult(
+                            buildEntityFromResponse(itemId, fullResponse, existing), fullResponse);
+                    needsEnrichment = false;
+                } else {
+                    // No changes, no missing image — just mark as reviewed
+                    reviewOnlyIds.add(itemId);
+                    succeededIds.add(itemId);
+                    statusTracker.incrementProcessed(true, "Nincs változás: " + itemId);
+                    maybeFlushProgress(preparedMedications, reviewOnlyIds, false, persistedCountHolder);
+                    return;
+                }
+            }
+
             if (isCancellationRequested() || Thread.currentThread().isInterrupted()) {
                 return;
             }
@@ -435,47 +544,36 @@ public class MedicationBatchProcessor {
                 return;
             }
 
-            boolean hasChanges = medicationService.hasMeaningfulChanges(existing, result.response());
-            if (hasChanges) {
-                preparedMedications.add(result.entity());
-            } else {
-                reviewOnlyIds.add(itemId);
-            }
-
+            preparedMedications.add(result.entity());
             succeededIds.add(itemId);
-            statusTracker.incrementProcessed(true, hasChanges ? null : "Nincs változás: " + itemId);
+            statusTracker.incrementProcessed(true, null);
         } catch (CancellationException cancelEx) {
             log.debug("Gyógyszer feldolgozás megszakítva ({}): {}", itemId, cancelEx.getMessage());
+        } catch (CompletionException completionEx) {
+            Throwable cause = completionEx.getCause() != null ? completionEx.getCause() : completionEx;
+            failedIds.add(itemId);
+            statusTracker.incrementProcessed(false, "Hiba: " + cause.getMessage());
+            log.error("Hiba a {} azonosító feldolgozása közben", itemId, cause);
         } catch (Exception taskEx) {
             failedIds.add(itemId);
-            statusTracker.incrementProcessed(false, "Váratlan hiba: " + taskEx.getMessage());
-            log.error("Váratlan hiba a {} azonosító feldolgozása közben", itemId, taskEx);
+            statusTracker.incrementProcessed(false, "Hiba: " + taskEx.getMessage());
+            log.error("Hiba a {} azonosító feldolgozása közben", itemId, taskEx);
         } finally {
             maybeFlushProgress(preparedMedications, reviewOnlyIds, false, persistedCountHolder);
-            sleep(delayBetweenRequestsMs);
         }
     }
 
-    private MedicationService.MedicationRefreshResult fetchSnapshotWithRetry(Long itemId, Medication existing)
-            throws Exception {
-        Exception lastException = null;
-        for (int attempt = 0; attempt <= retryAttempts; attempt++) {
-            if (isCancellationRequested() || Thread.currentThread().isInterrupted()) {
-                throw new CancellationException("Szinkron leállítása folyamatban");
-            }
-            try {
-                return medicationService.refreshMedicationSnapshot(itemId, existing);
-            } catch (Exception ex) {
-                lastException = ex;
-                log.warn("Nem sikerült feldolgozni az {} azonosítót ({} / {})", itemId, attempt + 1, retryAttempts + 1,
-                        ex);
-                sleep(delayBetweenRequestsMs * Math.max(1, attempt + 1));
-            }
+    private Medication buildEntityFromResponse(Long itemId,
+            hu.project.MediWeb.modules.medication.dto.MedicationDetailsResponse response,
+            Medication existing) {
+        Medication entity = hu.project.MediWeb.modules.medication.dto.MedicationDetailsMapper.toEntity(itemId, response);
+        entity.setLastUpdated(java.time.LocalDateTime.now());
+        entity.setLastReviewedAt(java.time.LocalDateTime.now());
+        if (existing != null && !org.springframework.util.StringUtils.hasText(entity.getImageUrl())) {
+            entity.setImageUrl(existing.getImageUrl());
         }
-        if (lastException != null) {
-            throw lastException;
-        }
-        return null;
+        entity.setActive(response.isActive());
+        return entity;
     }
 
     private boolean shouldSkipItem(Long itemId, Medication existing, boolean forceResync) {
@@ -512,15 +610,14 @@ public class MedicationBatchProcessor {
             Set<Long> reviewOnlyIds,
             boolean force,
             AtomicInteger persistedCountHolder) {
-        if ((preparedMedications.isEmpty() && reviewOnlyIds.isEmpty()) && !force) {
-            return;
-        }
-
         int threshold = Math.max(persistenceChunkSize, 1);
         List<List<Medication>> snapshotBatches = new ArrayList<>();
         List<Set<Long>> reviewBatches = new ArrayList<>();
 
         synchronized (persistenceLock) {
+            if ((preparedMedications.isEmpty() && reviewOnlyIds.isEmpty()) && !force) {
+                return;
+            }
             if (force) {
                 if (!preparedMedications.isEmpty()) {
                     snapshotBatches.add(new ArrayList<>(preparedMedications));

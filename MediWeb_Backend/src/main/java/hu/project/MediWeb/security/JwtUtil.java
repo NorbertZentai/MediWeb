@@ -2,13 +2,19 @@ package hu.project.MediWeb.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
@@ -18,15 +24,18 @@ public class JwtUtil {
     private int jwtExpirationMs;
 
     private Key getSigningKey() {
-        // Ensure the key is at least 256 bits (32 bytes) for HMAC-SHA256
-        byte[] keyBytes = jwtSecret.getBytes();
-        if (keyBytes.length < 32) {
-            // Pad the key to 32 bytes if it's too short
-            byte[] paddedKey = new byte[32];
-            System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 32));
-            return Keys.hmacShaKeyFor(paddedKey);
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length >= 32) {
+            return Keys.hmacShaKeyFor(keyBytes);
         }
-        return Keys.hmacShaKeyFor(keyBytes);
+        // Derive a proper 256-bit key via SHA-256 instead of zero-padding
+        try {
+            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            byte[] derivedKey = sha256.digest(keyBytes);
+            return Keys.hmacShaKeyFor(derivedKey);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 
     public String generateJwtToken(String email) {
@@ -47,18 +56,33 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    /**
+     * Extract email from an expired (but otherwise valid) token.
+     * Used by /auth/refresh to issue a new token.
+     */
+    public String getEmailFromExpiredToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            // Token is not expired — return subject normally
+            return getEmailFromJwtToken(token);
+        } catch (ExpiredJwtException e) {
+            // Token is expired but signature is valid — extract subject from claims
+            return e.getClaims().getSubject();
+        }
+    }
+
     public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
             return true;
         } catch (MalformedJwtException e) {
-            System.err.println("Invalid JWT token: " + e.getMessage());
+            log.warn("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            System.err.println("JWT token is expired: " + e.getMessage());
+            log.debug("JWT token is expired: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            System.err.println("JWT token is unsupported: " + e.getMessage());
+            log.warn("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            System.err.println("JWT claims string is empty: " + e.getMessage());
+            log.warn("JWT claims string is empty: {}", e.getMessage());
         }
         return false;
     }

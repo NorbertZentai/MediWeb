@@ -9,6 +9,7 @@ import hu.project.MediWeb.modules.medication.sync.MedicationBatchProcessor;
 import hu.project.MediWeb.modules.medication.sync.MedicationSyncStatus;
 import hu.project.MediWeb.modules.medication.sync.MedicationSyncStatusTracker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/medication")
 @RequiredArgsConstructor
@@ -93,6 +95,11 @@ public class MedicationController {
                             "running", true));
         }
 
+        // Mark running BEFORE dispatching async task to avoid race condition
+        int persistedCount = 0;
+        try { persistedCount = medicationService.countStoredMedications(); } catch (Exception ignored) {}
+        medicationSyncStatusTracker.markStarted(0, 10.0, 1, persistedCount);
+
         CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshAllMedications(force, limit));
 
         Map<String, Object> body = new HashMap<>();
@@ -107,7 +114,9 @@ public class MedicationController {
     }
 
     @PostMapping("/sync/images")
-    public ResponseEntity<Map<String, Object>> startImageSync() {
+    public ResponseEntity<Map<String, Object>> startImageSync(
+            @RequestParam(value = "force", defaultValue = "false") boolean force,
+            @RequestParam(value = "cleanup", defaultValue = "false") boolean cleanup) {
         if (medicationSyncStatusTracker.isRunning()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of(
@@ -115,12 +124,25 @@ public class MedicationController {
                             "running", true));
         }
 
-        CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshMissingImages());
+        // Mark running BEFORE dispatching async task to avoid race condition
+        // where frontend polls status before the async task starts
+        String startMessage = cleanup
+                ? "Hibás képek ellenőrzése és frissítés elindult"
+                : force
+                        ? "Az összes kép újrakeresése elindult"
+                        : "A hiányzó képek frissítése elindult";
+        int persistedCount = 0;
+        try { persistedCount = medicationService.countStoredMedications(); } catch (Exception ignored) {}
+        medicationSyncStatusTracker.markStarted(0, 2.0, 1, persistedCount, startMessage);
+
+        CompletableFuture.runAsync(() -> medicationBatchProcessor.refreshMissingImages(force, cleanup));
 
         Map<String, Object> body = new HashMap<>();
-        body.put("message", "A hiányzó képek frissítése elindult");
+        body.put("message", startMessage);
         body.put("running", true);
         body.put("type", "MISSING_IMAGES");
+        body.put("force", force);
+        body.put("cleanup", cleanup);
 
         return ResponseEntity.accepted().body(body);
     }
@@ -159,14 +181,14 @@ public class MedicationController {
     @GetMapping("/{itemId}")
     public ResponseEntity<?> getDetails(@PathVariable Long itemId) {
         try {
-            System.out.println("🔍 [MEDICATION] Starting getMedicationDetails for ID: " + itemId);
+            log.debug("[MEDICATION] Starting getMedicationDetails for ID: {}", itemId);
             MedicationDetailsResponse response = medicationService.getMedicationDetails(itemId);
-            System.out.println("✅ [MEDICATION] Successfully retrieved details for ID: " + itemId);
+            log.debug("[MEDICATION] Successfully retrieved details for ID: {}", itemId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            System.err.println("❌ [MEDICATION] Error getting details for ID: " + itemId);
-            System.err.println("❌ [MEDICATION] Error type: " + e.getClass().getSimpleName());
-            System.err.println("❌ [MEDICATION] Error message: " + e.getMessage());
+            log.error("[MEDICATION] Error getting details for ID: {}", itemId);
+            log.error("[MEDICATION] Error type: {}", e.getClass().getSimpleName());
+            log.error("[MEDICATION] Error message: {}", e.getMessage());
 
             // Check if it's a timeout or network error
             if (e.getMessage() != null &&
@@ -185,8 +207,7 @@ public class MedicationController {
                             "message", "Nem sikerült betölteni a gyógyszer adatait",
                             "itemId", itemId));
         } catch (Exception e) {
-            System.err.println("❌ [MEDICATION] Unexpected error for ID: " + itemId);
-            e.printStackTrace();
+            log.error("[MEDICATION] Unexpected error for ID: {}", itemId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                             "error", "Internal Server Error",

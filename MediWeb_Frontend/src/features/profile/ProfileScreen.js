@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,15 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { AuthContext } from "contexts/AuthContext";
-import { fetchCurrentUser } from "./profile.api";
+import { fetchCurrentUser, getFavorites, getUserReviews } from "./profile.api";
+import { getRecentlyViewed } from "utils/recentlyViewed";
+
 import { createStyles } from "./ProfileScreen.style";
 import { useTheme } from "contexts/ThemeContext";
 import defaultAvatar from "assets/default-avatar.jpg";
@@ -32,27 +36,43 @@ export default function ProfileScreen() {
   const [favorites, setFavorites] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await fetchCurrentUser();
-        setUser({
-          name: userData.name || "Felhasználó",
-          email: userData.email || "",
-          imageUrl: userData.imageUrl || null,
-        });
-      } catch (e) {
-        console.error("Error loading user:", e);
-      }
-    };
-    loadUser();
+  const loadUserData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const userData = await fetchCurrentUser();
+      setUser({
+        name: userData.name || "Felhasználó",
+        email: userData.email || "",
+        imageUrl: userData.imageUrl || null,
+      });
 
-    // TODO: Load favorites, recently viewed, and reviews
-    setFavorites([]);
-    setRecentlyViewed([]);
-    setReviews([]);
+      // Fetch actual data
+      const [favs, revs] = await Promise.all([
+        getFavorites().catch(() => []),
+        getUserReviews().catch(() => []),
+      ]);
+
+      setFavorites(favs || []);
+      setReviews(revs || []);
+      
+      // Load recently viewed from local storage
+      const recent = await getRecentlyViewed();
+      setRecentlyViewed(recent || []);
+    } catch (e) {
+      console.error("Error loading profile data:", e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [loadUserData])
+  );
+
 
   const handleMenuPress = (key) => {
     router.push(`/profile/${key}`);
@@ -111,12 +131,20 @@ export default function ProfileScreen() {
             <Text style={styles.sectionAction}>Összes</Text>
           </TouchableOpacity>
         </View>
-        {favorites.length > 0 ? (
+        {loading ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 20 }} />
+        ) : favorites.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {favorites.map((item, index) => (
-              <View key={index} style={styles.horizontalCard}>
-                <Text style={styles.horizontalCardTitle}>{item.name}</Text>
-              </View>
+              <TouchableOpacity
+                key={index}
+                style={styles.horizontalCard}
+                onPress={() => router.push(`/medication/${item.medicationId}`)}
+              >
+                <Text style={styles.horizontalCardTitle} numberOfLines={2}>
+                  {item.medicationName}
+                </Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         ) : (
@@ -132,9 +160,15 @@ export default function ProfileScreen() {
         {recentlyViewed.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {recentlyViewed.map((item, index) => (
-              <View key={index} style={styles.horizontalCard}>
-                <Text style={styles.horizontalCardTitle}>{item.name}</Text>
-              </View>
+              <TouchableOpacity
+                key={index}
+                style={styles.horizontalCard}
+                onPress={() => router.push(`/medication/${item.medicationId}`)}
+              >
+                <Text style={styles.horizontalCardTitle} numberOfLines={2}>
+                  {item.medicationName}
+                </Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         ) : (
@@ -147,32 +181,67 @@ export default function ProfileScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Értékeléseim ({reviews.length})</Text>
         </View>
-        {reviews.length > 0 ? (
-          reviews.map((review, index) => (
-            <View key={index} style={styles.reviewItem}>
-              <View style={styles.reviewHeader}>
-                <Text style={styles.reviewMedication}>{review.medication}</Text>
-                <View style={styles.reviewRating}>
-                  {[...Array(5)].map((_, i) => (
-                    <FontAwesome5
-                      key={i}
-                      name="star"
-                      size={12}
-                      color={i < review.rating ? theme.colors.warning : theme.colors.border}
-                      solid
-                    />
-                  ))}
-                </View>
-                <TouchableOpacity>
-                  <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
-                </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 20 }} />
+        ) : reviews.length > 0 ? (
+          <View style={styles.tableContainer}>
+            {/* Table Header */}
+            <View style={styles.tableHeader}>
+              <View style={styles.colMedication}>
+                <Text style={styles.tableHeaderCell}>Gyógyszer</Text>
+              </View>
+              <View style={styles.colRating}>
+                <Text style={styles.tableHeaderCell}>Értékelés</Text>
+              </View>
+              <View style={styles.colDate}>
+                <Text style={styles.tableHeaderCell}>Dátum</Text>
+              </View>
+              <View style={styles.colReview}>
+                <Text style={styles.tableHeaderCell}>Vélemény</Text>
               </View>
             </View>
-          ))
+
+            {/* Table Rows */}
+            {reviews.map((review, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.tableRow, index === reviews.length - 1 && { borderBottomWidth: 0 }]}
+                onPress={() => router.push(`/medication/${review.medicationId}`)}
+              >
+                <View style={styles.colMedication}>
+                  <Text style={styles.tableCell} numberOfLines={2}>{review.medicationName}</Text>
+                </View>
+                <View style={styles.colRating}>
+                  <View style={styles.reviewRating}>
+                    {[...Array(5)].map((_, i) => (
+                      <FontAwesome5
+                        key={i}
+                        name="star"
+                        size={10}
+                        color={i < review.rating ? theme.colors.warning : theme.colors.border}
+                        solid
+                      />
+                    ))}
+                  </View>
+                </View>
+                <View style={styles.colDate}>
+                  <Text style={styles.tableCellSub}>
+                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString('hu-HU') : '-'}
+                  </Text>
+                </View>
+                <View style={styles.colReview}>
+                  <Text style={styles.tableCell} numberOfLines={2}>
+                    {review.positive || review.negative || '-'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         ) : (
           <Text style={styles.emptyState}>Még nem értékeltél gyógyszereket</Text>
         )}
       </View>
+
     </ScrollView>
   );
 }

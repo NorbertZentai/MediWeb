@@ -70,6 +70,31 @@ const mergePreferences = (incoming) => ({
   },
 });
 
+/**
+ * Cross-platform alert helper.
+ * On web, Alert.alert() silently fails, so we fall back to window.alert / window.confirm.
+ */
+const showAlert = (title, message) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
+const showConfirm = (title, message, { confirmText = "OK", onConfirm, cancelText = "Mégse", destructive = false }) => {
+  if (Platform.OS === 'web') {
+    if (window.confirm(`${title}\n\n${message}`)) {
+      onConfirm?.();
+    }
+  } else {
+    Alert.alert(title, message, [
+      { text: cancelText, style: "cancel" },
+      { text: confirmText, style: destructive ? "destructive" : "default", onPress: onConfirm },
+    ]);
+  }
+};
+
 export default function SettingsTab() {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
@@ -99,7 +124,7 @@ export default function SettingsTab() {
         setLastSavedAt(new Date());
       } catch (error) {
         console.error("Beállítások betöltése sikertelen", error);
-        Alert.alert(
+        showAlert(
           "Hiba történt",
           "Nem sikerült betölteni a beállításokat. Az alapértelmezett értékeket használjuk."
         );
@@ -180,14 +205,14 @@ export default function SettingsTab() {
       setPreferences(merged);
       setInitialPreferences(merged);
       setLastSavedAt(new Date());
-      Alert.alert("Sikeres mentés", "A beállítások frissültek.");
+      showAlert("Sikeres mentés", "A beállítások frissültek.");
 
       // Ha a téma változott, akkor frissítsük a globális témát is
       // Ez feltételezi, hogy a ThemeContext tudja kezelni a user preferences alapján történő beállítást,
       // vagy reload kell.
     } catch (error) {
       console.error("Beállítások mentése sikertelen", error);
-      Alert.alert(
+      showAlert(
         "Mentés sikertelen",
         "Nem sikerült menteni a módosításokat. Próbáld újra később."
       );
@@ -203,13 +228,13 @@ export default function SettingsTab() {
     setExporting(true);
     try {
       await requestDataExport();
-      Alert.alert(
+      showAlert(
         "Export elindítva",
         "Értesítést küldünk, amint a letöltési link rendelkezésre áll."
       );
     } catch (error) {
       console.error("Adatexport indítása sikertelen", error);
-      Alert.alert(
+      showAlert(
         "Hiba történt",
         "Nem sikerült elindítani az adatexportot. Próbáld újra később."
       );
@@ -225,13 +250,13 @@ export default function SettingsTab() {
     setDeleting(true);
     try {
       await requestAccountDeletion();
-      Alert.alert(
+      showAlert(
         "Kérés rögzítve",
         "A fiók törlési kérelmét fogadtuk. Ügyfélszolgálatunk felveszi veled a kapcsolatot."
       );
     } catch (error) {
       console.error("Fiók törlési kérelem sikertelen", error);
-      Alert.alert(
+      showAlert(
         "Hiba történt",
         "Nem sikerült rögzíteni a törlési kérelmet. Próbáld újra később."
       );
@@ -241,17 +266,14 @@ export default function SettingsTab() {
   };
 
   const handleAccountDeletion = () => {
-    Alert.alert(
+    showConfirm(
       "Fiók törlése",
       "Biztosan törölni szeretnéd a fiókodat? Ezt a műveletet nem lehet visszavonni.",
-      [
-        { text: "Mégse", style: "cancel" },
-        {
-          text: "Törlés",
-          style: "destructive",
-          onPress: performAccountDeletion,
-        },
-      ]
+      {
+        confirmText: "Törlés",
+        destructive: true,
+        onConfirm: performAccountDeletion,
+      }
     );
   };
 
@@ -524,20 +546,17 @@ export default function SettingsTab() {
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={() => {
-                Alert.alert(
+                showConfirm(
                   "Kijelentkezés",
                   "Biztosan ki szeretnél jelentkezni?",
-                  [
-                    { text: "Mégse", style: "cancel" },
-                    {
-                      text: "Kijelentkezés",
-                      style: "destructive",
-                      onPress: () => {
-                        logout();
-                        router.replace("/");
-                      },
+                  {
+                    confirmText: "Kijelentkezés",
+                    destructive: true,
+                    onConfirm: () => {
+                      logout();
+                      router.replace("/");
                     },
-                  ]
+                  }
                 );
               }}
             >

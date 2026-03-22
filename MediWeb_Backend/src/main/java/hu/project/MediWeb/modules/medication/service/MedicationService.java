@@ -1,6 +1,7 @@
 package hu.project.MediWeb.modules.medication.service;
 
 import hu.project.MediWeb.modules.GoogleImage.service.GoogleImageService;
+import hu.project.MediWeb.modules.GoogleImage.service.WebImageSearchService;
 import hu.project.MediWeb.modules.medication.dto.*;
 import hu.project.MediWeb.modules.medication.entity.Medication;
 import hu.project.MediWeb.modules.medication.repository.MedicationRepository;
@@ -14,17 +15,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,7 +45,11 @@ public class MedicationService {
 
     private static final Pattern OGYEI_DATE_PATTERN = Pattern.compile("(\\d{4})\\.\\s*(\\d{1,2})\\.\\s*(\\d{1,2})");
 
+    private static final String DEFAULT_MEDICATION_IMAGE = "https://ocdn.eu/pulscms/MDA_/56afcbe194915d96d2cfa645286513b2.jpg";
+
     private final GoogleImageService googleImageService;
+    private final WebImageSearchService webImageSearchService;
+    private final AsyncHttpClientService asyncHttpClient;
     private final MedicationRepository medicationRepository;
     private final HazipatikaSearchService hazipatikaSearchService;
 
@@ -122,44 +136,201 @@ public class MedicationService {
         return medicationRepository.findMedicationsWithoutImage();
     }
 
+    public List<Medication> findAllActiveMedicationsWithName() {
+        return medicationRepository.findAllActiveMedicationsWithName();
+    }
+
     /**
-     * Fetches an image for an existing medication from Google API only (no OGYEI scraping).
-     * Returns true if a new image was found and saved, false otherwise.
+     * Validates all active medication image URLs via HEAD requests.
+     * Clears broken URLs so the image sync can re-fetch them.
+     * Returns the number of broken URLs cleared.
+     *
+     * Uses a lightweight projection (id + imageUrl only) to release the DB
+     * connection immediately, then does HEAD requests without holding any
+     * database resources.
+     *
+     * @param progressCallback optional callback receiving int[]{checked, total, brokenSoFar}
      */
+    public int cleanupBrokenImageUrls(Consumer<int[]> progressCallback) {
+        // Lightweight query — only id + imageUrl, releases DB connection immediately
+        List<Object[]> pairs = medicationRepository.findActiveImageUrlPairs();
+        if (pairs.isEmpty()) {
+            log.info("[IMAGE-CLEANUP] No medications with image URLs found");
+            if (progressCallback != null) progressCallback.accept(new int[]{0, 0, 0});
+            return 0;
+        }
+
+        // Copy into simple records so JPA entities are fully detached
+        record IdUrl(Long id, String url) {}
+        List<IdUrl> items = new ArrayList<>(pairs.size());
+        for (Object[] row : pairs) {
+            items.add(new IdUrl((Long) row[0], (String) row[1]));
+        }
+        pairs.clear(); // free JPA result
+
+        int total = items.size();
+        log.info("[IMAGE-CLEANUP] Validating {} image URLs...", total);
+
+        // Report initial count so caller can set up progress tracking
+        if (progressCallback != null) {
+            progressCallback.accept(new int[]{0, total, 0});
+        }
+
+        List<Long> brokenIds = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger checked = new AtomicInteger(0);
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+
+        try {
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (IdUrl item : items) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    boolean valid = isImageUrlReachable(item.url());
+                    int count = checked.incrementAndGet();
+                    if (!valid) {
+                        brokenIds.add(item.id());
+                    }
+                    if (progressCallback != null && (count % 50 == 0 || count == total)) {
+                        progressCallback.accept(new int[]{count, total, brokenIds.size()});
+                    }
+                    if (count % 500 == 0) {
+                        log.info("[IMAGE-CLEANUP] Checked {}/{} URLs (broken: {})...", count, total, brokenIds.size());
+                    }
+                }, executor));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } finally {
+            executor.shutdown();
+            try { executor.awaitTermination(10, TimeUnit.MINUTES); } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        // Final progress report
+        if (progressCallback != null) {
+            progressCallback.accept(new int[]{total, total, brokenIds.size()});
+        }
+
+        if (brokenIds.isEmpty()) {
+            log.info("[IMAGE-CLEANUP] All {} image URLs are valid", total);
+            return 0;
+        }
+
+        log.info("[IMAGE-CLEANUP] Found {} broken image URLs out of {}, clearing...", brokenIds.size(), total);
+        clearBrokenImageUrls(brokenIds);
+        return brokenIds.size();
+    }
+
+    public int cleanupBrokenImageUrls() {
+        return cleanupBrokenImageUrls(null);
+    }
+
     @Transactional
+    public void clearBrokenImageUrls(List<Long> ids) {
+        // Batch in chunks of 500 to avoid huge IN clauses
+        for (int i = 0; i < ids.size(); i += 500) {
+            List<Long> chunk = ids.subList(i, Math.min(i + 500, ids.size()));
+            medicationRepository.clearImageUrls(chunk);
+        }
+    }
+
+    private boolean isImageUrlReachable(String url) {
+        if (url == null || url.isBlank()) return false;
+        
+        // Known bad patterns (placeholders, generic icons)
+        String lowerUrl = url.toLowerCase();
+        if (lowerUrl.contains("no-image") || lowerUrl.contains("placeholder") || 
+            lowerUrl.contains("default-pill") || lowerUrl.contains("generic-med")) {
+            log.debug("[IMAGE-VALIDATION] Rejected placeholder-like URL: {}", url);
+            return false;
+        }
+
+        try {
+            HttpURLConnection conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
+            conn.setRequestMethod("HEAD");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "MediWeb/1.0 image-validator");
+            
+            int code = conn.getResponseCode();
+            if (code < 200 || code >= 400) {
+                conn.disconnect();
+                return false;
+            }
+
+            // Check content type
+            String contentType = conn.getContentType();
+            if (contentType != null && !contentType.toLowerCase().startsWith("image/")) {
+                log.debug("[IMAGE-VALIDATION] Rejected non-image Content-Type ({}): {}", contentType, url);
+                conn.disconnect();
+                return false;
+            }
+
+            // Check content length (avoid tiny icons/placeholders which are often < 2KB)
+            long contentLength = conn.getContentLengthLong();
+            if (contentLength > 0 && contentLength < 2048) {
+                log.debug("[IMAGE-VALIDATION] Rejected tiny image ({} bytes): {}", contentLength, url);
+                conn.disconnect();
+                return false;
+            }
+
+            conn.disconnect();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Fetches an image for an existing medication from web search (no OGYEI scraping).
+     * Returns true if a new image was found and saved, false otherwise.
+     * NOTE: No @Transactional here — the HTTP call to Bing/Google can take seconds,
+     * and holding a DB connection during that time exhausts the connection pool.
+     * Only the actual save is transactional (via saveImageUrl).
+     */
     public boolean fetchImageForMedication(Medication medication) {
+        return fetchImageForMedication(medication, false);
+    }
+
+    public boolean fetchImageForMedication(Medication medication, boolean force) {
         if (medication == null || !StringUtils.hasText(medication.getName())) {
             return false;
         }
 
-        // Skip if already has a fresh image
-        if (StringUtils.hasText(medication.getImageUrl())) {
-            log.info("⏭️ [IMAGE-SYNC] Skipping '{}' (id={}) — already has image", medication.getName(), medication.getId());
+        if (!force && StringUtils.hasText(medication.getImageUrl())) {
+            log.debug("[IMAGE-SYNC] Skipping '{}' (id={}) — already has image", medication.getName(), medication.getId());
             return false;
         }
 
-        log.info("🔍 [IMAGE-SYNC] Searching image for '{}' (id={})", medication.getName(), medication.getId());
+        log.info("[IMAGE-SYNC] Searching image for '{}' (id={}){}",
+                medication.getName(), medication.getId(), force ? " [FORCE]" : "");
         try {
-            String imageUrl = googleImageService
-                    .searchImages(medication.getName())
-                    .map(result -> result != null ? result.link() : null)
-                    .blockOptional()
-                    .orElse(null);
+            // Clear existing URL so resolveImageUrl doesn't use the cache
+            Medication lookup = force ? null : medication;
+            String imageUrl = resolveImageUrl(medication.getName(), lookup);
 
             if (StringUtils.hasText(imageUrl)) {
-                medication.setImageUrl(imageUrl);
-                medication.setLastUpdated(LocalDateTime.now());
-                medicationRepository.save(medication);
-                log.info("✅ [IMAGE-SYNC] Saved image for '{}' (id={}): {}", medication.getName(), medication.getId(), imageUrl);
+                saveImageUrl(medication.getId(), imageUrl);
+                log.info("[IMAGE-SYNC] Saved image for '{}' (id={})", medication.getName(), medication.getId());
                 return true;
             } else {
-                log.info("⚠️ [IMAGE-SYNC] No image found for '{}' (id={})", medication.getName(), medication.getId());
+                log.info("[IMAGE-SYNC] No image found for '{}' (id={})", medication.getName(), medication.getId());
                 return false;
             }
-        } catch (RuntimeException ex) {
-            log.warn("❌ [IMAGE-SYNC] Error fetching image for '{}' (id={}): {}", medication.getName(), medication.getId(), ex.getMessage());
+        } catch (Exception ex) {
+            log.warn("[IMAGE-SYNC] Error fetching image for '{}' (id={}): {} [{}]",
+                    medication.getName(), medication.getId(), ex.getMessage(), ex.getClass().getSimpleName());
             return false;
         }
+    }
+
+    @Transactional
+    public void saveImageUrl(Long medicationId, String imageUrl) {
+        medicationRepository.findById(medicationId).ifPresent(med -> {
+            med.setImageUrl(imageUrl);
+            med.setLastUpdated(LocalDateTime.now());
+            medicationRepository.save(med);
+        });
     }
 
     public Optional<Medication> findMedicationById(Long itemId) {
@@ -230,28 +401,59 @@ public class MedicationService {
         return lastUpdated != null && lastUpdated.isAfter(LocalDateTime.now().minusDays(7));
     }
 
-    private MedicationDetailsResponse scrapeMedication(Long itemId, Medication existing) throws Exception {
-        log.info("Fetching medication details from OGYEI for id={}", itemId);
+    /**
+     * Async OGYÉI scraping — only fetches OGYÉI data (no Hazipatika, no images).
+     * Used by the batch processor for fast parallel scraping.
+     */
+    public CompletableFuture<MedicationDetailsResponse> scrapeOgyeiOnlyAsync(Long itemId) {
         String url = "https://ogyei.gov.hu/gyogyszeradatbazis?action=show_details&item=" + itemId;
+        return asyncHttpClient.fetchWithRetry(url, 2).thenApply(html -> {
+            Document doc = Jsoup.parse(html, "https://ogyei.gov.hu/");
+            return parseOgyeiDocument(doc, itemId);
+        });
+    }
 
-        Document doc;
-        try {
-            doc = Jsoup.connect(url)
-                    .timeout(90000) // 90 second timeout
-                    .userAgent(
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .header("Accept-Language", "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7")
-                    .maxBodySize(0)
-                    .get();
-        } catch (java.net.SocketTimeoutException e) {
-            log.error("❌ [MEDICATION] Timeout connecting to OGYEI for ID: {}", itemId);
-            throw new RuntimeException("Az OGYEI szerver nem elérhető. Kérjük, próbálja újra később.", e);
-        } catch (java.io.IOException e) {
-            log.error("❌ [MEDICATION] Network error for ID: {}", itemId, e);
-            throw new RuntimeException("Hálózati hiba történt az OGYEI szerverrel való kapcsolat során.", e);
-        }
+    /**
+     * Full scrape: OGYÉI + Hazipatika + Image (for new/changed medications).
+     */
+    public CompletableFuture<MedicationDetailsResponse> scrapeFullAsync(Long itemId, Medication existing) {
+        String url = "https://ogyei.gov.hu/gyogyszeradatbazis?action=show_details&item=" + itemId;
+        return asyncHttpClient.fetchWithRetry(url, 2).thenApply(html -> {
+            Document doc = Jsoup.parse(html, "https://ogyei.gov.hu/");
+            MedicationDetailsResponse ogyeiData = parseOgyeiDocument(doc, itemId);
 
+            String imageUrl = resolveImageUrl(ogyeiData.getName(), existing);
+            HazipatikaResponse hazipatikaInfo = hazipatikaSearchService.searchMedication(ogyeiData.getName());
+
+            return MedicationDetailsResponse.builder()
+                    .name(ogyeiData.getName())
+                    .imageUrl(imageUrl)
+                    .registrationNumber(ogyeiData.getRegistrationNumber())
+                    .substance(ogyeiData.getSubstance())
+                    .atcCode(ogyeiData.getAtcCode())
+                    .company(ogyeiData.getCompany())
+                    .legalBasis(ogyeiData.getLegalBasis())
+                    .status(ogyeiData.getStatus())
+                    .authorizationDate(ogyeiData.getAuthorizationDate())
+                    .narcotic(ogyeiData.getNarcotic())
+                    .patientInfoUrl(ogyeiData.getPatientInfoUrl())
+                    .smpcUrl(ogyeiData.getSmpcUrl())
+                    .labelUrl(ogyeiData.getLabelUrl())
+                    .substitutes(ogyeiData.getSubstitutes())
+                    .packages(ogyeiData.getPackages())
+                    .containsLactose(ogyeiData.isContainsLactose())
+                    .containsGluten(ogyeiData.isContainsGluten())
+                    .containsBenzoate(ogyeiData.isContainsBenzoate())
+                    .fokozottFelugyelet(ogyeiData.isFokozottFelugyelet())
+                    .finalSamples(ogyeiData.getFinalSamples())
+                    .defectiveForms(ogyeiData.getDefectiveForms())
+                    .hazipatikaInfo(hazipatikaInfo)
+                    .active(true)
+                    .build();
+        });
+    }
+
+    private MedicationDetailsResponse parseOgyeiDocument(Document doc, Long itemId) {
         Element titleElement = doc.selectFirst("h3.gy-content__title");
         if (titleElement == null) {
             throw new IllegalStateException("Nem található gyógyszernév az OGYEI oldalon (id=" + itemId + ")");
@@ -284,20 +486,14 @@ public class MedicationService {
         Boolean containsStarch = parseBooleanFromLine(datasheetTable, "Búzakeményítő");
         Boolean containsBenzoate = parseBooleanFromLine(datasheetTable, "Benzoát");
 
-        // Fokozott felügyelet - check the top table for this field
         String fokozottText = textFromTitle(topTable, "Fokozott felügyelet");
         boolean fokozottFelugyelet = fokozottText != null && fokozottText.toLowerCase().contains("igen");
 
         List<FinalSampleApproval> finalSamples = extractFinalSampleApprovals(doc);
         List<DefectiveFormApproval> defectiveForms = extractDefectiveForms(doc);
 
-        String imageUrl = resolveImageUrl(name, existing);
-
-        HazipatikaResponse hazipatikaInfo = hazipatikaSearchService.searchMedication(name);
-
         return MedicationDetailsResponse.builder()
                 .name(name)
-                .imageUrl(imageUrl)
                 .registrationNumber(regNum)
                 .substance(substance)
                 .atcCode(atc)
@@ -317,9 +513,13 @@ public class MedicationService {
                 .fokozottFelugyelet(fokozottFelugyelet)
                 .finalSamples(finalSamples)
                 .defectiveForms(defectiveForms)
-                .hazipatikaInfo(hazipatikaInfo)
                 .active(true)
                 .build();
+    }
+
+    private MedicationDetailsResponse scrapeMedication(Long itemId, Medication existing) throws Exception {
+        // Delegate to async and block — used by single-item refresh endpoints
+        return scrapeFullAsync(itemId, existing).join();
     }
 
     @Transactional
@@ -362,41 +562,64 @@ public class MedicationService {
     private String resolveImageUrl(String medicationName, Medication existing) {
         boolean shouldRefresh = shouldRefreshImage(existing);
         if (!shouldRefresh) {
-            log.debug("✅ [IMAGE-CACHE] Cache hit for: {} (last updated: {})",
+            log.debug("[IMAGE-CACHE] Cache hit for: {} (last updated: {})",
                 medicationName, existing != null ? existing.getLastUpdated() : "N/A");
             return existing != null ? existing.getImageUrl() : null;
         }
 
-        log.debug("🔍 [IMAGE-FETCH] Fetching from Google API for: {}", medicationName);
+        // Priority 1: Bing web image scraping (free, unlimited)
         try {
-            String fetched = googleImageService
+            String bingResult = webImageSearchService.searchImage(medicationName);
+            if (StringUtils.hasText(bingResult) && isSafeImageUrl(bingResult)) {
+                log.debug("[IMAGE-FETCH] Found image via web search for: {}", medicationName);
+                return bingResult;
+            }
+        } catch (Exception ex) {
+            log.debug("[IMAGE-FETCH] Web image search failed for {}: {}", medicationName, ex.getMessage());
+        }
+
+        // Priority 2: Google API (optional fallback, if configured)
+        try {
+            String googleResult = googleImageService
                     .searchImages(medicationName)
                     .map(result -> result != null ? result.link() : null)
                     .blockOptional()
                     .orElse(null);
-
-            if (!StringUtils.hasText(fetched) && existing != null) {
-                log.debug("⚠️ [IMAGE-FETCH] No result from Google API, using existing image for: {}", medicationName);
-                return existing.getImageUrl();
+            if (StringUtils.hasText(googleResult) && isSafeImageUrl(googleResult)) {
+                log.debug("[IMAGE-FETCH] Found image via Google API for: {}", medicationName);
+                return googleResult;
             }
-            if (StringUtils.hasText(fetched)) {
-                log.debug("✅ [IMAGE-FETCH] Successfully fetched image from Google API for: {}", medicationName);
-            }
-            return fetched;
         } catch (RuntimeException ex) {
-            boolean wasInterrupted = Thread.currentThread().isInterrupted();
-            Throwable cause = ex.getCause();
-            if (cause instanceof InterruptedException && !wasInterrupted) {
+            if (ex.getCause() instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
-                wasInterrupted = true;
             }
-            if (cause instanceof InterruptedException || wasInterrupted) {
-                log.debug("Képkeresés megszakítva ({}): {}", medicationName, ex.getMessage());
-            } else {
-                log.warn("Nem sikerült képet keresni az OGYEI tételhez ({}): {}", medicationName, ex.getMessage());
-            }
-            return existing != null ? existing.getImageUrl() : null;
+            log.debug("[IMAGE-FETCH] Google API failed for {}: {}", medicationName, ex.getMessage());
         }
+
+        // Fallback: keep existing image if available
+        if (existing != null && StringUtils.hasText(existing.getImageUrl())) {
+            return existing.getImageUrl();
+        }
+        return DEFAULT_MEDICATION_IMAGE;
+    }
+
+    private boolean isSafeImageUrl(String url) {
+        if (url == null || url.isBlank()) return false;
+        String lower = url.toLowerCase().trim();
+        // Only allow http/https schemes
+        if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+            log.warn("[IMAGE-SSRF] Rejected non-HTTP URL: {}", url);
+            return false;
+        }
+        // Block internal/loopback addresses
+        String afterScheme = lower.replaceFirst("https?://", "");
+        if (afterScheme.startsWith("localhost") || afterScheme.startsWith("127.") ||
+                afterScheme.startsWith("10.") || afterScheme.startsWith("192.168.") ||
+                afterScheme.startsWith("0.") || afterScheme.startsWith("[::1]")) {
+            log.warn("[IMAGE-SSRF] Rejected internal URL: {}", url);
+            return false;
+        }
+        return true;
     }
 
     private boolean shouldRefreshImage(Medication existing) {
@@ -456,7 +679,9 @@ public class MedicationService {
             return "";
         }
         Element row = table.selectFirst(".line:has(.line__title:contains(" + title + "))");
-        return row != null ? row.selectFirst(".line__desc").text() : "";
+        if (row == null) return "";
+        Element desc = row.selectFirst(".line__desc");
+        return desc != null ? desc.text() : "";
     }
 
     private String getDocUrl(Element table, String keyword) {

@@ -23,6 +23,42 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// --- Retry & refresh helpers ---
+
+const MAX_RETRIES = 2;
+
+/** Exponential backoff delay: 1s, 2s */
+const getRetryDelay = (retryCount) => retryCount * 1000;
+
+/** Promise-based delay (cross-platform, no web-only APIs) */
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Returns true for errors that should be retried (5xx or network failures) */
+const isRetryableError = (error) => {
+  // Network error / timeout (no response object at all)
+  if (!error.response) return true;
+  // Server errors (500-599)
+  return error.response.status >= 500;
+};
+
+// Token-refresh state (module-level so all in-flight requests share it)
+let isRefreshing = false;
+let failedQueue = [];
+
+/** Resolve or reject every queued request once the refresh finishes */
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// --- Axios instance ---
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -50,19 +86,80 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor for retry logic, token refresh, and error handling
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error?.response?.status;
+  async (error) => {
+    const originalRequest = error.config;
 
-    if (status === 401) {
-      // Token expired/invalid
-      emitLogout();
-      return Promise.reject(error);
+    // ── 1. Retry on 5xx / network errors (up to MAX_RETRIES) ──
+    if (isRetryableError(error)) {
+      originalRequest.__retryCount = originalRequest.__retryCount || 0;
+
+      if (originalRequest.__retryCount < MAX_RETRIES) {
+        originalRequest.__retryCount += 1;
+        const waitMs = getRetryDelay(originalRequest.__retryCount);
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[API] Retry ${originalRequest.__retryCount}/${MAX_RETRIES} after ${waitMs}ms`
+          );
+        }
+
+        await delay(waitMs);
+        return api(originalRequest);
+      }
     }
 
-    // Avoid noisy logs for expected cases
+    const status = error?.response?.status;
+
+    // ── 2. Token refresh on 401 ──
+    if (status === 401 && !originalRequest.__isRetryAfterRefresh) {
+      // If another request is already refreshing, queue this one
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((newToken) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      isRefreshing = true;
+      originalRequest.__isRetryAfterRefresh = true;
+
+      try {
+        const currentToken = await storage.getItem("authToken");
+
+        // Use raw axios (NOT the api instance) to avoid interceptor loops
+        const refreshResponse = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          { token: currentToken },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const newToken = refreshResponse.data.token;
+        await storage.setItem("authToken", newToken);
+
+        // Unblock all queued requests with the new token
+        processQueue(null, newToken);
+
+        // Retry the original request with the fresh token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        // Refresh failed — force logout
+        emitLogout();
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // ── 3. Error logging (avoid noisy logs for expected cases) ──
     if (status !== 401 && status !== 403 && status !== 409) {
       const errorMsg =
         error?.response?.data?.message ||

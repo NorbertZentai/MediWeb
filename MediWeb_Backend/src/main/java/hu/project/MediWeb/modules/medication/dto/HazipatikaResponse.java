@@ -25,6 +25,7 @@ public class HazipatikaResponse {
     private boolean euSupportable;
     private boolean euPrioritySupport;
     private boolean accidentCoverage;
+    private String imageUrl;
 
     @Data
     @AllArgsConstructor

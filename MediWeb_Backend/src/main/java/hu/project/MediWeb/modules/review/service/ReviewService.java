@@ -6,6 +6,8 @@ import hu.project.MediWeb.modules.review.entity.Review;
 import hu.project.MediWeb.modules.review.repository.ReviewRepository;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.UserService;
+import hu.project.MediWeb.modules.medication.entity.Medication;
+import hu.project.MediWeb.modules.medication.repository.MedicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final UserService userService;
+    private final MedicationRepository medicationRepository;
 
     public ReviewListResponse getReviewListForItem(int itemId) {
         List<Review> reviews = reviewRepository.findByItemId(itemId);
@@ -71,13 +74,29 @@ public class ReviewService {
         return mapToDTO(reviewRepository.save(review));
     }
 
+    public List<ReviewDTO> getReviewListForUser(User user) {
+        return reviewRepository.findByUser(user).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+
     private ReviewDTO mapToDTO(Review review) {
+        String medicationName = "Ismeretlen gyógyszer";
+        if (review.getItemId() != null) {
+            medicationName = medicationRepository.findById(Long.valueOf(review.getItemId()))
+                    .map(Medication::getName)
+                    .orElse("Ismeretlen gyógyszer");
+        }
+
         return ReviewDTO.builder()
                 .author(review.getUser().getName())
                 .userId(review.getUser().getId())
                 .rating(review.getRating())
                 .positive(review.getPositive())
                 .negative(review.getNegative())
+                .medicationId(review.getItemId())
+                .medicationName(medicationName)
                 .createdAt(review.getCreatedAt())
                 .build();
     }
