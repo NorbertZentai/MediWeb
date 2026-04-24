@@ -64,6 +64,7 @@ server:
 cors:
   allowed-origins:
     - https://app.mediweb.app
+    - https://mediweb-frontend-a4xk.onrender.com
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: "*"
 
