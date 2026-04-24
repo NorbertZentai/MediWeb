@@ -15,5 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, Pageable pageable);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(u) FROM User u WHERE u.is_active = ?1")
     long countByIsActive(boolean isActive);
 }
