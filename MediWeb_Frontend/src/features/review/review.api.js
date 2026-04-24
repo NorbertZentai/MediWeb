@@ -14,3 +14,8 @@ export const updateReview = async (itemId, review) => {
   const response = await api.put(`/api/reviews/${itemId}`, review);
   return response.data;
 };
+
+export const reportReview = async (reviewId, reason, comment) => {
+  const response = await api.post(`/api/reviews/${reviewId}/report`, { reason, comment });
+  return response.data;
+};

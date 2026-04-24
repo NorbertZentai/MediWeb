@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Email cím megerősítése</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f5;
+            color: #18181b;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #0d9488;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .otp-code {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            background-color: #f0fdfa;
+            color: #0f766e;
+            border: 2px dashed #14b8a6;
+            padding: 15px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            border-radius: 8px;
+        }
+        .footer {
+            background-color: #f8fafc;
+            color: #64748b;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Üdvözlünk a MediWeb-ben!</h2>
+        </div>
+        <div class="content">
+            <p>Kedves <span th:text="${userName}">Felhasználó</span>,</p>
+            <p>Köszönjük, hogy regisztráltál a MediWeb alkalmazásba! A regisztrációd befejezéséhez és a fiókod aktiválásához kérjük, használd az alábbi 6-jegyű ellenőrző kódot:</p>
+            
+            <div class="otp-code" th:text="${verificationCode}">123456</div>
+            
+            <p>Ez a kód 15 perc múlva lejár. Ha nem te kezdeményezted a regisztrációt, kérjük, hagyd figyelmen kívül ezt a levelet.</p>
+        </div>
+        <div class="footer">
+            <p>Ezt az emailt a rendszer automatikusan generálta, kérjük ne válaszolj rá.</p>
+            <p>MediWeb Csapat</p>
+        </div>
+    </div>
+</body>
+</html>

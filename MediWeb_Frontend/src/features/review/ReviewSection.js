@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Platform } from "react-native";
 import CustomDropdown from "components/CustomDropdown";
 import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import { renderStars } from "./ReviewStars";
 import { createStyles } from "./ReviewSection.style";
 import { useTheme } from "contexts/ThemeContext";
+import ReportModal from "./ReportModal";
+import { reportReview } from "./review.api";
 
 export default function ReviewSection({
   reviews = [],
@@ -23,6 +26,8 @@ export default function ReviewSection({
   const [positive, setPositive] = useState("");
   const [negative, setNegative] = useState("");
   const [sortOption, setSortOption] = useState("latest");
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
   const ownReview = reviews.find((rev) => rev.userId === userId);
 
   useEffect(() => {
@@ -64,6 +69,17 @@ export default function ReviewSection({
     } else {
       onSubmit(payload);
     }
+  };
+
+  const handleOpenReport = (review) => {
+    setReportTarget(review);
+    setReportModalVisible(true);
+  };
+
+  const handleReport = async (reason, comment) => {
+    if (!reportTarget) return;
+    await reportReview(reportTarget.reviewId || reportTarget.id, reason, comment);
+    Alert.alert('Köszönjük!', 'A bejelentést sikeresen rögzítettük. Csapatunk hamarosan felülvizsgálja.');
   };
 
   return (
@@ -178,11 +194,28 @@ export default function ReviewSection({
         {filteredReviews.length > 0 ? (
           filteredReviews.map((rev, idx) => (
             <View key={idx} style={styles.reviewCard}>
-              <View style={styles.starRow}>{renderStars(rev.rating, styles, theme)}</View>
-              <Text style={styles.reviewMeta}>
-                Beküldte: {rev.author} –{" "}
-                {new Date(rev.createdAt).toLocaleDateString()}
-              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.starRow}>{renderStars(rev.rating, styles, theme)}</View>
+                  <Text style={styles.reviewMeta}>
+                    Beküldte: {rev.author} –{" "}
+                    {new Date(rev.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+                {isLoggedIn && rev.userId !== userId && (
+                  <TouchableOpacity
+                    onPress={() => handleOpenReport(rev)}
+                    style={{
+                      padding: 8,
+                      borderRadius: 8,
+                      backgroundColor: theme.colors.backgroundElevated,
+                    }}
+                    activeOpacity={0.6}
+                  >
+                    <FontAwesome5 name="flag" size={13} color={theme.colors.textTertiary} />
+                  </TouchableOpacity>
+                )}
+              </View>
               <Text style={styles.reviewText}>👍 {rev.positive}</Text>
               <Text style={styles.reviewText}>👎 {rev.negative}</Text>
             </View>
@@ -211,6 +244,14 @@ export default function ReviewSection({
           </View>
         )}
       </View>
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={reportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        onSubmit={handleReport}
+        reviewAuthor={reportTarget?.author}
+      />
     </View>
   );
 }

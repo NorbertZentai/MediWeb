@@ -5,9 +5,15 @@ import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.modules.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import hu.project.MediWeb.modules.user.repository.VerificationTokenRepository;
+import hu.project.MediWeb.modules.user.entity.VerificationToken;
+import hu.project.MediWeb.modules.notification.service.EmailNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Random;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +33,12 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private VerificationTokenRepository verificationTokenRepository;
+
+    @Autowired
+    private EmailNotificationService emailNotificationService;
 
     public User register(User user) {
         System.out.println("🚀 Registration attempt for email: " + user.getEmail());
@@ -48,11 +60,43 @@ public class AuthService {
         user.setRole(UserRole.USER);
         user.setRegistration_date(java.time.LocalDateTime.now());
         user.setLast_login(java.time.LocalDateTime.now());
-        user.setIs_active(true);
+        user.setIs_active(false); // User must verify email first
 
         User savedUser = userRepository.save(user);
-        System.out.println("✅ User registered successfully with ID: " + savedUser.getId());
+
+        // Generate and send 6-digit verification code
+        String code = String.format("%06d", new Random().nextInt(999999));
+        
+        verificationTokenRepository.deleteAllByEmail(savedUser.getEmail()); // Clear previous tokens
+        VerificationToken token = VerificationToken.builder()
+                .email(savedUser.getEmail())
+                .token(code)
+                .expiryDate(LocalDateTime.now().plusMinutes(15))
+                .build();
+        verificationTokenRepository.save(token);
+
+        emailNotificationService.sendVerificationEmail(savedUser, code);
+
+        System.out.println("✅ User registered (pending verification) with ID: " + savedUser.getId());
         return savedUser;
+    }
+
+    public boolean verifyEmail(String email, String code) {
+        VerificationToken token = verificationTokenRepository.findByEmailAndToken(email, code)
+                .orElse(null);
+
+        if (token == null || token.isExpired()) {
+            return false;
+        }
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            user.setIs_active(true);
+            userRepository.save(user);
+            verificationTokenRepository.deleteAllByEmail(email);
+            return true;
+        }
+        return false;
     }
 
     public User findByEmail(String email) {

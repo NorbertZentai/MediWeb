@@ -935,4 +935,26 @@ public class MedicationBatchProcessor {
         }
         return -1;
     }
+
+    // ────────── Runtime config getters/setters for Admin panel ──────────
+
+    public int getParallelism() { return parallelism; }
+    public void setParallelism(int parallelism) { this.parallelism = Math.max(1, parallelism); }
+
+    public long getDelayBetweenRequestsMs() { return delayBetweenRequestsMs; }
+    public void setDelayBetweenRequestsMs(long delayMs) { this.delayBetweenRequestsMs = Math.max(0, delayMs); }
+
+    public int getSkipRecentDays() { return skipRecentDays; }
+    public void setSkipRecentDays(int days) { this.skipRecentDays = Math.max(0, days); }
+
+    public double getAverageSecondsPerItem() { return averageSecondsPerItem; }
+    public void setAverageSecondsPerItem(double avg) { this.averageSecondsPerItem = Math.max(0.1, avg); }
+
+    public int getTotalKnownItems() { return totalKnownItems; }
+
+    public int getConfiguredDiscoveryLimit() { return configuredDiscoveryLimit; }
+    public void setConfiguredDiscoveryLimit(int limit) { this.configuredDiscoveryLimit = limit; }
+
+    public int getPersistenceChunkSize() { return persistenceChunkSize; }
+    public void setPersistenceChunkSize(int size) { this.persistenceChunkSize = Math.max(1, size); }
 }

@@ -44,6 +44,23 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify-email")
+    public ResponseEntity<String> verifyEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+        
+        if (email == null || code == null) {
+            return ResponseEntity.badRequest().body("Hiányzó email vagy kód");
+        }
+
+        boolean success = authService.verifyEmail(email, code);
+        if (success) {
+            return ResponseEntity.ok("Email cím sikeresen megerősítve.");
+        } else {
+            return ResponseEntity.status(400).body("A kód helytelen vagy lejárt.");
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestBody Map<String, String> credentials) {
         try {

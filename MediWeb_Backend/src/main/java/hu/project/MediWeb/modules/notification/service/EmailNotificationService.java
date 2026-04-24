@@ -75,4 +75,31 @@ public class EmailNotificationService {
             log.error("Unexpected error while sending email notification", e);
         }
     }
+
+    public void sendVerificationEmail(User user, String code) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+
+            helper.setTo(user.getEmail());
+            if (properties.getFrom() != null && !properties.getFrom().isBlank()) {
+                helper.setFrom(properties.getFrom());
+            }
+            helper.setSubject("MediWeb – Email cím megerősítése");
+
+            Context context = new Context();
+            context.setVariable("userName", user.getName());
+            context.setVariable("verificationCode", code);
+
+            String htmlBody = templateEngine.process("email/verification-code", context);
+            helper.setText(htmlBody, true);
+
+            mailSender.send(message);
+            log.info("Verification code sent to {}", user.getEmail());
+        } catch (MessagingException e) {
+            log.error("Failed to construct verification email for user {}", user.getEmail(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error while sending verification email", e);
+        }
+    }
 }

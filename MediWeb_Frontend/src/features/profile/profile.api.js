@@ -179,8 +179,10 @@ export const requestDataExport = async () => {
   return response.data;
 };
 
-export const deleteAccount = async () => {
-  const response = await api.delete(`/api/users/me`);
+export const deleteAccount = async (password) => {
+  const response = await api.delete(`/api/users/me`, {
+    data: { password }
+  });
   return response.data;
 };
 

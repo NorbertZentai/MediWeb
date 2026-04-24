@@ -87,6 +87,13 @@ public class UserService {
         }
     }
 
+    public boolean verifyPassword(User user, String rawPassword) {
+        if (user == null || rawPassword == null) {
+            return false;
+        }
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
     @Transactional
     public void updateProfilePicture(User user, MultipartFile file) {
         try {

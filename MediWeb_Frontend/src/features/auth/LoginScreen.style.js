@@ -38,6 +38,27 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     color: theme.colors.textPrimary,
   },
+  passwordContainer: {
+    width: "100%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.backgroundInput || theme.colors.backgroundCard,
+    borderRadius: theme.components?.input?.borderRadius || 8,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: theme.components?.input?.padding || 12,
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textPrimary,
+  },
+  eyeIcon: {
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   button: {
     backgroundColor: theme.colors.primary,
     paddingVertical: 12,

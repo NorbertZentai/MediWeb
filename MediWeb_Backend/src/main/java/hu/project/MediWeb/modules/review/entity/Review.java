@@ -32,4 +32,12 @@ public class Review {
     private String negative;
 
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean checked = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean reported = false;
 }

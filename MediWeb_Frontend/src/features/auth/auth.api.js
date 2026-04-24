@@ -25,3 +25,15 @@ export const logout = async () => {
   const response = await api.post('/auth/logout');
   return response.data;
 };
+
+export const verifyEmail = async (email, code) => {
+    try {
+        const response = await api.post('/auth/verify-email', { email, code });
+        return response.data;
+    } catch (error) {
+        if (error.response?.data) {
+            throw new Error(typeof error.response.data === 'string' ? error.response.data : error.response.data.message);
+        }
+        throw new Error('Hiba történt az email megerősítése során.');
+    }
+};
