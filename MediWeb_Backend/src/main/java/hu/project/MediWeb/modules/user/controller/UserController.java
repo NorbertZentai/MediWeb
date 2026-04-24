@@ -1,6 +1,7 @@
 package hu.project.MediWeb.modules.user.controller;
 
 import hu.project.MediWeb.modules.user.dto.PasswordChangeRequest;
+import hu.project.MediWeb.modules.user.dto.PasswordConfirmationRequest;
 import hu.project.MediWeb.modules.user.dto.UserPreferencesDto;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserDataRequestType;
@@ -160,11 +161,16 @@ public class UserController {
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteCurrentUser() {
+    public ResponseEntity<?> deleteCurrentUser(@RequestBody PasswordConfirmationRequest request) {
         User user = getCurrentUser();
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
+        if (!userService.verifyPassword(user, request.getPassword())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Collections.singletonMap("message", "Helytelen jelszó. A fiók törléséhez add meg a helyes jelszavad."));
+        }
+
         userService.deleteUser(user.getId());
         return ResponseEntity.noContent().build();
     }

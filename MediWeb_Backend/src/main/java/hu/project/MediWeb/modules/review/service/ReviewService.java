@@ -3,13 +3,16 @@ package hu.project.MediWeb.modules.review.service;
 import hu.project.MediWeb.modules.review.dto.ReviewDTO;
 import hu.project.MediWeb.modules.review.dto.ReviewListResponse;
 import hu.project.MediWeb.modules.review.entity.Review;
+import hu.project.MediWeb.modules.review.entity.ReviewReport;
 import hu.project.MediWeb.modules.review.repository.ReviewRepository;
+import hu.project.MediWeb.modules.review.repository.ReviewReportRepository;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.service.UserService;
 import hu.project.MediWeb.modules.medication.entity.Medication;
 import hu.project.MediWeb.modules.medication.repository.MedicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final ReviewReportRepository reviewReportRepository;
     private final UserService userService;
     private final MedicationRepository medicationRepository;
 
@@ -80,6 +84,35 @@ public class ReviewService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void reportReview(Long reviewId, User reporter, String reason, String comment) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found with ID: " + reviewId));
+
+        // Prevent self-reporting
+        if (review.getUser().getId().equals(reporter.getId())) {
+            throw new IllegalArgumentException("Nem jelentheted be a saját értékelésed.");
+        }
+
+        // Check for duplicate report
+        if (reviewReportRepository.existsByReviewIdAndReporterId(reviewId, reporter.getId())) {
+            throw new IllegalStateException("Már bejelentettéd ezt az értékelést.");
+        }
+
+        ReviewReport report = ReviewReport.builder()
+                .review(review)
+                .reporter(reporter)
+                .reason(reason)
+                .comment(comment)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        reviewReportRepository.save(report);
+
+        // Mark the review as reported
+        review.setReported(true);
+        reviewRepository.save(review);
+    }
 
     private ReviewDTO mapToDTO(Review review) {
         String medicationName = "Ismeretlen gyógyszer";

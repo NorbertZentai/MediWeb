@@ -14,6 +14,7 @@ public class UserDTO {
     private String email;
     private String phone_number;
     private String imageUrl;
+    private String role;
 
     public static UserDTO from(User user) {
         if (user == null) {
@@ -33,6 +34,7 @@ public class UserDTO {
                 .email(user.getEmail())
                 .phone_number(user.getPhone_number())
                 .imageUrl(imageUrl)
+                .role(user.getRole() != null ? user.getRole().name() : "USER")
                 .build();
     }
 }

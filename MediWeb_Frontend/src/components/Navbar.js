@@ -22,7 +22,8 @@ export default function Navbar() {
     ...(user ? [
       { to: "/favorites", label: "Kedvencek", icon: "heart" },
       { to: "/profile", label: "Profil", icon: "user-circle" },
-      { to: "/settings", label: "Beállítások", icon: "cog" }
+      { to: "/settings", label: "Beállítások", icon: "cog" },
+      ...(user.role === 'ADMIN' ? [{ to: "/admin", label: "Admin", icon: "shield-alt" }] : []),
     ] : []),
   ];
 

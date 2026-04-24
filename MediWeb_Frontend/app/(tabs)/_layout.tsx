@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Platform, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
@@ -7,6 +7,7 @@ import { CustomTabBar } from '@/components/navigation';
 import { TAB_BAR_COLORS } from '@/components/navigation/constants';
 import { HapticTab } from '@/components/HapticTab';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { AuthContext } from '@/src/contexts/AuthContext';
 import Navbar from '@/src/components/Navbar';
 
 // Feature flag for easy rollback
@@ -15,11 +16,13 @@ const MOBILE_BREAKPOINT = 768;
 
 export default function TabLayout() {
   const { isDark } = useTheme();
+  const { user } = useContext(AuthContext) as { user: any };
   const colorScheme = isDark ? 'dark' : 'light';
   const isWeb = Platform.OS === 'web';
   const { width } = useWindowDimensions();
   const isMobileWeb = isWeb && width < MOBILE_BREAKPOINT;
   const colors = TAB_BAR_COLORS[colorScheme ?? 'light'];
+  const isAdmin = user?.role === 'ADMIN';
 
   // Fix mobile browser viewport: browser bottom bar overlaps tab bar
   // Uses window.innerHeight (always = visible area) instead of CSS vh/dvh units
@@ -150,6 +153,18 @@ export default function TabLayout() {
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
                 <FontAwesome5 name="cog" size={20} color={color} solid={focused} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            href: isAdmin ? '/admin' : null,
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
+                <FontAwesome5 name="shield-alt" size={20} color={color} solid={focused} />
               </View>
             ),
           }}

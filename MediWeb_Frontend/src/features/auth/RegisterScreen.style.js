@@ -5,26 +5,43 @@ export const createStyles = (theme) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  scrollView: {
+    flexGrow: 1,
+  },
   contentWrapper: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: theme.spacing.md,
+    paddingVertical: 40,
   },
-  form: {
+  card: {
     width: "100%",
-    maxWidth: 400,
-    backgroundColor: theme.colors.backgroundCard, // Changed from background to backgroundCard for consistency
-    padding: 20,
-    borderRadius: theme.borderRadius.sm,
+    maxWidth: 450, // Slightly wider to accommodate side-by-side on desktop
+    backgroundColor: theme.colors.backgroundCard,
+    padding: 30,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "stretch",
     ...theme.shadows.md,
   },
   title: {
     fontSize: 28,
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.primary,
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary,
+    marginTop: 12,
+    marginBottom: 16,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
     width: "100%",
@@ -37,45 +54,74 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     color: theme.colors.textPrimary,
   },
-  label: {
-    fontSize: theme.fontSize.base,
-    color: theme.colors.textPrimary, // Changed to textPrimary
-    marginBottom: theme.spacing.sm,
-    fontWeight: theme.fontWeight.bold,
+  inputError: {
+    borderColor: '#e74c3c', // Red shade for error
+    borderWidth: 1.5,
   },
-  checkboxContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  passwordContainer: {
+    width: "100%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.backgroundInput || theme.colors.backgroundCard,
+    borderRadius: theme.components?.input?.borderRadius || 8,
     marginBottom: theme.spacing.md,
-  },
-  checkbox: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 10,
-    marginHorizontal: 4,
-    backgroundColor: theme.colors.backgroundCard,
-    borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  checkboxSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  checkboxLabel: {
-    fontSize: theme.fontSize.sm,
+  passwordInput: {
+    flex: 1,
+    padding: theme.components?.input?.padding || 12,
+    fontSize: theme.fontSize.base,
     color: theme.colors.textPrimary,
   },
-  checkboxLabelSelected: {
+  eyeIcon: {
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary || theme.colors.textPrimary,
+    marginBottom: 6,
+    fontWeight: theme.fontWeight.semiBold,
+  },
+  segmentedControl: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.sm,
+    padding: 4,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: theme.borderRadius.sm - 2,
+  },
+  segmentButtonActive: {
+    backgroundColor: theme.colors.primary,
+    ...theme.shadows.sm,
+  },
+  segmentText: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textSecondary || theme.colors.textPrimary,
+    fontWeight: theme.fontWeight.semiBold,
+  },
+  segmentTextActive: {
     color: theme.colors.white,
+    fontWeight: theme.fontWeight.bold,
   },
   button: {
     backgroundColor: theme.colors.primary,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: theme.borderRadius.sm,
     alignItems: "center",
-    marginBottom: 12,
+    marginTop: 20,
+    marginBottom: 16,
+    ...theme.shadows.sm,
   },
   buttonText: {
     color: theme.colors.white,
@@ -84,7 +130,6 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   linkText: {
     color: theme.colors.primary,
-    marginTop: 16,
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.bold,
     textAlign: "center",

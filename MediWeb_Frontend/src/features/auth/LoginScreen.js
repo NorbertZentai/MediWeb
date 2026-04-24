@@ -6,6 +6,7 @@ import { createStyles } from './LoginScreen.style';
 import { toast } from 'utils/toast';
 import Navbar from 'components/Navbar';
 import { useTheme } from 'contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
@@ -17,6 +18,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -50,15 +52,27 @@ export default function LoginScreen() {
             autoCapitalize="none"
             onSubmitEditing={handleLogin}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Jelszó"
-            placeholderTextColor={theme.colors.textTertiary}
-            value={password}
-            onChangeText={setPassword}
-            onSubmitEditing={handleLogin}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Jelszó"
+              placeholderTextColor={theme.colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              onSubmitEditing={handleLogin}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity 
+              onPress={() => setShowPassword(!showPassword)} 
+              style={styles.eyeIcon}
+            >
+              <Ionicons 
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
+                size={20} 
+                color={theme.colors.textTertiary} 
+              />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity onPress={handleLogin} style={styles.button}>
             <Text style={styles.buttonText}>Bejelentkezés</Text>
           </TouchableOpacity>

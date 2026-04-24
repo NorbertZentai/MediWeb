@@ -8,6 +8,8 @@ import {
     Platform,
     Alert,
     Switch,
+    Modal,
+    TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -27,6 +29,10 @@ export default function SettingsScreen() {
     const [preferences, setPreferences] = useState(null);
     const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
     const [termsModalVisible, setTermsModalVisible] = useState(false);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [showDeletePassword, setShowDeletePassword] = useState(false);
 
     const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -88,73 +94,49 @@ export default function SettingsScreen() {
     };
 
     const handleLogout = () => {
-        if (Platform.OS === 'web') {
-            if (window.confirm('Akarod folytatni a kijelentkezést? Biztosan ki szeretnél jelentkezni?')) {
-                logout();
-                router.replace('/');
-            }
-            return;
-        }
-        
-        Alert.alert(
-            'Kijelentkezés',
-            'Biztosan ki szeretnél jelentkezni?',
-            [
-                { text: 'Mégse', style: 'cancel' },
-                {
-                    text: 'Kijelentkezés',
-                    style: 'destructive',
-                    onPress: () => {
-                        logout();
-                        router.replace('/');
-                    },
-                },
-            ]
-        );
+        setLogoutModalVisible(true);
+    };
+
+    const confirmLogout = () => {
+        setLogoutModalVisible(false);
+        logout();
+        router.replace('/');
     };
 
     const handleDeleteAccount = () => {
-        const warningMessage = 'Biztosan törölni szeretnéd a fiókodat? Ez a művelet NEM vonható vissza, és minden adatod elvész!';
-        
-        if (Platform.OS === 'web') {
-            if (window.confirm(warningMessage)) {
-                (async () => {
-                    try {
-                        await deleteAccount();
-                        logout();
-                        router.replace('/');
-                        window.alert('A fiókod sikeresen törlésre került.');
-                    } catch (error) {
-                        console.error('Account deletion failed:', error);
-                        window.alert('Nem sikerült törölni a fiókot. Kérjük, próbáld újra később.');
-                    }
-                })();
+        setDeleteModalVisible(true);
+    };
+
+    const confirmDeleteAccount = async () => {
+        if (!deletePassword) {
+            if (Platform.OS === 'web') {
+                window.alert('Kérjük, add meg a jelszavad a törléshez!');
+            } else {
+                Alert.alert('Hiba', 'Kérjük, add meg a jelszavad a törléshez!');
             }
             return;
         }
 
-        Alert.alert(
-            'Fiók törlése',
-            warningMessage,
-            [
-                { text: 'Mégse', style: 'cancel' },
-                {
-                    text: 'Végleges törlés',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await deleteAccount();
-                            logout();
-                            router.replace('/');
-                            Alert.alert('Fiók törölve', 'A fiókod sikeresen törlésre került.');
-                        } catch (error) {
-                            console.error("Account deletion failed:", error);
-                            Alert.alert('Hiba', 'Nem sikerült törölni a fiókot. Kérjük, próbáld újra később.');
-                        }
-                    },
-                },
-            ]
-        );
+        try {
+            await deleteAccount(deletePassword);
+            setDeleteModalVisible(false);
+            setDeletePassword('');
+            logout();
+            router.replace('/');
+            if (Platform.OS === 'web') {
+                window.alert('A fiókod sikeresen törlésre került.');
+            } else {
+                Alert.alert('Fiók törölve', 'A fiókod sikeresen törlésre került.');
+            }
+        } catch (error) {
+            console.error('Account deletion failed:', error);
+            const msg = error.response?.data?.message || 'Nem sikerült törölni a fiókot. Kérjük, próbáld újra később.';
+            if (Platform.OS === 'web') {
+                window.alert(msg);
+            } else {
+                Alert.alert('Hiba', msg);
+            }
+        }
     };
 
     return (
@@ -352,6 +334,69 @@ export default function SettingsScreen() {
                 visible={termsModalVisible}
                 onClose={() => setTermsModalVisible(false)}
             />
+
+            {/* Delete Account Modal */}
+            <Modal visible={deleteModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteModalVisible(false)}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.alertBox}>
+                        <Text style={[styles.alertTitle, { color: theme.colors.textPrimary }]}>Fiók törlése</Text>
+                        <Text style={[styles.alertMessage, { color: theme.colors.textSecondary }]}>
+                            A művelet végleges. A törléshez kérjük, add meg a jelenlegi jelszavadat:
+                        </Text>
+                        
+                        <View style={styles.passwordContainer}>
+                            <TextInput
+                                style={styles.passwordInput}
+                                placeholder="Jelenlegi jelszó"
+                                placeholderTextColor={theme.colors.textTertiary}
+                                value={deletePassword}
+                                onChangeText={setDeletePassword}
+                                secureTextEntry={!showDeletePassword}
+                                autoCapitalize="none"
+                            />
+                            <TouchableOpacity 
+                                onPress={() => setShowDeletePassword(!showDeletePassword)} 
+                                style={styles.eyeIcon}
+                            >
+                                <FontAwesome5 
+                                    name={showDeletePassword ? 'eye' : 'eye-slash'} 
+                                    size={16} 
+                                    color={theme.colors.textTertiary} 
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.alertButtons}>
+                            <TouchableOpacity onPress={() => { setDeleteModalVisible(false); setDeletePassword(''); }} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
+                                <Text style={[styles.alertButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={confirmDeleteAccount} style={[styles.alertButton, { backgroundColor: theme.colors.error }]}>
+                                <Text style={[styles.alertButtonText, { color: '#fff' }]}>Végleges törlés</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Logout Modal */}
+            <Modal visible={logoutModalVisible} transparent animationType="fade" onRequestClose={() => setLogoutModalVisible(false)}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.alertBox}>
+                        <Text style={[styles.alertTitle, { color: theme.colors.textPrimary }]}>Kijelentkezés</Text>
+                        <Text style={[styles.alertMessage, { color: theme.colors.textSecondary }]}>
+                            Biztosan ki szeretnél jelentkezni?
+                        </Text>
+                        <View style={styles.alertButtons}>
+                            <TouchableOpacity onPress={() => setLogoutModalVisible(false)} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
+                                <Text style={[styles.alertButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={confirmLogout} style={[styles.alertButton, { backgroundColor: theme.colors.primary }]}>
+                                <Text style={[styles.alertButtonText, { color: '#fff' }]}>Kijelentkezés</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View >
     );
 }
@@ -473,5 +518,69 @@ const createStyles = (theme) => StyleSheet.create({
         fontSize: theme.fontSize.base,
         fontWeight: theme.fontWeight.semibold,
         color: theme.colors.error,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    alertBox: {
+        width: '100%',
+        maxWidth: 400,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.md,
+        padding: 24,
+        alignItems: 'center',
+        ...theme.shadows.md,
+    },
+    alertTitle: {
+        fontSize: theme.fontSize.xl,
+        fontWeight: theme.fontWeight.bold,
+        marginBottom: 12,
+    },
+    alertMessage: {
+        fontSize: theme.fontSize.base,
+        textAlign: 'center',
+        marginBottom: 20,
+        lineHeight: 22,
+    },
+    passwordContainer: {
+        width: "100%",
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+        borderRadius: theme.borderRadius.sm,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: 12,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textPrimary,
+    },
+    eyeIcon: {
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    alertButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    alertButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: theme.borderRadius.sm,
+        alignItems: 'center',
+    },
+    alertButtonText: {
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.bold,
     },
 });

@@ -22,6 +22,7 @@ const TAB_ICONS: Record<string, string> = {
     favorites: 'heart',
     profile: 'user',
     settings: 'cog',
+    admin: 'shield-alt',
 };
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -30,12 +31,21 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
     const colorScheme = isDark ? 'dark' : 'light';
     const colors = TAB_BAR_COLORS[colorScheme];
 
+    // Filter routes that are hidden (href: null means hidden from tab bar)
+    const visibleRoutes = state.routes.filter((route) => {
+        const { options } = descriptors[route.key];
+        return (options as any).href !== null;
+    });
+
     // Track tab container width for indicator positioning
     const [containerWidth, setContainerWidth] = useState(0);
-    const tabWidth = state.routes.length > 0 ? containerWidth / state.routes.length : 0;
+    const tabWidth = visibleRoutes.length > 0 ? containerWidth / visibleRoutes.length : 0;
+
+    // Compute visible index (the focused tab's position among visible tabs)
+    const visibleIndex = visibleRoutes.findIndex((r) => r.key === state.routes[state.index]?.key);
 
     // Shared value for animated indicator
-    const indicatorX = useSharedValue(state.index * tabWidth);
+    const indicatorX = useSharedValue(Math.max(0, visibleIndex) * tabWidth);
 
     // Handle container layout
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
@@ -99,14 +109,14 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                     indicatorX={indicatorX}
                     tabWidth={tabWidth}
                     color={colors.indicator}
-                    tabCount={state.routes.length}
+                    tabCount={visibleRoutes.length}
                 />
 
                 {/* Tab items */}
                 <View style={styles.tabsContainer}>
-                    {state.routes.map((route, index) => {
+                    {visibleRoutes.map((route, index) => {
                         const { options } = descriptors[route.key];
-                        const isFocused = state.index === index;
+                        const isFocused = state.index === state.routes.indexOf(route);
 
                         const label =
                             options.tabBarLabel !== undefined

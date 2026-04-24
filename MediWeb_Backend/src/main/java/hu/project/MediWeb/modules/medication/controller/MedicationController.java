@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -84,6 +85,7 @@ public class MedicationController {
         return ResponseEntity.ok(medicationSyncStatusTracker.snapshot());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/sync/start")
     public ResponseEntity<Map<String, Object>> startSync(
             @RequestParam(value = "force", defaultValue = "false") boolean force,
@@ -113,6 +115,7 @@ public class MedicationController {
         return ResponseEntity.accepted().body(body);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/sync/images")
     public ResponseEntity<Map<String, Object>> startImageSync(
             @RequestParam(value = "force", defaultValue = "false") boolean force,
@@ -147,6 +150,7 @@ public class MedicationController {
         return ResponseEntity.accepted().body(body);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/sync/stop")
     public ResponseEntity<Map<String, Object>> stopSync() {
         if (!medicationSyncStatusTracker.isRunning()) {

@@ -158,3 +158,20 @@ ON CONFLICT (email) DO NOTHING;
 INSERT INTO users (name, email, password, role, is_active, registration_date)
 VALUES ('test', '96nucu@gmail.com', '$2a$10$YNBGD.VXFtiLfljxbETaz.OJQ4uIcKGYBJDTa/qOYNla./EJx6SfG', 'USER', true, now())
 ON CONFLICT (email) DO NOTHING;
+
+-- ==================== REVIEW MODERATION ====================
+
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS checked BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE reviews ADD COLUMN IF NOT EXISTS reported BOOLEAN NOT NULL DEFAULT false;
+
+-- ==================== REVIEW REPORTS ====================
+
+CREATE TABLE IF NOT EXISTS review_reports (
+    id BIGSERIAL PRIMARY KEY,
+    review_id BIGINT NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+    reporter_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason VARCHAR(50) NOT NULL,
+    comment VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    UNIQUE(review_id, reporter_id)
+);
