@@ -75,6 +75,8 @@ public class AuthService {
                 .build();
         verificationTokenRepository.save(token);
 
+        System.out.println("⚠️ DEBUG: Verification code for " + savedUser.getEmail() + " is: " + code);
+        
         emailNotificationService.sendVerificationEmail(savedUser, code);
 
         System.out.println("✅ User registered (pending verification) with ID: " + savedUser.getId());
