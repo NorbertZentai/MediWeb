@@ -175,3 +175,11 @@ CREATE TABLE IF NOT EXISTS review_reports (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     UNIQUE(review_id, reporter_id)
 );
+
+-- OTP Email ellenőrző tokenek
+CREATE TABLE IF NOT EXISTS verification_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL
+);
