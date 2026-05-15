@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const createStyles = (theme) => StyleSheet.create({
+export const createStyles = (theme, isDark = false) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -69,7 +69,7 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   comingSoonText: {
     fontSize: 13,
-    color: theme.colors.primaryDark,
+    color: isDark ? theme.colors.textSecondary : theme.colors.primaryDark,
   },
   fieldRow: {
     flexDirection: "row",
@@ -123,7 +123,7 @@ export const createStyles = (theme) => StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   pillLabelActive: {
-    color: theme.colors.primaryDark || theme.colors.primary,
+    color: isDark ? theme.colors.textPrimary : (theme.colors.primaryDark || theme.colors.primary),
   },
   textInput: {
     borderWidth: 1,

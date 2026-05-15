@@ -38,16 +38,18 @@ const BOOLEAN_FILTERS = [
  *   onFilterChange  — (field, value) => void
  *   onReset         — () => void
  */
-export default function FilterModal({ visible, onClose, filters, onFilterChange, onReset }) {
+/**
+ * Reusable filter form content — used inside Modal (mobile) and inline sidebar (web).
+ */
+export function FilterPanelContent({ filters, onFilterChange, onReset, showHeader = false, onClose, compact = false }) {
     const { theme } = useTheme();
     const styles = React.useMemo(() => createStyles(theme), [theme]);
-    const insets = useSafeAreaInsets();
     const activeCount = getActiveFilterCount(filters);
     const [activeDatePicker, setActiveDatePicker] = useState(null);
 
     const handleDateConfirm = (date) => {
         if (activeDatePicker) {
-            const formatted = date.toISOString().split("T")[0]; // YYYY-MM-DD
+            const formatted = date.toISOString().split("T")[0];
             onFilterChange(activeDatePicker, formatted);
         }
         setActiveDatePicker(null);
@@ -68,6 +70,155 @@ export default function FilterModal({ visible, onClose, filters, onFilterChange,
     };
 
     return (
+        <>
+            {showHeader && (
+                <View style={styles.sidebarHeader}>
+                    <Text style={styles.headerTitle}>Szűrők</Text>
+                    {activeCount > 0 && (
+                        <TouchableOpacity
+                            onPress={() => { haptics.light(); onReset(); }}
+                            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        >
+                            <Text style={styles.resetText}>Törlés</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+
+            {/* Boolean toggle filters */}
+            <Text style={styles.sectionTitle}>Jellemzők</Text>
+            <View style={styles.sectionCard}>
+                {BOOLEAN_FILTERS.map(({ field, label, icon }, index) => {
+                    const isActive = !!filters[field];
+                    const isLast = index === BOOLEAN_FILTERS.length - 1;
+                    return (
+                        <TouchableOpacity
+                            key={field}
+                            style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}
+                            onPress={() => { haptics.light(); onFilterChange(field, !filters[field]); }}
+                            activeOpacity={0.6}
+                        >
+                            <View style={[styles.toggleIcon, isActive && styles.toggleIconActive]}>
+                                <FontAwesome5 name={icon} size={14} color={isActive ? theme.colors.white : theme.colors.textTertiary} />
+                            </View>
+                            <Text style={[styles.toggleLabel, isActive && styles.toggleLabelActive]}>{label}</Text>
+                            <View style={[styles.toggleSwitch, isActive && styles.toggleSwitchActive]}>
+                                <View style={[styles.toggleKnob, isActive && styles.toggleKnobActive]} />
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+
+            {/* Text inputs */}
+            <Text style={styles.sectionTitle}>Azonosítók</Text>
+            <View style={styles.sectionCard}>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>ATC kód</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="pl. N02BE01"
+                        placeholderTextColor={theme.colors.textTertiary}
+                        value={filters.atcCode}
+                        onChangeText={(text) => onFilterChange("atcCode", text)}
+                        autoCapitalize="characters"
+                    />
+                </View>
+                <View style={[styles.inputGroup, styles.inputGroupLast]}>
+                    <Text style={styles.inputLabel}>Nyilvántartási szám</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="pl. OGYI-T-12345"
+                        placeholderTextColor={theme.colors.textTertiary}
+                        value={filters.registrationNumber}
+                        onChangeText={(text) => onFilterChange("registrationNumber", text)}
+                    />
+                </View>
+            </View>
+
+            {/* Date range inputs */}
+            <Text style={styles.sectionTitle}>Engedélyezés dátuma</Text>
+            <View style={styles.sectionCard}>
+                <View style={[styles.dateRow, compact && styles.dateRowCompact]}>
+                    <View style={[styles.dateField, !compact && { marginRight: 8 }, compact && { marginBottom: 8 }]}>
+                        <Text style={styles.inputLabel}>-tól</Text>
+                        <DateTrigger
+                            value={filters.authorisationDateFrom}
+                            placeholder="Kezdő dátum"
+                            onPress={() => setActiveDatePicker("authorisationDateFrom")}
+                            onClear={() => onFilterChange("authorisationDateFrom", "")}
+                            onDateChange={(val) => onFilterChange("authorisationDateFrom", val)}
+                            theme={theme}
+                            styles={styles}
+                        />
+                    </View>
+                    <View style={[styles.dateField, !compact && { marginLeft: 8 }]}>
+                        <Text style={styles.inputLabel}>-ig</Text>
+                        <DateTrigger
+                            value={filters.authorisationDateTo}
+                            placeholder="Záró dátum"
+                            onPress={() => setActiveDatePicker("authorisationDateTo")}
+                            onClear={() => onFilterChange("authorisationDateTo", "")}
+                            onDateChange={(val) => onFilterChange("authorisationDateTo", val)}
+                            theme={theme}
+                            styles={styles}
+                        />
+                    </View>
+                </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Törlés dátuma</Text>
+            <View style={styles.sectionCard}>
+                <View style={[styles.dateRow, compact && styles.dateRowCompact]}>
+                    <View style={[styles.dateField, !compact && { marginRight: 8 }, compact && { marginBottom: 8 }]}>
+                        <Text style={styles.inputLabel}>-tól</Text>
+                        <DateTrigger
+                            value={filters.revokeDateFrom}
+                            placeholder="Kezdő dátum"
+                            onPress={() => setActiveDatePicker("revokeDateFrom")}
+                            onClear={() => onFilterChange("revokeDateFrom", "")}
+                            onDateChange={(val) => onFilterChange("revokeDateFrom", val)}
+                            theme={theme}
+                            styles={styles}
+                        />
+                    </View>
+                    <View style={[styles.dateField, !compact && { marginLeft: 8 }]}>
+                        <Text style={styles.inputLabel}>-ig</Text>
+                        <DateTrigger
+                            value={filters.revokeDateTo}
+                            placeholder="Záró dátum"
+                            onPress={() => setActiveDatePicker("revokeDateTo")}
+                            onClear={() => onFilterChange("revokeDateTo", "")}
+                            onDateChange={(val) => onFilterChange("revokeDateTo", val)}
+                            theme={theme}
+                            styles={styles}
+                        />
+                    </View>
+                </View>
+            </View>
+
+            {/* Custom themed date picker modal */}
+            <DatePickerModal
+                visible={activeDatePicker !== null}
+                processedDate={parseDateValue(filters[activeDatePicker])}
+                onConfirm={handleDateConfirm}
+                onCancel={handleDateCancel}
+                title={activeDatePicker ? getDatePickerTitle(activeDatePicker) : "Dátum kiválasztása"}
+            />
+        </>
+    );
+}
+
+/**
+ * Full-screen filter modal for mobile.
+ */
+export default function FilterModal({ visible, onClose, filters, onFilterChange, onReset }) {
+    const { theme } = useTheme();
+    const styles = React.useMemo(() => createStyles(theme), [theme]);
+    const insets = useSafeAreaInsets();
+    const activeCount = getActiveFilterCount(filters);
+
+    return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <View style={styles.container}>
                 {/* Header */}
@@ -77,156 +228,23 @@ export default function FilterModal({ visible, onClose, filters, onFilterChange,
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Szűrők</Text>
                     <TouchableOpacity
-                        onPress={() => {
-                            haptics.light();
-                            onReset();
-                        }}
+                        onPress={() => { haptics.light(); onReset(); }}
                         style={styles.headerButton}
                         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
-                        <Text style={[styles.resetText, activeCount === 0 && styles.resetTextDisabled]}>
-                            Törlés
-                        </Text>
+                        <Text style={[styles.resetText, activeCount === 0 && styles.resetTextDisabled]}>Törlés</Text>
                     </TouchableOpacity>
                 </View>
 
-                <ScrollView
-                    style={styles.body}
-                    contentContainerStyle={styles.bodyContent}
-                    showsVerticalScrollIndicator={false}
-                    bounces={false}
-                >
-                    {/* Boolean toggle filters */}
-                    <Text style={styles.sectionTitle}>Jellemzők</Text>
-                    <View style={styles.sectionCard}>
-                        {BOOLEAN_FILTERS.map(({ field, label, icon }, index) => {
-                            const isActive = !!filters[field];
-                            const isLast = index === BOOLEAN_FILTERS.length - 1;
-                            return (
-                                <TouchableOpacity
-                                    key={field}
-                                    style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}
-                                    onPress={() => {
-                                        haptics.light();
-                                        onFilterChange(field, !filters[field]);
-                                    }}
-                                    activeOpacity={0.6}
-                                >
-                                    <View style={[styles.toggleIcon, isActive && styles.toggleIconActive]}>
-                                        <FontAwesome5 name={icon} size={14} color={isActive ? theme.colors.white : theme.colors.textTertiary} />
-                                    </View>
-                                    <Text style={[styles.toggleLabel, isActive && styles.toggleLabelActive]}>
-                                        {label}
-                                    </Text>
-                                    <View style={[styles.toggleSwitch, isActive && styles.toggleSwitchActive]}>
-                                        <View style={[styles.toggleKnob, isActive && styles.toggleKnobActive]} />
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-
-                    {/* Text inputs */}
-                    <Text style={styles.sectionTitle}>Azonosítók</Text>
-                    <View style={styles.sectionCard}>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>ATC kód</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="pl. N02BE01"
-                                placeholderTextColor={theme.colors.textTertiary}
-                                value={filters.atcCode}
-                                onChangeText={(text) => onFilterChange("atcCode", text)}
-                                autoCapitalize="characters"
-                            />
-                        </View>
-                        <View style={[styles.inputGroup, styles.inputGroupLast]}>
-                            <Text style={styles.inputLabel}>Nyilvántartási szám</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="pl. OGYI-T-12345"
-                                placeholderTextColor={theme.colors.textTertiary}
-                                value={filters.registrationNumber}
-                                onChangeText={(text) => onFilterChange("registrationNumber", text)}
-                            />
-                        </View>
-                    </View>
-
-                    {/* Date range inputs */}
-                    <Text style={styles.sectionTitle}>Engedélyezés dátuma</Text>
-                    <View style={styles.sectionCard}>
-                        <View style={styles.dateRow}>
-                            <View style={[styles.dateField, { marginRight: 8 }]}>
-                                <Text style={styles.inputLabel}>-tól</Text>
-                                <DateTrigger
-                                    value={filters.authorisationDateFrom}
-                                    placeholder="Kezdő dátum"
-                                    onPress={() => setActiveDatePicker("authorisationDateFrom")}
-                                    onClear={() => onFilterChange("authorisationDateFrom", "")}
-                                    theme={theme}
-                                    styles={styles}
-                                />
-                            </View>
-                            <View style={[styles.dateField, { marginLeft: 8 }]}>
-                                <Text style={styles.inputLabel}>-ig</Text>
-                                <DateTrigger
-                                    value={filters.authorisationDateTo}
-                                    placeholder="Záró dátum"
-                                    onPress={() => setActiveDatePicker("authorisationDateTo")}
-                                    onClear={() => onFilterChange("authorisationDateTo", "")}
-                                    theme={theme}
-                                    styles={styles}
-                                />
-                            </View>
-                        </View>
-                    </View>
-
-                    <Text style={styles.sectionTitle}>Törlés dátuma</Text>
-                    <View style={styles.sectionCard}>
-                        <View style={styles.dateRow}>
-                            <View style={[styles.dateField, { marginRight: 8 }]}>
-                                <Text style={styles.inputLabel}>-tól</Text>
-                                <DateTrigger
-                                    value={filters.revokeDateFrom}
-                                    placeholder="Kezdő dátum"
-                                    onPress={() => setActiveDatePicker("revokeDateFrom")}
-                                    onClear={() => onFilterChange("revokeDateFrom", "")}
-                                    theme={theme}
-                                    styles={styles}
-                                />
-                            </View>
-                            <View style={[styles.dateField, { marginLeft: 8 }]}>
-                                <Text style={styles.inputLabel}>-ig</Text>
-                                <DateTrigger
-                                    value={filters.revokeDateTo}
-                                    placeholder="Záró dátum"
-                                    onPress={() => setActiveDatePicker("revokeDateTo")}
-                                    onClear={() => onFilterChange("revokeDateTo", "")}
-                                    theme={theme}
-                                    styles={styles}
-                                />
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Custom themed date picker modal */}
-                    <DatePickerModal
-                        visible={activeDatePicker !== null}
-                        processedDate={parseDateValue(filters[activeDatePicker])}
-                        onConfirm={handleDateConfirm}
-                        onCancel={handleDateCancel}
-                        title={activeDatePicker ? getDatePickerTitle(activeDatePicker) : "Dátum kiválasztása"}
-                    />
+                <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false} bounces={false}>
+                    <FilterPanelContent filters={filters} onFilterChange={onFilterChange} onReset={onReset} />
                 </ScrollView>
 
                 {/* Footer with apply button */}
                 <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, theme.spacing.md) }]}>
                     <TouchableOpacity
                         style={styles.applyButton}
-                        onPress={() => {
-                            haptics.medium();
-                            onClose();
-                        }}
+                        onPress={() => { haptics.medium(); onClose(); }}
                         activeOpacity={0.8}
                     >
                         <FontAwesome5 name="check" size={16} color={theme.colors.white} style={{ marginRight: 8 }} />
@@ -241,8 +259,9 @@ export default function FilterModal({ visible, onClose, filters, onFilterChange,
 }
 
 /** Small pressable trigger that shows the selected date or a placeholder */
-function DateTrigger({ value, placeholder, onPress, onClear, theme, styles }) {
+function DateTrigger({ value, placeholder, onPress, onClear, theme, styles, onDateChange }) {
     const hasValue = !!value?.trim();
+    const isWeb = Platform.OS === 'web';
 
     const formatDisplay = (val) => {
         if (!val) return "";
@@ -252,6 +271,52 @@ function DateTrigger({ value, placeholder, onPress, onClear, theme, styles }) {
         return val;
     };
 
+    // Web: native HTML date input rendered directly
+    if (isWeb) {
+        return (
+            <View style={[styles.dateTrigger, hasValue && styles.dateTriggerActive, { overflow: 'visible' }]}>
+                <FontAwesome5
+                    name="calendar-alt"
+                    size={14}
+                    color={hasValue ? theme.colors.primary : theme.colors.textTertiary}
+                    style={{ marginRight: 8, pointerEvents: 'none' }}
+                />
+                <input
+                    type="date"
+                    value={value || ""}
+                    onChange={(e) => {
+                        if (onDateChange) {
+                            onDateChange(e.target.value);
+                        }
+                    }}
+                    placeholder={placeholder}
+                    style={{
+                        flex: 1,
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        color: hasValue ? theme.colors.textPrimary : theme.colors.textTertiary,
+                        fontSize: 14,
+                        fontFamily: 'inherit',
+                        cursor: 'pointer',
+                        padding: 0,
+                        width: '100%',
+                    }}
+                />
+                {hasValue && (
+                    <TouchableOpacity
+                        onPress={() => { haptics.light(); onClear(); }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{ marginLeft: 4 }}
+                    >
+                        <FontAwesome5 name="times-circle" size={14} color={theme.colors.textTertiary} />
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    }
+
+    // Mobile: original touch trigger (opens custom DatePickerModal)
     return (
         <TouchableOpacity
             style={[styles.dateTrigger, hasValue && styles.dateTriggerActive]}

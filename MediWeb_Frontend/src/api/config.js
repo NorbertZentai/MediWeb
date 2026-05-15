@@ -6,9 +6,15 @@ import { emitLogout } from "utils/authEvents";
 // Decide API base URL for web + mobile.
 // Prefer EXPO_PUBLIC_API_URL (set in Render for web builds, and in .env for local dev).
 const getApiBaseUrl = () => {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL; // Expo recommends EXPO_PUBLIC_ vars [web:317]
+  let envUrl = process.env.EXPO_PUBLIC_API_URL; // Expo recommends EXPO_PUBLIC_ vars [web:317]
   if (envUrl && typeof envUrl === "string" && envUrl.trim().length > 0) {
-    return envUrl.replace(/\/+$/, ""); // remove trailing slashes
+    envUrl = envUrl.replace(/\/+$/, ""); // remove trailing slashes
+    
+    // Android emulators cannot use localhost or 127.0.0.1 to access the host machine
+    if (Platform.OS === "android" && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+      return envUrl.replace("localhost", "10.0.2.2").replace("127.0.0.1", "10.0.2.2");
+    }
+    return envUrl;
   }
 
   // Fallbacks if EXPO_PUBLIC_API_URL is missing

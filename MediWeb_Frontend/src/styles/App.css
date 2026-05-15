@@ -301,3 +301,37 @@ select option {
 .scroll-view {
   scroll-behavior: smooth;
 }
+
+/* ==========================================================================
+   Scrollbars
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E5E7EB;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9CA3AF;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2E7D32;
+}
+
+body.dark-theme ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb {
+  background: #6B7280;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #4CAF50;
+}

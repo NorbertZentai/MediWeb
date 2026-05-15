@@ -76,6 +76,15 @@ export const createStyles = (theme) => StyleSheet.create({
         backgroundColor: theme.colors.border,
         marginHorizontal: 12,
     },
+    themeToggle: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: theme.colors.background,
+        marginRight: 8,
+    },
     loginButton: {
         paddingVertical: 10,
         paddingHorizontal: 18,

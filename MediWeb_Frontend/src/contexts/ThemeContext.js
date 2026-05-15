@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import storage from 'utils/storage';
 import { lightTheme, darkTheme } from 'styles/theme';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 
 export const ThemeContext = createContext({
     theme: lightTheme,
@@ -25,6 +25,28 @@ export const ThemeProvider = ({ children }) => {
     useEffect(() => {
         loadThemeParams();
     }, []);
+
+    useEffect(() => {
+        if (Platform.OS === 'web') {
+            document.body.classList.toggle('dark-theme', resolvedIsDark);
+            
+            // Inject scrollbar styles once
+            if (!document.getElementById('custom-scrollbar-style')) {
+                const style = document.createElement('style');
+                style.id = 'custom-scrollbar-style';
+                style.innerHTML = `
+                    ::-webkit-scrollbar { width: 8px; height: 8px; }
+                    ::-webkit-scrollbar-track { background: #E5E7EB; border-radius: 4px; }
+                    ::-webkit-scrollbar-thumb { background: #9CA3AF; border-radius: 4px; }
+                    ::-webkit-scrollbar-thumb:hover { background: #2E7D32; }
+                    body.dark-theme ::-webkit-scrollbar-track { background: #374151; }
+                    body.dark-theme ::-webkit-scrollbar-thumb { background: #6B7280; }
+                    body.dark-theme ::-webkit-scrollbar-thumb:hover { background: #4CAF50; }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    }, [resolvedIsDark]);
 
     const loadThemeParams = async () => {
         try {

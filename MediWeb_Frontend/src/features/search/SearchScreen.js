@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { createStyles } from "./SearchScreen.style";
 import { useSearchService } from "./SearchService";
 import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import { haptics } from "utils/haptics";
-import FilterModal, { getActiveFilterCount, getActiveFilterLabels } from "./FilterModal";
+import FilterModal, { getActiveFilterCount, getActiveFilterLabels, FilterPanelContent } from "./FilterModal";
 import { useTheme } from "contexts/ThemeContext";
 
 export default function SearchScreen() {
@@ -29,7 +29,9 @@ export default function SearchScreen() {
 
   const router = useRouter();
   const { isMobile } = useResponsiveLayout();
+  const isDesktopWeb = Platform.OS === 'web' && !isMobile;
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
   const activeFilterCount = getActiveFilterCount(filters);
   const activeFilterLabels = getActiveFilterLabels(filters);
@@ -96,7 +98,11 @@ export default function SearchScreen() {
             style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}
             onPress={() => {
               haptics.light();
-              setFilterModalVisible(true);
+              if (isDesktopWeb) {
+                setFilterPanelOpen(!filterPanelOpen);
+              } else {
+                setFilterModalVisible(true);
+              }
             }}
             activeOpacity={0.7}
           >
@@ -141,111 +147,131 @@ export default function SearchScreen() {
           </View>
         )}
 
-        {/* Results */}
-        {loading && results.length === 0 ? (
-          <View style={styles.skeletonContainer}>
-            {[1, 2, 3].map((item) => (
-              <View key={item} style={styles.skeletonCard}>
-                <View style={styles.skeletonLine} />
-                <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
-                <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
+        {/* Desktop web: two-column layout (sidebar + results) */}
+        <View style={isDesktopWeb ? styles.webSearchLayout : null}>
+          {/* Sidebar filter panel (desktop web only) */}
+          {isDesktopWeb && filterPanelOpen && (
+            <View style={styles.filterSidebar}>
+              <FilterPanelContent
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onReset={resetAllFilters}
+                showHeader={true}
+                compact={true}
+              />
+            </View>
+          )}
+
+          {/* Results column */}
+          <View style={isDesktopWeb ? styles.resultsColumn : null}>
+            {loading && results.length === 0 ? (
+              <View style={styles.skeletonContainer}>
+                {[1, 2, 3].map((item) => (
+                  <View key={item} style={styles.skeletonCard}>
+                    <View style={styles.skeletonLine} />
+                    <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
+                    <View style={[styles.skeletonLine, styles.skeletonLineShort]} />
+                  </View>
+                ))}
               </View>
-            ))}
-          </View>
-        ) : results.length === 0 && !loading ? (
-          <View style={styles.emptyStateContainer}>
-            <FontAwesome5 name="search" size={64} color={theme.colors.border} />
-            <Text style={styles.emptyStateTitle}>Nincs találat</Text>
-            <Text style={styles.emptyStateSubtitle}>
-              Próbálj más keresési kifejezést használni vagy módosítsd a szűrőket
-            </Text>
-            {activeFilterCount > 0 && (
-              <TouchableOpacity
-                style={styles.clearAllButton}
-                onPress={() => {
-                  setSearchQuery("");
-                  resetAllFilters();
-                }}
-              >
-                <FontAwesome5 name="redo" size={16} color={theme.colors.primary} />
-                <Text style={styles.clearAllButtonText}>Szűrők törlése</Text>
-              </TouchableOpacity>
+            ) : results.length === 0 && !loading ? (
+              <View style={styles.emptyStateContainer}>
+                <FontAwesome5 name="search" size={64} color={theme.colors.border} />
+                <Text style={styles.emptyStateTitle}>Nincs találat</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  Próbálj más keresési kifejezést használni vagy módosítsd a szűrőket
+                </Text>
+                {activeFilterCount > 0 && (
+                  <TouchableOpacity
+                    style={styles.clearAllButton}
+                    onPress={() => {
+                      setSearchQuery("");
+                      resetAllFilters();
+                    }}
+                  >
+                    <FontAwesome5 name="redo" size={16} color={theme.colors.primary} />
+                    <Text style={styles.clearAllButtonText}>Szűrők törlése</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <>
+                {/* Results count + view switcher */}
+                <View style={styles.topBar}>
+                  <Text style={styles.resultCount}>
+                    {loading ? "Keresés..." : `${results.length} találat`}
+                  </Text>
+                  {!isMobile && (
+                    <View style={styles.viewSwitcher}>
+                      <TouchableOpacity
+                        style={[styles.viewSwitcherButton, viewMode === "grid" && styles.viewSwitcherButtonActive]}
+                        onPress={() => setViewMode("grid")}
+                      >
+                        <MaterialIcons name="grid-view" size={24} color={viewMode === "grid" ? theme.colors.primary : theme.colors.textSecondary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.viewSwitcherButton, viewMode === "list" && styles.viewSwitcherButtonActive]}
+                        onPress={() => setViewMode("list")}
+                      >
+                        <MaterialIcons name="view-list" size={24} color={viewMode === "list" ? theme.colors.primary : theme.colors.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
+                <View style={viewMode === "grid" ? styles.grid : null}>
+                  {results.map((med) => (
+                    <TouchableOpacity
+                      key={med.id}
+                      style={viewMode === "grid"
+                        ? [styles.gridItem, isMobile && { width: "100%" }]
+                        : styles.listItem
+                      }
+                      onPress={() => {
+                        haptics.light();
+                        router.push(`/medication/${med.id}`);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.medName}>{med.name}</Text>
+                      <Text style={styles.substance}>{med.substance}</Text>
+                      <Text style={styles.company}>{med.company}</Text>
+                      <Text style={[styles.status, med.active === false && styles.inactiveStatus]}>
+                        {med.status || "Nincs státusz"}
+                        {med.active === false ? " • Inaktív adat" : ""}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  {hasMore && (
+                    <TouchableOpacity
+                      onPress={loadMore}
+                      disabled={loading}
+                      style={styles.loadMoreButton}
+                    >
+                      {loading ? (
+                        <ActivityIndicator size="small" color={theme.colors.primary} />
+                      ) : (
+                        <Text style={styles.loadMoreText}>További találatok betöltése</Text>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
             )}
           </View>
-        ) : (
-          <>
-            {/* Results count + view switcher */}
-            <View style={styles.topBar}>
-              <Text style={styles.resultCount}>
-                {loading ? "Keresés..." : `${results.length} találat`}
-              </Text>
-              {!isMobile && (
-                <View style={styles.viewSwitcher}>
-                  <TouchableOpacity
-                    style={[styles.viewSwitcherButton, viewMode === "grid" && styles.viewSwitcherButtonActive]}
-                    onPress={() => setViewMode("grid")}
-                  >
-                    <MaterialIcons name="grid-view" size={24} color={viewMode === "grid" ? theme.colors.primary : theme.colors.textSecondary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.viewSwitcherButton, viewMode === "list" && styles.viewSwitcherButtonActive]}
-                    onPress={() => setViewMode("list")}
-                  >
-                    <MaterialIcons name="view-list" size={24} color={viewMode === "list" ? theme.colors.primary : theme.colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            <View style={viewMode === "grid" ? styles.grid : null}>
-              {results.map((med) => (
-                <TouchableOpacity
-                  key={med.id}
-                  style={viewMode === "grid"
-                    ? [styles.gridItem, isMobile && { width: "100%" }]
-                    : styles.listItem
-                  }
-                  onPress={() => {
-                    haptics.light();
-                    router.push(`/medication/${med.id}`);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.medName}>{med.name}</Text>
-                  <Text style={styles.substance}>{med.substance}</Text>
-                  <Text style={styles.company}>{med.company}</Text>
-                  <Text style={[styles.status, med.active === false && styles.inactiveStatus]}>
-                    {med.status || "Nincs státusz"}
-                    {med.active === false ? " • Inaktív adat" : ""}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {hasMore && (
-                <TouchableOpacity
-                  onPress={loadMore}
-                  disabled={loading}
-                  style={styles.loadMoreButton}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color={theme.colors.primary} />
-                  ) : (
-                    <Text style={styles.loadMoreText}>További találatok betöltése</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
-          </>
-        )}
+        </View>
       </View>
 
-      {/* Filter Modal */}
-      <FilterModal
-        visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={resetAllFilters}
-      />
+      {/* Filter Modal (mobile only) */}
+      {!isDesktopWeb && (
+        <FilterModal
+          visible={filterModalVisible}
+          onClose={() => setFilterModalVisible(false)}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={resetAllFilters}
+        />
+      )}
     </ScrollView>
   );
 }

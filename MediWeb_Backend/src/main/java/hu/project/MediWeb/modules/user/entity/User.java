@@ -58,6 +58,13 @@ public class User {
     @Column(name = "push_notifications_enabled", nullable = false)
     private Boolean pushNotificationsEnabled = true;
 
+    @Builder.Default
+    @Column(name = "is_2fa_enabled", nullable = false)
+    private Boolean is2faEnabled = false;
+
+    @Column(name = "totp_secret", length = 32)
+    private String totpSecret;
+
     @Column(length=10)
     private String language = "hu";
 

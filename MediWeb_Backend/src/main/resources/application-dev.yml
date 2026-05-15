@@ -53,6 +53,8 @@ logging:
     org.hibernate: error
 
 google:
+  auth:
+    client-id: ${GOOGLE_CLIENT_ID:}
   api:
     key: ${GOOGLE_API_KEY:${GOOGLE_CUSTOM_SEARCH_KEY:}}
     cx: ${GOOGLE_CX:${GOOGLE_SEARCH_ENGINE_ID:}}

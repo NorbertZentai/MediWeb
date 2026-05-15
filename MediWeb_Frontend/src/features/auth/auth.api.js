@@ -37,3 +37,12 @@ export const verifyEmail = async (email, code) => {
         throw new Error('Hiba történt az email megerősítése során.');
     }
 };
+
+export const googleLogin = async (idToken) => {
+    try {
+        const response = await api.post('/auth/google', { idToken });
+        return response.data;
+    } catch (error) {
+        throw new Error('Google bejelentkezés sikertelen. Próbáld újra!');
+    }
+};

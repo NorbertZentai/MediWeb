@@ -17,10 +17,19 @@ CREATE TABLE IF NOT EXISTS public.users (
     role VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    push_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    is_2fa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    totp_secret VARCHAR(32),
     language VARCHAR(10) DEFAULT 'hu',
     deleted_at TIMESTAMP,
     CONSTRAINT unique_user_name_email UNIQUE (name, email)
 );
+
+-- Add new columns if the table already existed
+ALTER TABLE public.users
+ADD COLUMN IF NOT EXISTS push_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS is_2fa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(32);
 
 CREATE TABLE IF NOT EXISTS public.profiles (
     id SERIAL PRIMARY KEY,

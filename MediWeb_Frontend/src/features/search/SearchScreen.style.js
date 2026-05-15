@@ -10,7 +10,7 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   contentWrapper: {
     width: "100%",
-    maxWidth: 1000,
+    maxWidth: 1400,
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingVertical: 32,
@@ -301,5 +301,26 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.primary,
+  },
+
+  // ===== WEB FILTER SIDEBAR LAYOUT =====
+  webSearchLayout: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 24,
+  },
+  filterSidebar: {
+    width: 300,
+    flexShrink: 0,
+    backgroundColor: theme.colors.backgroundCard,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 16,
+    ...theme.shadows.md,
+  },
+  resultsColumn: {
+    flex: 1,
+    minWidth: 0,
   },
 });

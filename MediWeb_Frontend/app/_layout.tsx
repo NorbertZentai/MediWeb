@@ -79,11 +79,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const protectedTabs = ['favorites', 'profile', 'settings', 'admin'];
+    const currentTab = segments[1]; // segments[0] = '(tabs)', segments[1] = tab name
 
-    // If user is not logged in and trying to access protected routes
-    if (!user && inAuthGroup) {
-      // Redirect to login
+    // Redirect to login only if accessing a protected tab without auth
+    if (!user && segments[0] === '(tabs)' && currentTab && protectedTabs.includes(currentTab as string)) {
       router.replace('/login');
     } else if (user && (segments[0] === 'login' || segments[0] === 'register')) {
       // If user is logged in and tries to access login/register, redirect to tabs

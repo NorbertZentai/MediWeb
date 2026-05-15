@@ -61,15 +61,56 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<Map<String, Object>> googleLogin(@RequestBody Map<String, String> body) {
+        try {
+            String idToken = body.get("idToken");
+            if (idToken == null || idToken.isBlank()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            User user = authService.verifyGoogleToken(idToken);
+            String jwtToken = jwtUtil.generateJwtToken(user.getEmail());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", user);
+            response.put("token", jwtToken);
+            response.put("type", "Bearer");
+
+            log.debug("JWT token generated for Google user: {}", user.getEmail());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Google Login error: {}", e.getMessage(), e);
+            return ResponseEntity.status(401).build();
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@RequestBody Map<String, String> credentials) {
         try {
             String username = credentials.get("email");
             String password = credentials.get("password");
+            String code = credentials.get("code"); // Optional 2FA code
 
             log.debug("Login attempt for email: {}", username);
 
             User user = authService.login(username, password);
+
+            // Check if 2FA is enabled
+            if (Boolean.TRUE.equals(user.getIs2faEnabled())) {
+                if (code == null || code.isBlank()) {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("requires2fa", true);
+                    return ResponseEntity.ok(response);
+                }
+
+                boolean isCodeValid = authService.verify2FACode(user.getTotpSecret(), code);
+                if (!isCodeValid) {
+                    return ResponseEntity.status(401).body(Map.of("message", "Hibás 2FA kód!"));
+                }
+            }
+
             String jwtToken = jwtUtil.generateJwtToken(user.getEmail());
 
             // Create response with user data and JWT token

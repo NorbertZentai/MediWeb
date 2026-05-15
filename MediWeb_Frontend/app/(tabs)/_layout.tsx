@@ -128,6 +128,7 @@ export default function TabLayout() {
           name="favorites"
           options={{
             title: 'Kedvenc',
+            href: user ? '/favorites' : null,
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
                 <FontAwesome5 name="heart" size={20} color={color} solid={focused} />
@@ -139,6 +140,7 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: 'Profil',
+            href: user ? '/profile' : null,
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
                 <FontAwesome5 name="user" size={20} color={color} solid={focused} />
@@ -150,6 +152,7 @@ export default function TabLayout() {
           name="settings"
           options={{
             title: 'Beállít.',
+            href: user ? '/settings' : null,
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
                 <FontAwesome5 name="cog" size={20} color={color} solid={focused} />

@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS public.users (
     role VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     language VARCHAR(10) DEFAULT 'hu',
+    email_notifications_enabled BOOLEAN DEFAULT TRUE,
+    push_notifications_enabled BOOLEAN DEFAULT TRUE,
+    is_2fa_enabled BOOLEAN DEFAULT FALSE,
+    totp_secret VARCHAR(32),
     deleted_at TIMESTAMP,
     CONSTRAINT unique_user_name_email UNIQUE (name, email)
 );

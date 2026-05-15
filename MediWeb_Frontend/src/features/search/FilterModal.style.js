@@ -18,6 +18,15 @@ export const createStyles = (theme) => StyleSheet.create({
         borderBottomColor: theme.colors.border,
         ...theme.shadows.sm,
     },
+    sidebarHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: theme.spacing.sm,
+        paddingBottom: theme.spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+    },
     headerButton: {
         padding: theme.spacing.sm,
         minWidth: 60,
@@ -155,6 +164,9 @@ export const createStyles = (theme) => StyleSheet.create({
         flexDirection: "row",
         paddingHorizontal: theme.spacing.md,
         paddingVertical: 12,
+    },
+    dateRowCompact: {
+        flexDirection: "column",
     },
     dateField: {
         flex: 1,

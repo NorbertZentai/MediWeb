@@ -15,10 +15,16 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import {
   fetchUserPreferences,
   requestAccountDeletion,
-  requestDataExport,
+  exportDataDirect,
   updateUserPreferences,
+  generate2FA,
+  enable2FA,
+  disable2FA,
 } from "features/profile/profile.api";
 import { AuthContext } from "contexts/AuthContext";
+import QRCode from "react-native-qrcode-svg";
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { createStyles } from "./SettingsTab.style";
 import { useTheme } from "contexts/ThemeContext";
 import { registerForPushNotificationsAsync, getPushPermissionStatus } from "utils/notifications";
@@ -98,8 +104,8 @@ const showConfirm = (title, message, { confirmText = "OK", onConfirm, cancelText
 export default function SettingsTab() {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { theme, toggleTheme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -109,6 +115,13 @@ export default function SettingsTab() {
     DEFAULT_PREFERENCES
   );
   const [lastSavedAt, setLastSavedAt] = useState(null);
+
+  const { user, setUser } = useContext(AuthContext);
+  const [is2faEnabled, setIs2faEnabled] = useState(user?.is2faEnabled || false);
+  const [setup2faUri, setSetup2faUri] = useState(null);
+  const [setup2faSecret, setSetup2faSecret] = useState(null);
+  const [setup2faCode, setSetup2faCode] = useState("");
+  const [is2faLoading, setIs2faLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -227,16 +240,37 @@ export default function SettingsTab() {
     }
     setExporting(true);
     try {
-      await requestDataExport();
-      showAlert(
-        "Export elindítva",
-        "Értesítést küldünk, amint a letöltési link rendelkezésre áll."
-      );
+      const data = await exportDataDirect();
+      const jsonData = JSON.stringify(data, null, 2);
+      
+      if (Platform.OS === 'web') {
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mediweb_export_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showAlert("Siker", "Az adatok letöltése megkezdődött.");
+      } else {
+        const fileUri = FileSystem.documentDirectory + `mediweb_export_${new Date().toISOString().split('T')[0]}.json`;
+        await FileSystem.writeAsStringAsync(fileUri, jsonData, { encoding: FileSystem.EncodingType.UTF8 });
+        
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'application/json',
+            dialogTitle: 'Saját adatok exportálása',
+          });
+        } else {
+          showAlert("Siker", `Az adataid le lettek mentve a következő helyre: ${fileUri}`);
+        }
+      }
     } catch (error) {
       console.error("Adatexport indítása sikertelen", error);
       showAlert(
         "Hiba történt",
-        "Nem sikerült elindítani az adatexportot. Próbáld újra később."
+        "Nem sikerült exportálni az adatokat. Próbáld újra később."
       );
     } finally {
       setExporting(false);
@@ -275,6 +309,67 @@ export default function SettingsTab() {
         onConfirm: performAccountDeletion,
       }
     );
+  };
+
+  const handleGenerate2FA = async () => {
+    setIs2faLoading(true);
+    try {
+      const response = await generate2FA();
+      setSetup2faUri(response.uri);
+      setSetup2faSecret(response.secret);
+    } catch (error) {
+      showAlert("Hiba", "Nem sikerült generálni a 2FA kódot.");
+    } finally {
+      setIs2faLoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    if (!setup2faCode || setup2faCode.length < 6) {
+      showAlert("Hiba", "Kérjük, add meg a 6 számjegyű kódot.");
+      return;
+    }
+    setIs2faLoading(true);
+    try {
+      const response = await enable2FA(setup2faSecret, setup2faCode);
+      setIs2faEnabled(true);
+      setSetup2faUri(null);
+      setSetup2faSecret(null);
+      setSetup2faCode("");
+      showAlert("Siker", response.message || "A 2FA sikeresen bekapcsolva.");
+      
+      // Update local user state
+      if (setUser) {
+        setUser(prev => ({ ...prev, is2faEnabled: true }));
+      }
+    } catch (error) {
+      showAlert("Hiba", error.response?.data?.message || "Hibás kód.");
+    } finally {
+      setIs2faLoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!setup2faCode || setup2faCode.length < 6) {
+      showAlert("Hiba", "A kikapcsoláshoz meg kell adnod a jelenlegi 6 számjegyű kódot.");
+      return;
+    }
+    setIs2faLoading(true);
+    try {
+      const response = await disable2FA(setup2faCode);
+      setIs2faEnabled(false);
+      setSetup2faCode("");
+      showAlert("Siker", response.message || "A 2FA sikeresen kikapcsolva.");
+      
+      // Update local user state
+      if (setUser) {
+        setUser(prev => ({ ...prev, is2faEnabled: false }));
+      }
+    } catch (error) {
+      showAlert("Hiba", error.response?.data?.message || "Hibás kód.");
+    } finally {
+      setIs2faLoading(false);
+    }
   };
 
   const renderToggleRow = (title, helper, section, key) => (
@@ -475,6 +570,104 @@ export default function SettingsTab() {
               "data",
               "anonymizedAnalytics"
             )}
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Biztonság (2FA)</Text>
+              <Text style={styles.sectionSubtitle}>
+                Védje fiókját kétlépcsős azonosítással (Google Authenticator).
+              </Text>
+            </View>
+
+            <View style={styles.fieldColumn}>
+              {!is2faEnabled && !setup2faUri && (
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleGenerate2FA}
+                  disabled={is2faLoading}
+                >
+                  {is2faLoading ? (
+                    <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
+                  ) : (
+                    <Text style={styles.actionButtonText}>2FA bekapcsolása</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {setup2faUri && !is2faEnabled && (
+                <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                  <Text style={{ marginBottom: 10, textAlign: 'center', color: theme.colors.textPrimary }}>
+                    Olvasd be a QR kódot a Google Authenticator alkalmazással!
+                  </Text>
+                  <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 10, marginBottom: 15 }}>
+                    <QRCode value={setup2faUri} size={150} />
+                  </View>
+                  <Text style={{ marginBottom: 10, textAlign: 'center', color: theme.colors.textSecondary }}>
+                    Kézi megadás kódja: {setup2faSecret}
+                  </Text>
+
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="6 számjegyű kód"
+                    placeholderTextColor={theme.colors.textTertiary}
+                    value={setup2faCode}
+                    onChangeText={setSetup2faCode}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.actionButton, { marginTop: 15, width: '100%' }]}
+                    onPress={handleEnable2FA}
+                    disabled={is2faLoading}
+                  >
+                    {is2faLoading ? (
+                      <ActivityIndicator color={theme.colors.white} />
+                    ) : (
+                      <Text style={styles.actionButtonText}>Megerősítés és bekapcsolás</Text>
+                    )}
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={{ marginTop: 15 }}
+                    onPress={() => { setSetup2faUri(null); setSetup2faCode(""); }}
+                  >
+                    <Text style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}>Mégse</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {is2faEnabled && (
+                <View style={{ alignItems: 'center', width: '100%' }}>
+                  <Text style={{ marginBottom: 15, color: theme.colors.success, fontWeight: 'bold' }}>
+                    <FontAwesome5 name="check-circle" /> A kétlépcsős azonosítás (2FA) aktív.
+                  </Text>
+                  
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="Jelenlegi 6 számjegyű kód"
+                    placeholderTextColor={theme.colors.textTertiary}
+                    value={setup2faCode}
+                    onChangeText={setSetup2faCode}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                  />
+                  
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.dangerButton, { marginTop: 15, width: '100%' }]}
+                    onPress={handleDisable2FA}
+                    disabled={is2faLoading}
+                  >
+                    {is2faLoading ? (
+                      <ActivityIndicator color={theme.colors.white} />
+                    ) : (
+                      <Text style={[styles.actionButtonText, styles.dangerButtonText]}>2FA kikapcsolása</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
 
           <View style={styles.section}>

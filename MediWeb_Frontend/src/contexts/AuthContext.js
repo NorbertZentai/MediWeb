@@ -10,6 +10,7 @@ export const AuthContext = createContext({
     user: null,
     loading: true,
     login: () => { },
+    googleLogin: () => { },
     register: () => { },
     logout: () => { }
 });
@@ -25,9 +26,23 @@ export const AuthProvider = ({ children }) => {
         if (loginResponse.token) {
             await storage.setItem('authToken', loginResponse.token);
             await storage.setItem('isLoggedIn', 'true');
+            // Fetch current user data using the new token
+            const currentUser = await fetchCurrentUser();
+            setUser(currentUser);
         }
 
-        // Fetch current user data using the new token
+        return loginResponse;
+    };
+
+    const googleLogin = async (idToken) => {
+        const { googleLogin: apiGoogleLogin } = await import('features/auth/auth.api');
+        const loginResponse = await apiGoogleLogin(idToken);
+
+        if (loginResponse.token) {
+            await storage.setItem('authToken', loginResponse.token);
+            await storage.setItem('isLoggedIn', 'true');
+        }
+
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
     };
@@ -106,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, googleLogin, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

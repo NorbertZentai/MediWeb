@@ -21,6 +21,17 @@ import org.springframework.security.core.Authentication;
 
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+
+import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import java.util.Collections;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -39,6 +50,9 @@ public class AuthService {
 
     @Autowired
     private EmailNotificationService emailNotificationService;
+
+    @Value("${google.auth.client-id:}")
+    private String googleClientId;
 
     public User register(User user) {
         System.out.println("🚀 Registration attempt for email: " + user.getEmail());
@@ -132,5 +146,62 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nincs bejelentkezve.");
         }
         return (User) session.getAttribute("user");
+    }
+
+    public User verifyGoogleToken(String idTokenString) throws Exception {
+        if (googleClientId == null || googleClientId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Google Login is not configured on the server.");
+        }
+
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+        if (idToken != null) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user == null) {
+                // Register the user automatically
+                user = new User();
+                user.setEmail(email);
+                user.setName(name != null ? name : "Google User");
+                user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // Random password, they won't use it
+                user.setRole(UserRole.USER);
+                user.setRegistration_date(LocalDateTime.now());
+                user.setLast_login(LocalDateTime.now());
+                user.setIs_active(true); // Automatically active because Google verified the email
+                user = userRepository.save(user);
+                System.out.println("✅ Google User registered automatically: " + email);
+            } else {
+                // Update last login
+                user.setLast_login(LocalDateTime.now());
+                // Ensure they are active if they log in with Google
+                if (!Boolean.TRUE.equals(user.getIs_active())) {
+                    user.setIs_active(true);
+                }
+                user = userRepository.save(user);
+                System.out.println("✅ Google Login successful for: " + email);
+            }
+            return user;
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid ID token.");
+        }
+    }
+
+    public String generate2FASecret() {
+        return Base32.random();
+    }
+
+    public boolean verify2FACode(String secret, String code) {
+        try {
+            Totp totp = new Totp(secret);
+            return totp.verify(code);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

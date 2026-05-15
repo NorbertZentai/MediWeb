@@ -16,8 +16,6 @@ import { useTheme } from 'contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { getHomeDashboard, getPopularMedications } from './home.api';
 import { haptics } from 'utils/haptics';
-import { getMedicationSyncStatus, startMedicationSync, stopMedicationSync, startImageSync } from 'features/medication/medication.api';
-import { toast } from 'utils/toast';
 
 const DEFAULT_DASHBOARD_TEMPLATE = {
   summary: {
@@ -40,91 +38,27 @@ const createDefaultDashboard = () => {
   };
 };
 
-const DEFAULT_SYNC_STATUS = {
-  running: false,
-  startedAt: null,
-  finishedAt: null,
-  discovered: 0,
-  discoveryScanned: 0,
-  discoveryTarget: 0,
-  processed: 0,
-  succeeded: 0,
-  failed: 0,
-  skipped: 0,
-  totalKnown: 0,
-  totalPersisted: 0,
-  averageSecondsPerItem: 10,
-  parallelism: 1,
-  estimatedTotalSeconds: 0,
-  estimatedRemainingSeconds: 0,
-  phase: 'IDLE',
-  discoveryCompleted: true,
-  lastMessage: null,
-  cancellationRequested: false,
-  imagesCached: 0,
-  imagesFetched: 0,
-  imagesSkipped: 0,
-};
-
-const TEST_SYNC_LIMIT = 500;
-
-const PHASE_LABELS = {
-  IDLE: 'Tétlen',
-  ID_DISCOVERY: 'ID-k felderítése',
-  ITEM_PROCESSING: 'Feldolgozás',
-  COMPLETED: 'Befejezve',
-  STOPPING: 'Leállítás...',
-  CANCELLED: 'Megszakítva',
-  IMAGE_CLEANUP: 'Képek ellenőrzése',
-  IMAGE_FETCH: 'Képek keresése',
-};
-
 import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 
 export default function HomeScreen() {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
   const { isMobile } = useResponsiveLayout();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme, isMobile), [theme, isMobile]);
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isMobile, isDark), [theme, isMobile, isDark]);
 
   const [dashboard, setDashboard] = useState(() => createDefaultDashboard());
   // ... existing state ...
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [syncStatus, setSyncStatus] = useState(DEFAULT_SYNC_STATUS);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
-  const [isStartingSync, setIsStartingSync] = useState(false);
-  const [isStoppingSync, setIsStoppingSync] = useState(false);
-  const [manualSyncError, setManualSyncError] = useState(null);
-  const [pendingStartType, setPendingStartType] = useState(null);
-  const [isImageSyncStarting, setIsImageSyncStarting] = useState(false);
-
-  const fetchSyncStatus = useCallback(async () => {
-    try {
-      const status = await getMedicationSyncStatus();
-      if (status && typeof status === 'object') {
-        setSyncStatus({
-          ...DEFAULT_SYNC_STATUS,
-          ...status,
-          cancellationRequested: Boolean(status?.cancellationRequested),
-        });
-        setManualSyncError(null);
-        return status;
-      }
-    } catch (statusError) {
-      console.error('Gyógyszer adatbázis szinkron státusz lekérdezési hiba:', statusError.message || 'Unknown error');
-    }
-    return null;
-  }, []);
-
+  const [guestPopular, setGuestPopular] = useState([]);
+  const [guestLoading, setGuestLoading] = useState(false);
   const loadDashboard = useCallback(
     async (isManualRefresh = false) => {
       if (!user) {
         setDashboard(createDefaultDashboard());
         setErrorMessage(null);
-        setSyncStatus({ ...DEFAULT_SYNC_STATUS });
         return;
       }
 
@@ -160,7 +94,6 @@ export default function HomeScreen() {
           todaysMedications: data.todaysMedications ?? [],
         });
         setErrorMessage(null);
-        await fetchSyncStatus();
       } catch (dashboardError) {
         console.error('Dashboard betöltési hiba:', dashboardError.message || 'Unknown error');
         setDashboard(createDefaultDashboard());
@@ -173,7 +106,7 @@ export default function HomeScreen() {
         }
       }
     },
-    [user, fetchSyncStatus]
+    [user]
   );
 
   useEffect(() => {
@@ -182,167 +115,21 @@ export default function HomeScreen() {
     }
   }, [loading, loadDashboard]);
 
+  // Load popular medications for guest users (public endpoint)
   useEffect(() => {
-    if (!loading && user) {
-      fetchSyncStatus();
-    } else if (!user) {
-      setSyncStatus({ ...DEFAULT_SYNC_STATUS });
+    if (!user && !loading) {
+      setGuestLoading(true);
+      getPopularMedications()
+        .then((data) => {
+          const list = Array.isArray(data) ? data : data?.medications || data?.data || [];
+          setGuestPopular(list);
+        })
+        .catch(() => {})
+        .finally(() => setGuestLoading(false));
     }
-  }, [loading, user, fetchSyncStatus]);
+  }, [user, loading]);
 
-  useEffect(() => {
-    if (!syncStatus.running && !syncStatus.cancellationRequested) {
-      return undefined;
-    }
-
-    const interval = setInterval(() => {
-      fetchSyncStatus();
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
-
-  useEffect(() => {
-    if (!syncStatus.running || !syncStatus.discoveryCompleted || syncStatus.cancellationRequested) {
-      setRemainingSeconds(0);
-      return;
-    }
-
-    const estimated = Number.isFinite(syncStatus.estimatedRemainingSeconds)
-      ? Math.max(Math.round(syncStatus.estimatedRemainingSeconds), 0)
-      : 0;
-    setRemainingSeconds(estimated);
-  }, [syncStatus.running, syncStatus.estimatedRemainingSeconds, syncStatus.cancellationRequested]);
-
-  useEffect(() => {
-    if (!syncStatus.running || !syncStatus.discoveryCompleted || syncStatus.cancellationRequested) {
-      return undefined;
-    }
-
-    const ticker = setInterval(() => {
-      setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(ticker);
-  }, [syncStatus.running, syncStatus.discoveryCompleted, syncStatus.cancellationRequested]);
-
-  const isDiscoveryPhase = syncStatus.running && syncStatus.phase === 'ID_DISCOVERY';
-  const isImageCleanupPhase = syncStatus.running && syncStatus.phase === 'IMAGE_CLEANUP';
-  const isImageFetchPhase = syncStatus.running && syncStatus.phase === 'IMAGE_FETCH';
-  const isImagePhase = isImageCleanupPhase || isImageFetchPhase;
-
-  const triggerSync = useCallback(
-    async ({ force = false, limit = null, variant = 'standard' } = {}) => {
-      if (isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested) {
-        return;
-      }
-
-      setIsStartingSync(true);
-      setPendingStartType(variant);
-      setIsStoppingSync(false);
-      setManualSyncError(null);
-      try {
-        const extraParams = {};
-        if (limit !== null && limit !== undefined) {
-          extraParams.limit = limit;
-        }
-        await startMedicationSync(force, extraParams);
-        const startMessage = limit !== null && limit !== undefined
-          ? `Teszt szinkron indítása (${limit} elem)...`
-          : 'Szinkron indítása folyamatban...';
-        setSyncStatus((prev) => ({
-          ...prev,
-          running: true,
-          cancellationRequested: false,
-          lastMessage: startMessage,
-          phase: prev.phase === 'IDLE' ? 'ID_DISCOVERY' : prev.phase,
-        }));
-        await fetchSyncStatus();
-      } catch (error) {
-        console.error('Nem sikerült elindítani a gyógyszer szinkront:', error.message || 'Unknown error');
-        const message = limit !== null && limit !== undefined
-          ? 'Nem sikerült elindítani a teszt szinkront.'
-          : 'Nem sikerült elindítani a gyógyszer frissítést.';
-        setManualSyncError(message);
-      } finally {
-        setIsStartingSync(false);
-        setPendingStartType(null);
-      }
-    },
-    [isStartingSync, isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]
-  );
-
-  const handleManualSync = useCallback(() => {
-    triggerSync({ force: false, limit: null, variant: 'standard' });
-  }, [triggerSync]);
-
-  const handleTestSync = useCallback(() => {
-    triggerSync({ force: false, limit: TEST_SYNC_LIMIT, variant: 'limited' });
-  }, [triggerSync]);
-
-  const handleImageSync = useCallback(async () => {
-    if (isImageSyncStarting || isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested) {
-      return;
-    }
-
-    setIsImageSyncStarting(true);
-    setManualSyncError(null);
-    try {
-      // Single async call: cleanup broken URLs + fetch missing images
-      await startImageSync(false, true);
-      setSyncStatus((prev) => ({
-        ...prev,
-        running: true,
-        cancellationRequested: false,
-        lastMessage: 'Hibás képek ellenőrzése és frissítés...',
-        phase: 'IMAGE_CLEANUP',
-      }));
-      // Poll quickly to catch fast completions and show result
-      const status = await fetchSyncStatus();
-      if (status && !status.running) {
-        const msg = status.lastMessage || status.finishMessage;
-        if (msg) {
-          toast.info(msg);
-        } else {
-          toast.info('Minden gyógyszerhez van már kép az adatbázisban.');
-        }
-      }
-    } catch (error) {
-      console.error('Nem sikerült elindítani a képkeresést:', error.message || 'Unknown error');
-      setManualSyncError('Nem sikerült elindítani a hiányzó képek keresését.');
-    } finally {
-      setIsImageSyncStarting(false);
-    }
-  }, [isImageSyncStarting, isStartingSync, isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
-
-  const handleStopSync = useCallback(async () => {
-    if (isStoppingSync || !syncStatus.running || syncStatus.cancellationRequested) {
-      return;
-    }
-
-    setIsStoppingSync(true);
-    setPendingStartType(null);
-    setManualSyncError(null);
-    try {
-      await stopMedicationSync();
-      setSyncStatus((prev) => ({
-        ...prev,
-        cancellationRequested: true,
-        lastMessage: 'Leállítás kezdeményezve...',
-      }));
-      await fetchSyncStatus();
-    } catch (error) {
-      console.error('Nem sikerült leállítani a gyógyszer szinkront:', error.message || 'Unknown error');
-      setManualSyncError('Nem sikerült leállítani a gyógyszer frissítést.');
-    } finally {
-      setIsStoppingSync(false);
-    }
-  }, [isStoppingSync, syncStatus.running, syncStatus.cancellationRequested, fetchSyncStatus]);
-
-
-
-
-  // ...
+// ...
 
   const quickActions = useMemo(
     () => [
@@ -418,138 +205,105 @@ export default function HomeScreen() {
       return;
     }
     loadDashboard(true);
-    fetchSyncStatus();
-  }, [loadDashboard, user, fetchSyncStatus]);
+  }, [loadDashboard, user]);
 
-  const formatCount = useCallback((value) => {
-    if (value === null || value === undefined) {
-      return '—';
-    }
-    const numeric = Number(value);
-    if (!Number.isFinite(numeric) || numeric < 0) {
-      return '—';
-    }
-    try {
-      return numeric.toLocaleString('hu-HU');
-    } catch (error) {
-      return String(numeric);
-    }
-  }, []);
-
-  const syncProgressText = useMemo(() => {
-    const denominator = syncStatus.totalKnown || syncStatus.discovered || Math.max(syncStatus.processed, syncStatus.succeeded, 0);
-    const denomValue = denominator > 0 ? denominator : null;
-    const numerator = syncStatus.processed ?? 0;
-    return denomValue === null ? `${numerator} / —` : `${numerator} / ${denomValue}`;
-  }, [syncStatus.processed, syncStatus.discovered, syncStatus.succeeded, syncStatus.totalKnown]);
-
-  const syncSuccessText = useMemo(() => {
-    const denominator = syncStatus.totalKnown || syncStatus.discovered || Math.max(syncStatus.succeeded, 0);
-    const denomValue = denominator > 0 ? denominator : null;
-    const numerator = syncStatus.succeeded ?? 0;
-    return denomValue === null ? `${numerator} / —` : `${numerator} / ${denomValue}`;
-  }, [syncStatus.succeeded, syncStatus.discovered, syncStatus.totalKnown]);
-
-  const discoveryTargetText = useMemo(() => {
-    const target = syncStatus.discoveryTarget;
-    if (!target || target <= 0) {
-      return '—';
-    }
-    return formatCount(target);
-  }, [syncStatus.discoveryTarget, formatCount]);
-
-  const discoveryNewText = useMemo(() => {
-    const newFormatted = formatCount(syncStatus.discovered);
-    return `${newFormatted} / ${discoveryTargetText}`;
-  }, [syncStatus.discovered, discoveryTargetText, formatCount]);
-
-  const discoveryScannedText = useMemo(() => formatCount(syncStatus.discoveryScanned), [syncStatus.discoveryScanned, formatCount]);
-
-  const startDisabled = isStartingSync || isStoppingSync || syncStatus.running || syncStatus.cancellationRequested;
-  const stopDisabled = !syncStatus.running || syncStatus.cancellationRequested || isStoppingSync;
-  const stopInFlight = syncStatus.cancellationRequested || isStoppingSync;
-  const isStandardStartPending = isStartingSync && pendingStartType === 'standard';
-  const isTestStartPending = isStartingSync && pendingStartType === 'limited';
-
-  const formatSeconds = useCallback((seconds) => {
-    if (!Number.isFinite(seconds) || seconds < 0) {
-      return '—';
-    }
-    const total = Math.max(Math.round(seconds), 0);
-    const hours = Math.floor(total / 3600);
-    const minutes = Math.floor((total % 3600) / 60);
-    const secs = total % 60;
-    const parts = [];
-    if (hours > 0) {
-      parts.push(`${hours} óra`);
-    }
-    if (minutes > 0 || hours > 0) {
-      parts.push(`${minutes} perc`);
-    }
-    parts.push(`${secs} mp`);
-    return parts.join(' ');
-  }, []);
-
-  const estimatedTotalDurationText = useMemo(
-    () => formatSeconds(syncStatus.estimatedTotalSeconds),
-    [syncStatus.estimatedTotalSeconds, formatSeconds]
-  );
-
-  const estimatedRemainingDurationText = useMemo(
-    () => formatSeconds(remainingSeconds),
-    [remainingSeconds, formatSeconds]
-  );
-
-  const idleRemainingDurationText = useMemo(
-    () => formatSeconds(syncStatus.estimatedRemainingSeconds),
-    [syncStatus.estimatedRemainingSeconds, formatSeconds]
-  );
-
-  const averageSecondsText = useMemo(() => {
-    const value = syncStatus.averageSecondsPerItem;
-    if (!Number.isFinite(value) || value <= 0) {
-      return '—';
-    }
-    return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
-  }, [syncStatus.averageSecondsPerItem]);
-
-  const syncFinishedAtText = useMemo(() => {
-    if (!syncStatus.finishedAt) {
-      return null;
-    }
-    try {
-      return new Date(syncStatus.finishedAt).toLocaleString('hu-HU');
-    } catch (error) {
-      return syncStatus.finishedAt;
-    }
-  }, [syncStatus.finishedAt]);
 
   if (!user) {
     return (
       <SafeAreaView style={styles.pageWrapper} edges={['top']}>
         <ScrollView
           style={styles.page}
-          contentContainerStyle={styles.guestContent}
+          contentContainerStyle={styles.pageContent}
         >
-          <View style={styles.authCard}>
-            <Text style={styles.title}>Üdvözöllek a MediWeb-ben!</Text>
-            <Text style={styles.subtitle}>
-              Jelentkezz be vagy regisztrálj, hogy elérd a személyre szabott
-              gyógyszerkövető felületet és a gyors akciókat.
-            </Text>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.primaryButton, styles.fullWidthButton]}
-                onPress={() => router.push('/login')}
-              >
-                <Text style={styles.primaryButtonText}>Bejelentkezés</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.secondaryButton, styles.fullWidthButton]}
-                onPress={() => router.push('/register')}
-              >
-                <Text style={styles.secondaryButtonText}>Regisztráció</Text>
-              </TouchableOpacity>
+          <View style={styles.contentWrapper}>
+            {/* Hero section */}
+            <View style={styles.heroCard}>
+              <View style={styles.heroText}>
+                <Text style={styles.heroTitle}>Üdvözöllek a MediWeb-ben!</Text>
+                <Text style={styles.heroSubtitle}>
+                  Keresd meg gyógyszereidet, olvasd el a részletes adatlapokat, és
+                  regisztrálj a személyre szabott emlékeztetőkért.
+                </Text>
+                <TouchableOpacity
+                  style={styles.heroButton}
+                  onPress={() => router.push('/search')}
+                >
+                  <Text style={styles.heroButtonText}>Gyógyszer keresése</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Popular medications */}
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
+                <TouchableOpacity onPress={() => router.push('/search')}>
+                  <Text style={styles.sectionAction}>Összes keresése</Text>
+                </TouchableOpacity>
+              </View>
+              {guestLoading ? (
+                <View style={styles.loadingState}>
+                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                </View>
+              ) : guestPopular.length ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={true}
+                  contentContainerStyle={{ paddingBottom: 16 }}
+                >
+                  {guestPopular.map((medication) => (
+                    <TouchableOpacity
+                      key={medication.itemId || medication.id || medication.registrationNumber}
+                      style={styles.popularCard}
+                      onPress={() => {
+                        const identifier = medication.itemId || medication.id;
+                        if (identifier) {
+                          router.push(`/medication/${identifier}`);
+                        }
+                      }}
+                    >
+                      <Text style={styles.popularCardTitle} numberOfLines={2}>{medication.name}</Text>
+                      {medication.searchCount !== undefined && (
+                        <Text style={styles.popularCardMeta}>
+                          {medication.searchCount} keresés
+                        </Text>
+                      )}
+                      {medication.shortDescription && (
+                        <Text style={styles.popularCardDescription} numberOfLines={3}>
+                          {medication.shortDescription}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : (
+                <Text style={styles.emptyState}>
+                  Még nem érkezett adat a népszerű gyógyszerekről.
+                </Text>
+              )}
+            </View>
+
+            {/* Auth CTA */}
+            <View style={styles.authCard}>
+              <Text style={styles.title}>Személyre szabott funkciók</Text>
+              <Text style={styles.subtitle}>
+                Jelentkezz be vagy regisztrálj a kedvencek, emlékeztetők és
+                személyes gyógyszerprofil eléréséhez.
+              </Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.primaryButton, styles.fullWidthButton]}
+                  onPress={() => router.push('/login')}
+                >
+                  <Text style={styles.primaryButtonText}>Bejelentkezés</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.secondaryButton, styles.fullWidthButton]}
+                  onPress={() => router.push('/register')}
+                >
+                  <Text style={styles.secondaryButtonText}>Regisztráció</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -594,152 +348,6 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {syncStatus.running && (
-            <View style={styles.syncBanner}>
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.primary}
-                style={styles.syncSpinner}
-              />
-              <View style={styles.syncTextWrapper}>
-                {isImageCleanupPhase ? (
-                  <>
-                    <Text style={styles.syncTitle}>Kép URL-ek ellenőrzése</Text>
-                    <Text style={styles.syncSubtitle}>{`Ellenőrizve: ${syncProgressText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Érvényes: ${formatCount(syncStatus.succeeded)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
-                    <Text style={styles.syncMeta}>{`${syncStatus.parallelism || 1}x párhuzamos • Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
-                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText}`}</Text>
-                  </>
-                ) : isImageFetchPhase ? (
-                  <>
-                    <Text style={styles.syncTitle}>Hiányzó képek keresése</Text>
-                    <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Képet találtunk: ${formatCount(syncStatus.imagesFetched)} • Nem található: ${formatCount(syncStatus.imagesSkipped)} • Hiba: ${formatCount(syncStatus.failed)}`}</Text>
-                    <Text style={styles.syncMeta}>{`${syncStatus.parallelism || 1}x párhuzamos • Átlag: ${averageSecondsText}s/elem`}</Text>
-                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
-                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText} • Teljes: ${estimatedTotalDurationText}`}</Text>
-                  </>
-                ) : isDiscoveryPhase ? (
-                  <>
-                    <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
-                    <Text style={styles.syncSubtitle}>{`Új azonosítók: ${discoveryNewText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Átnézett OGYEI oldalak: ${discoveryScannedText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Cél: ${discoveryTargetText === '—' ? 'teljes adatbázis' : `${discoveryTargetText} elem`} • ${syncStatus.parallelism || 1}x párhuzamos`}</Text>
-                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.syncTitle}>Gyógyszer adatbázis frissítése folyamatban</Text>
-                    <Text style={styles.syncSubtitle}>{`Előrehaladás: ${syncProgressText}`}</Text>
-                    <Text style={styles.syncMeta}>{`Feldolgozva: ${syncSuccessText} • Változatlan: ${formatCount(syncStatus.skipped)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
-                    <Text style={styles.syncMeta}>{`OGYEI állomány: ${formatCount(syncStatus.totalKnown) || '—'} • ${syncStatus.parallelism || 1}x párhuzamos • Átlag: ${averageSecondsText}s/elem`}</Text>
-                    <Text style={styles.syncMeta}>{`Adatbázisban: ${formatCount(syncStatus.totalPersisted)} gyógyszer`}</Text>
-                    <Text style={styles.syncMeta}>{`Hátralévő: ${estimatedRemainingDurationText} • Teljes: ${estimatedTotalDurationText}`}</Text>
-                  </>
-                )}
-              </View>
-            </View>
-          )}
-
-          {__DEV__ && (
-            <View style={styles.debugControls}>
-              {manualSyncError ? (
-                <Text style={styles.debugError}>{manualSyncError}</Text>
-              ) : null}
-              <Text style={styles.debugInfo}>{`Adatbázis: ${formatCount(syncStatus.totalPersisted)} gyógyszer | Async pipeline: ${syncStatus.parallelism || 1}x párhuzamos`}</Text>
-              <Text style={styles.debugInfoSecondary}>{`Fázis: ${PHASE_LABELS[syncStatus.phase] || syncStatus.phase || '—'}`}</Text>
-              {syncStatus.running && !isDiscoveryPhase && !isImagePhase && (
-                <Text style={styles.debugInfoSecondary}>{`Smart diff: ${formatCount(syncStatus.skipped)} változatlan (kihagyva) | ${formatCount(syncStatus.succeeded)} feldolgozva | ${formatCount(syncStatus.failed)} hibás`}</Text>
-              )}
-              {syncStatus.running && isImageCleanupPhase && (
-                <Text style={styles.debugInfoSecondary}>{`URL ellenőrzés: ${formatCount(syncStatus.processed)} / ${formatCount(syncStatus.totalKnown)} | hibás: ${formatCount(syncStatus.failed)}`}</Text>
-              )}
-              {syncStatus.running && isImageFetchPhase && (
-                <Text style={styles.debugInfoSecondary}>{`Képkeresés: ${formatCount(syncStatus.imagesFetched)} mentve | ${formatCount(syncStatus.imagesSkipped)} nem található | ${formatCount(syncStatus.failed)} hiba`}</Text>
-              )}
-              {syncStatus.lastMessage ? (
-                <Text style={styles.debugInfoSecondary}>{`Állapot: ${syncStatus.lastMessage}`}</Text>
-              ) : null}
-              {stopInFlight ? (
-                <Text style={styles.debugInfoWarning}>Leállítás folyamatban, kérlek várj...</Text>
-              ) : null}
-              <View style={styles.debugButtonRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.debugButton,
-                    styles.debugButtonStart,
-                    startDisabled && styles.debugButtonDisabled,
-                  ]}
-                  onPress={handleManualSync}
-                  disabled={startDisabled}
-                >
-                  {isStandardStartPending ? (
-                    <ActivityIndicator size="small" color={theme.colors.white} />
-                  ) : (
-                    <Text style={styles.debugButtonText}>Teljes szinkron</Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.debugButton,
-                    styles.debugButtonTest,
-                    startDisabled && styles.debugButtonDisabled,
-                  ]}
-                  onPress={handleTestSync}
-                  disabled={startDisabled}
-                >
-                  {isTestStartPending ? (
-                    <ActivityIndicator size="small" color={theme.colors.white} />
-                  ) : (
-                    <Text style={styles.debugButtonText}>{`Teszt (${TEST_SYNC_LIMIT} elem)`}</Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.debugButton,
-                    styles.debugButtonStart,
-                    startDisabled && styles.debugButtonDisabled,
-                    { backgroundColor: '#8E24AA' }
-                  ]}
-                  onPress={handleImageSync}
-                  disabled={startDisabled}
-                >
-                  {isImageSyncStarting ? (
-                    <ActivityIndicator size="small" color={theme.colors.white} />
-                  ) : (
-                    <Text style={styles.debugButtonText}>Hiányzó képek</Text>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.debugButton,
-                    styles.debugButtonStop,
-                    stopDisabled && styles.debugButtonDisabled,
-                  ]}
-                  onPress={handleStopSync}
-                  disabled={stopDisabled}
-                >
-                  {stopInFlight ? (
-                    <ActivityIndicator size="small" color={theme.colors.white} />
-                  ) : (
-                    <Text style={styles.debugButtonText}>Leállítás</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {!syncStatus.running && syncStatus.finishedAt && (
-            <View style={styles.syncBannerIdle}>
-              <Text style={styles.syncIdleTitle}>Legutóbbi frissítés lezárva</Text>
-              <Text style={styles.syncIdleSubtitle}>{`Feldolgozva: ${syncSuccessText} • Változatlan: ${formatCount(syncStatus.skipped)} • Hibás: ${formatCount(syncStatus.failed)}`}</Text>
-              <Text style={styles.syncMetaSecondary}>{`OGYEI állomány: ${formatCount(syncStatus.totalKnown) || '—'} • Adatbázisban: ${formatCount(syncStatus.totalPersisted)} • Idő: ${estimatedTotalDurationText}`}</Text>
-              {syncFinishedAtText ? (
-                <Text style={styles.syncMetaSecondary}>{`Befejezve: ${syncFinishedAtText}`}</Text>
-              ) : null}
-            </View>
-          )}
-
           {isLoading ? (
             <View style={styles.loadingState}>
               <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -770,7 +378,11 @@ export default function HomeScreen() {
                       </TouchableOpacity>
                     </View>
                     {dashboard.popularMedications?.length ? (
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <ScrollView 
+                        horizontal 
+                        showsHorizontalScrollIndicator={true}
+                        contentContainerStyle={{ paddingBottom: 16 }}
+                      >
                         {dashboard.popularMedications.map((medication) => (
                           <TouchableOpacity
                             key={medication.itemId || medication.id || medication.registrationNumber}

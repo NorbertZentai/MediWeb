@@ -13,7 +13,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const { isMobile } = useResponsiveLayout();
-  const { theme } = useTheme();
+  const { theme, isDark, toggleTheme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const navLinks = [
@@ -85,6 +85,19 @@ export default function Navbar() {
         ))}
 
         <View style={styles.menuDivider} />
+
+        {/* Theme toggle — always visible */}
+        <TouchableOpacity
+          onPress={toggleTheme}
+          style={styles.themeToggle}
+          activeOpacity={0.7}
+        >
+          <FontAwesome5
+            name={isDark ? "sun" : "moon"}
+            size={16}
+            color={isDark ? theme.colors.warning : theme.colors.textSecondary}
+          />
+        </TouchableOpacity>
 
         {!user ? (
           <>

@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
                         // Public: auth endpoints
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/verify-email", "/auth/google", "/error").permitAll()
                         // Public: read-only medication data, search, filters, images, reviews
                         .requestMatchers(HttpMethod.GET, "/api/medication/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/popular-medications").permitAll()
 
 
                         // Public: actuator health check

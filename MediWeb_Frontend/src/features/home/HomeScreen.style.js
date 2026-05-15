@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const createStyles = (theme, isMobile = false) => StyleSheet.create({
+export const createStyles = (theme, isMobile = false, isDark = false) => StyleSheet.create({
   pageWrapper: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -40,13 +40,13 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   heroTitle: {
     fontSize: isMobile ? 28 : 36,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.primaryDark,
+    color: isDark ? theme.colors.textPrimary : theme.colors.primaryDark,
     marginBottom: 12,
   },
   heroSubtitle: {
     fontSize: isMobile ? 15 : 18,
     lineHeight: isMobile ? 22 : 28,
-    color: theme.colors.primaryDark,
+    color: isDark ? theme.colors.textSecondary : theme.colors.primaryDark,
     opacity: 0.8,
   },
   heroButton: {
@@ -296,65 +296,6 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.white,
   },
-  syncBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primaryLight,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    ...theme.shadows.sm,
-  },
-  syncSpinner: {
-    marginRight: 16,
-  },
-  syncTextWrapper: {
-    flex: 1,
-  },
-  syncTitle: {
-    fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: 6,
-  },
-  syncSubtitle: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  syncMeta: {
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    marginBottom: 2,
-  },
-  syncMetaSecondary: {
-    fontSize: theme.fontSize.xs,
-    color: theme.colors.textTertiary,
-  },
-  syncBannerIdle: {
-    backgroundColor: theme.colors.backgroundCard,
-    borderRadius: isMobile ? 16 : 20,
-    padding: isMobile ? 14 : 18,
-    marginBottom: isMobile ? 14 : 24,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  syncIdleTitle: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: 6,
-  },
-  syncIdleSubtitle: {
-    fontSize: theme.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: 4,
-  },
-  syncMetaWarning: {
-    fontSize: 13,
-    color: theme.colors.error,
-    marginBottom: 4,
-  },
   loadingState: {
     paddingVertical: 60,
     alignItems: 'center',
@@ -369,6 +310,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   authCard: {
     width: '100%',
     maxWidth: 520,
+    alignSelf: 'center',
     backgroundColor: theme.colors.backgroundCard,
     borderRadius: 22,
     padding: 32,
@@ -379,11 +321,13 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.textPrimary,
     marginBottom: 12,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: theme.fontSize.base,
     color: theme.colors.textSecondary,
     lineHeight: 22,
+    textAlign: 'center',
   },
   buttonRow: {
     marginTop: 28,
@@ -414,68 +358,5 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   },
   fullWidthButton: {
     width: '100%',
-  },
-  debugControls: {
-    marginBottom: isMobile ? 14 : 24,
-    alignItems: 'flex-start',
-    width: '100%',
-    backgroundColor: theme.colors.backgroundElevated,
-    padding: isMobile ? 12 : 16,
-    borderRadius: isMobile ? 14 : 16,
-  },
-  debugButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  debugButtonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    flexWrap: 'wrap',
-  },
-  debugButtonStart: {
-    marginRight: 12,
-    marginBottom: 8,
-  },
-  debugButtonTest: {
-    backgroundColor: theme.colors.primaryDark,
-    marginRight: 12,
-    marginBottom: 8,
-  },
-  debugButtonStop: {
-    backgroundColor: theme.colors.error,
-    marginBottom: 8,
-  },
-  debugButtonDisabled: {
-    opacity: 0.6,
-  },
-  debugButtonText: {
-    color: theme.colors.white,
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.semibold,
-  },
-  debugError: {
-    color: theme.colors.error,
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  debugInfo: {
-    color: theme.colors.textSecondary,
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  debugInfoSecondary: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.xs,
-    marginBottom: 6,
-  },
-  debugInfoWarning: {
-    color: theme.colors.error,
-    fontSize: theme.fontSize.xs,
-    marginBottom: 10,
   },
 });

@@ -7,9 +7,13 @@ import { createStyles } from './RegisterScreen.style';
 import Navbar from 'components/Navbar';
 import { useTheme } from 'contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function RegisterScreen() {
-  const { register } = useContext(AuthContext);
+  const { register, googleLogin } = useContext(AuthContext);
   const router = useRouter();
   const { redirect } = useLocalSearchParams();
   const from = redirect || "/";
@@ -76,6 +80,32 @@ export default function RegisterScreen() {
     } catch (error) {
        const errorMsg = error?.response?.data?.message || error.message || 'Regisztrációs hiba történt!';
        toast.error(errorMsg);
+       toast.error(errorMsg);
+    }
+  };
+
+   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+     clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || 'PENDING_CLIENT_ID',
+     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+   });
+
+  React.useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      handleGoogleLogin(id_token);
+    } else if (response?.type === 'error') {
+      toast.error('Google bejelentkezés megszakítva vagy sikertelen.');
+    }
+  }, [response]);
+
+  const handleGoogleLogin = async (idToken) => {
+    try {
+      await googleLogin(idToken);
+      toast.success('Sikeres regisztráció/bejelentkezés Google fiókkal!');
+      router.replace(from);
+    } catch (error) {
+      toast.error(error.message || 'Hiba a Google bejelentkezés során.');
     }
   };
 
@@ -199,6 +229,21 @@ export default function RegisterScreen() {
 
             <TouchableOpacity onPress={handleRegister} style={styles.button}>
               <Text style={styles.buttonText}>Regisztráció</Text>
+            </TouchableOpacity>
+
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>VAGY</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.googleButton} 
+              disabled={!request}
+              onPress={() => promptAsync()}
+            >
+              <Ionicons name="logo-google" size={20} color="#EA4335" />
+              <Text style={styles.googleButtonText}>Regisztráció Google-lel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => router.push('/login')}>

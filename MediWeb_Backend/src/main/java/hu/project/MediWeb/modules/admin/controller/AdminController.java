@@ -49,7 +49,7 @@ public class AdminController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
-                Sort.by(Sort.Direction.DESC, "registration_date"));
+                Sort.by(Sort.Direction.DESC, "id"));
         return ResponseEntity.ok(adminService.getUsers(search, pageable));
     }
 

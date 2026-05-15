@@ -38,7 +38,6 @@ public class DashboardController {
     }
 
     @GetMapping("/popular-medications")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<List<PopularMedicationDTO>> getPopularMedications(
             @RequestParam(name = "limit", required = false) Optional<Integer> limitParam) {
         int limit = limitParam.filter(value -> value > 0 && value <= 20).orElse(6);

@@ -179,10 +179,32 @@ export const requestDataExport = async () => {
   return response.data;
 };
 
+export const exportDataDirect = async () => {
+  const response = await api.get(`/api/users/me/export`);
+  return response.data;
+};
+
 export const deleteAccount = async (password) => {
   const response = await api.delete(`/api/users/me`, {
     data: { password }
   });
+  return response.data;
+};
+
+// 2FA
+
+export const generate2FA = async () => {
+  const response = await api.post(`/api/users/2fa/generate`);
+  return response.data;
+};
+
+export const enable2FA = async (secret, code) => {
+  const response = await api.post(`/api/users/2fa/enable`, { secret, code });
+  return response.data;
+};
+
+export const disable2FA = async (code) => {
+  const response = await api.post(`/api/users/2fa/disable`, { code });
   return response.data;
 };
 

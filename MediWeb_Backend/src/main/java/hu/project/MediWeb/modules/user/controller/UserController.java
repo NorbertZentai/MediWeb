@@ -9,6 +9,7 @@ import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.modules.user.service.UserDataRequestService;
 import hu.project.MediWeb.modules.user.service.UserPreferencesService;
 import hu.project.MediWeb.modules.user.service.UserService;
+import hu.project.MediWeb.modules.user.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,6 +35,9 @@ public class UserController {
 
     @Autowired
     private UserDataRequestService userDataRequestService;
+
+    @Autowired
+    private AuthService authService;
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -160,6 +166,16 @@ public class UserController {
         return ResponseEntity.accepted().build();
     }
 
+    @GetMapping("/me/export")
+    public ResponseEntity<Map<String, Object>> directDataExport() {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Map<String, Object> exportData = userService.exportUserData(user);
+        return ResponseEntity.ok(exportData);
+    }
+
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteCurrentUser(@RequestBody PasswordConfirmationRequest request) {
         User user = getCurrentUser();
@@ -173,5 +189,70 @@ public class UserController {
 
         userService.deleteUser(user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/2fa/generate")
+    public ResponseEntity<Map<String, String>> generate2FA() {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String secret = authService.generate2FASecret();
+        String uri = String.format("otpauth://totp/MediWeb:%s?secret=%s&issuer=MediWeb", user.getEmail(), secret);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("secret", secret);
+        response.put("uri", uri);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/2fa/enable")
+    public ResponseEntity<?> enable2FA(@RequestBody Map<String, String> body) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String secret = body.get("secret");
+        String code = body.get("code");
+
+        if (secret == null || code == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Hiányzó adatok."));
+        }
+
+        boolean isValid = authService.verify2FACode(secret, code);
+        if (isValid) {
+            user.setTotpSecret(secret);
+            user.setIs2faEnabled(true);
+            userService.saveUser(user);
+            return ResponseEntity.ok(Map.of("message", "Kétlépcsős azonosítás sikeresen bekapcsolva."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "A megadott kód helytelen."));
+        }
+    }
+
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<?> disable2FA(@RequestBody Map<String, String> body) {
+        User user = getCurrentUser();
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String code = body.get("code");
+        if (code == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Hiányzó kód."));
+        }
+
+        boolean isValid = authService.verify2FACode(user.getTotpSecret(), code);
+        if (isValid) {
+            user.setTotpSecret(null);
+            user.setIs2faEnabled(false);
+            userService.saveUser(user);
+            return ResponseEntity.ok(Map.of("message", "Kétlépcsős azonosítás kikapcsolva."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "A megadott kód helytelen."));
+        }
     }
 }
