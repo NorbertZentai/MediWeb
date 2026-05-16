@@ -22,8 +22,10 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 export default function MedicationDetailsScreen() {
   const { id: itemId } = useLocalSearchParams();
   const router = useRouter();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { theme, isDark } = useTheme();
+  const { width: contentWidth } = useWindowDimensions();
+  const isMobile = contentWidth < 768;
+  const styles = useMemo(() => createStyles(theme, isMobile), [theme, isMobile]);
 
   const {
     data,
@@ -83,8 +85,6 @@ export default function MedicationDetailsScreen() {
     }
   };
 
-  const { width: contentWidth } = useWindowDimensions();
-
   const renderHtmlSection = (html) =>
     html ? (
       <RenderHtml
@@ -140,7 +140,7 @@ export default function MedicationDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       <Navbar />
       <View style={styles.backButtonRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -149,7 +149,7 @@ export default function MedicationDetailsScreen() {
         </TouchableOpacity>
       </View>
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, alignSelf: 'stretch' }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >

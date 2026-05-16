@@ -4,6 +4,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Switch,
   Text,
   TextInput,
@@ -449,7 +450,7 @@ export default function SettingsTab() {
       style={{ flex: 1 }}
     >
       <View style={styles.container}>
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Értesítési beállítások</Text>
@@ -757,7 +758,7 @@ export default function SettingsTab() {
               <Text style={styles.logoutButtonText}>Kijelentkezés</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </View>
     </KeyboardAvoidingView>
   );

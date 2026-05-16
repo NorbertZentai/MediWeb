@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { createStyles } from "./SearchScreen.style";
@@ -65,7 +66,8 @@ export default function SearchScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
       <View style={styles.contentWrapper}>
         <Text style={styles.title}>Gyógyszer kereső</Text>
 
@@ -273,5 +275,6 @@ export default function SearchScreen() {
         />
       )}
     </ScrollView>
+    </SafeAreaView>
   );
 }

@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-export const createStyles = (theme) => StyleSheet.create({
+export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   // ===== LAYOUT =====
   container: {
     flex: 1,
@@ -17,6 +17,7 @@ export const createStyles = (theme) => StyleSheet.create({
 
   centered: {
     flex: 1,
+    alignSelf: "stretch",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.background,
@@ -61,11 +62,11 @@ export const createStyles = (theme) => StyleSheet.create({
   },
 
   title: {
-    fontSize: theme.fontSize.xxxl,
+    fontSize: isMobile ? theme.fontSize.xxl : theme.fontSize.xxxl,
     fontWeight: theme.fontWeight.extrabold,
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.xs,
-    lineHeight: 38,
+    lineHeight: isMobile ? 30 : 38,
   },
 
   subtitle: {
@@ -134,6 +135,7 @@ export const createStyles = (theme) => StyleSheet.create({
     marginBottom: theme.spacing.lg,
     gap: theme.spacing.sm,
     maxWidth: 500,
+    flexWrap: "wrap",
   },
 
   profilePickerWrapper: {

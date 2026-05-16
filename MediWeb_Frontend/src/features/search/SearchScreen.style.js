@@ -12,7 +12,6 @@ export const createStyles = (theme) => StyleSheet.create({
     width: "100%",
     maxWidth: 1400,
     paddingHorizontal: 16,
-    paddingTop: 60,
     paddingVertical: 32,
   },
   title: {

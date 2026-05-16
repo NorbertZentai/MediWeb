@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const createStyles = (theme) => StyleSheet.create({
     container: {
@@ -12,9 +12,6 @@ export const createStyles = (theme) => StyleSheet.create({
         flexGrow: 1,
         padding: 24,
         justifyContent: 'center',
-    },
-    headerSpace: {
-        height: Platform.OS === 'ios' ? 60 : 40,
     },
     iconContainer: {
         width: 80,

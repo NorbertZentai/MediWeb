@@ -3,6 +3,7 @@ import {
     View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet,
     ActivityIndicator, Alert, Platform, RefreshControl
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
 import { AuthContext } from 'contexts/AuthContext';
@@ -38,7 +39,7 @@ export default function AdminScreen() {
     const styles = useMemo(() => createStyles(theme), [theme]);
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             {/* Tab Bar */}
             <View style={styles.tabBar}>
                 {TABS.map(tab => (
@@ -65,7 +66,7 @@ export default function AdminScreen() {
             {activeTab === 'users' && <UsersTab theme={theme} />}
             {activeTab === 'reviews' && <ReviewsTab theme={theme} />}
             {activeTab === 'sync' && <SyncTab theme={theme} />}
-        </View>
+        </SafeAreaView>
     );
 }
 

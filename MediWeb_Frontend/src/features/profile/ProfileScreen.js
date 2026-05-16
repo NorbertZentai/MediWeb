@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Platform,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -79,7 +79,8 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+    <ScrollView contentContainerStyle={styles.content}>
       {/* User Card */}
       <View style={styles.userCard}>
         <Image
@@ -184,7 +185,8 @@ export default function ProfileScreen() {
         {loading ? (
           <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 20 }} />
         ) : reviews.length > 0 ? (
-          <View style={styles.tableContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+          <View style={[styles.tableContainer, { minWidth: 460 }]}>
             {/* Table Header */}
             <View style={styles.tableHeader}>
               <View style={styles.colMedication}>
@@ -237,11 +239,13 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
           </View>
+          </ScrollView>
         ) : (
           <Text style={styles.emptyState}>Még nem értékeltél gyógyszereket</Text>
         )}
       </View>
 
     </ScrollView>
+    </SafeAreaView>
   );
 }

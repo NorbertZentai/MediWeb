@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 
 export const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -10,7 +10,7 @@ export const createStyles = (theme) => StyleSheet.create({
     maxWidth: 1000,
     alignSelf: "center",
     padding: theme.spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 70 : 60,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   userCard: {

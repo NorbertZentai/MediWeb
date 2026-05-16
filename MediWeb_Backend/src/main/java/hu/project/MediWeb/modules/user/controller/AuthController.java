@@ -132,7 +132,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> refreshToken(@RequestBody Map<String, String> body) {
         String expiredToken = body.get("token");
         if (expiredToken == null || expiredToken.isBlank()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(401).build();
         }
 
         try {

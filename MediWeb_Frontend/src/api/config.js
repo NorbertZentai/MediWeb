@@ -139,6 +139,14 @@ api.interceptors.response.use(
       try {
         const currentToken = await storage.getItem("authToken");
 
+        // No stored token — nothing to refresh, log out immediately
+        if (!currentToken) {
+          processQueue(null, null);
+          emitLogout();
+          isRefreshing = false;
+          return Promise.reject(error);
+        }
+
         // Use raw axios (NOT the api instance) to avoid interceptor loops
         const refreshResponse = await axios.post(
           `${API_BASE_URL}/auth/refresh`,

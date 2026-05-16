@@ -15,7 +15,8 @@ import { useTheme } from 'contexts/ThemeContext';
 import { createStyles } from './VerifyEmailScreen.style';
 import { verifyEmail } from './auth.api';
 import { Ionicons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
+import { toast } from 'utils/toast';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const VerifyEmailScreen = () => {
     const { email } = useLocalSearchParams();
@@ -28,23 +29,14 @@ export const VerifyEmailScreen = () => {
 
     const handleVerify = async () => {
         if (!code || code.length < 6) {
-            Toast.show({
-                type: 'error',
-                text1: 'Hiba',
-                text2: 'Kérjük, add meg a 6-jegyű kódot!'
-            });
+            toast.error('Kérjük, add meg a 6-jegyű kódot!');
             return;
         }
 
         setIsLoading(true);
         try {
             await verifyEmail(email, code);
-            
-            Toast.show({
-                type: 'success',
-                text1: 'Sikeres azonosítás!',
-                text2: 'A fiókod aktiválva lett. Kérjük, jelentkezz be.'
-            });
+            toast.success('Sikeres azonosítás! A fiókod aktiválva lett. Kérjük, jelentkezz be.');
             
             // Navigate back to login
             router.replace('/login');
@@ -61,15 +53,15 @@ export const VerifyEmailScreen = () => {
     };
 
     return (
-        <KeyboardAvoidingView 
-            style={styles.container}
+        <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <ScrollView 
+            <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.headerSpace} />
 
                 <View style={styles.iconContainer}>
                     <Ionicons name="mail-unread-outline" size={40} color={theme.colors.primary} />
@@ -126,5 +118,6 @@ export const VerifyEmailScreen = () => {
 
             </ScrollView>
         </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };

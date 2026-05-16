@@ -11,7 +11,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
   },
   pageContent: {
     paddingHorizontal: isMobile ? 12 : 32,
-    paddingBottom: isMobile ? 16 : 64,
+    paddingBottom: isMobile ? 100 : 64,
     width: '100%',
     maxWidth: 1000,
     alignSelf: 'center',

@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
 import { createStyles } from './LoginScreen.style';
@@ -80,7 +81,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Navbar />
       <View style={styles.contentWrapper}>
         <View style={styles.card}>
@@ -154,6 +155,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
