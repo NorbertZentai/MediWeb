@@ -11,6 +11,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   contentWrapper: {
     width: "100%",
     maxWidth: 1000,
+    alignSelf: "center",
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
   },
