@@ -1,168 +1,164 @@
 # MediWeb
 
-Egészségügyi gyógyszerszedési szokások (saját és családi) követésére készült webes alkalmazás. A projekt egy monorepo: Spring Boot alapú backend és Expo/React Native (web) frontend, Postgres adatbázissal.
+Egészségügyi gyógyszerszedési szokások (saját és családi) követésére készült webes és natív mobil alkalmazás. A projekt egy monorepo: Spring Boot alapú backend és Expo/React Native (web + Android/iOS) frontend, PostgreSQL adatbázissal.
 
-> Updated: 2025-08-12 - Hibernate ddl-auto=update deployment
+## Dokumentáció
+
+| Fájl | Tartalom |
+|------|----------|
+| [docs/api-reference.md](docs/api-reference.md) | Teljes REST API végpontlista |
+| [docs/external-services.md](docs/external-services.md) | Külső szolgáltatások és API-k leírása |
+| [docs/known-limitations.md](docs/known-limitations.md) | Ismert korlátok és megkerülő megoldások |
+| [.env.example](.env.example) | Szükséges környezeti változók listája |
 
 ## Könyvtárstruktúra
 
-- `MediWeb_Backend/` – Spring Boot 3 (Java 17, Maven Wrapper), PostgreSQL
-- `MediWeb_Frontend/` – Expo + React Native Web (Node.js, npm)
+- `MediWeb_Backend/` – Spring Boot 3.4.1 (Java 17, Maven Wrapper), PostgreSQL
+- `MediWeb_Frontend/` – Expo SDK 54 + React Native Web (Node.js, npm)
 - `docker-compose.dev.yml` – fejlesztői környezet (csak DB)
 - `docker-compose.prod.yml` – produkciós stack (DB + backend + frontend)
-- `.env` – produkciós compose-hoz szükséges környezeti változók
+- `.env.example` – szükséges környezeti változók sablonfájlja
+- `init_db.sql` – adatbázis inicializáló script
+- `docs/` – részletes technikai dokumentáció
 
 ## Követelmények
 
 - Java 17 (JDK)
 - Docker és Docker Compose
 - Node.js 18+ és npm
-- macOS/zsh parancsok a példákban
+- (Opcionális) Expo Go alkalmazás Android/iOS teszteléshez
 
-## Környezeti változók (.env)
+## Környezeti változók
 
-A `docker-compose.prod.yml` ezeket várja a gyökérben lévő `.env` fájlban:
+Másold le az `.env.example` fájlt `.env` névvel és töltsd ki az értékeket:
 
 ```
-POSTGRES_DB=mediweb
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mediweb
-GOOGLE_API_KEY=<sajat_google_api_kulcs>
-GOOGLE_CX=<sajat_google_cx>
+cp .env.example .env
 ```
 
-Megjegyzés: fejlesztői módban a frontend a `http://localhost:8080` címre hív (lásd `MediWeb_Frontend/src/api/config.js`).
+Az összes szükséges változó leírása az [.env.example](.env.example) fájlban található.
 
 ## Fejlesztői futtatás (ajánlott)
 
-1) Adatbázis (Docker):
+**1. Adatbázis indítása (Docker):**
 
-```
+```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-2) Backend (Spring Boot, dev profil):
+**2. Backend indítása (Spring Boot, dev profil):**
 
-```
+```bash
 ./MediWeb_Backend/mvnw spring-boot:run
 ```
 
-Alapértelmezett port: 8080
+Alapértelmezett port: `8080`
 
-3) Frontend (Expo Web):
+**3. Frontend indítása (Expo Web):**
 
-```
+```bash
 cd MediWeb_Frontend
 npm install
 npm run web
 ```
 
-Alapértelmezett port: 3000
+Alapértelmezett port: `3000`
 
 ## Produkciós futtatás (Docker Compose)
 
-1) Töltsd ki a `.env` fájlt (lásd fent).
+1. Töltsd ki a `.env` fájlt (lásd `.env.example`).
 
-2) Indítás és build:
+2. Indítás és build:
 
-```
+```bash
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 ```
 
-- DB: 5432
-- Backend: 8080
-- Frontend (web): 3000
+Portok: DB `5432`, Backend `8080`, Frontend `3000`
 
 ## Tesztek
 
-- Backend:
+**Backend:**
 
-```
+```bash
 ./MediWeb_Backend/mvnw test
 ```
 
-- Frontend (Jest + jest-expo):
+**Frontend (Jest + jest-expo):**
 
-```
+```bash
 cd MediWeb_Frontend
 npx jest
 ```
 
-## Hasznos parancsok
-
-- Docker logok: `docker compose logs -f`
-- Konténerek leállítása: `docker compose down`
-- Expo cache törlése: `npm start` (Expo) vagy `npx expo start --web --port 3000 -c`
-
-## Hibaelhárítás
-
-- Portütközés (3000/8080/5432): állíts le más folyamatot vagy módosíts portot.
-- Frontend nem éri el a backendet: ellenőrizd, hogy a backend a 8080-as porton fut-e, és a `MediWeb_Frontend/src/api/config.js` `baseURL` megfelelő-e.
-- Maven/JDK gond: ellenőrizd a JDK 17 telepítést és futtasd a wrapperrel: `./mvnw`.
+> Megjegyzés: a `ThemedText` snapshot teszt jelenleg nem fut le sikeresen — a tesztkörnyezet ThemeContext provider-konfigurációja kiegészítésre szorul.
 
 ## Funkcionalitás
 
-- Regisztráció, bejelentkezés és jogosultságkezelés (Spring Security)
-- Gyógyszerek és leírások keresése (Google Custom Search API + web scraping jsoup-pal)
-- Gyógyszerszedési ütemezés, emlékeztetők és statisztikák (React Native Chart Kit)
-- Web push és e-mail értesítések (web-push, Spring Mail)
-- Profilkezelés, alapvető beállítások, keresés és értékelések modulok
+- **Autentikáció:** Regisztráció email + jelszóval, OTP email-verifikáció, bejelentkezés, Google OAuth2, kétfaktoros hitelesítés (TOTP/2FA), JWT tokenfrissítés
+- **Gyógyszer-adatbázis:** OGYÉI szinkronizáció (web scraping), Házipatika adatok, képkeresés (Bing Images scraping elsődlegesen, Google Custom Search API opcionálisan)
+- **Gyógyszerkezelés:** Keresés és szűrés, részletes adatlap, kedvencek, profil alapú gyógyszerszedési ütemezés
+- **Profil rendszer:** Több profil (pl. családtagok), gyógyszerszedési napló, adherencia statisztikák
+- **Értékelések:** 1–5 csillagos értékelések, moderáció, bejelentési rendszer
+- **Értesítések:** Email emlékeztetők (Spring Mail + SMTP), push értesítések natív eszközökre (Expo Push Service)
+- **Admin felület:** Felhasználókezelés, értékelés moderáció, szinkronizáció indítása/leállítása valós idejű állapotkövetéssel
+- **Offline támogatás:** Natív alkalmazásban az utoljára megtekintett gyógyszerek offline is elérhetők (AsyncStorage cache)
+- **Reszponzív:** Web (asztali + mobil böngésző) és natív Android/iOS egységes kódbázisból
 
-## Architektúra áttekintés
-
-- Backend: Spring Boot 3 (Java 17, Maven), JPA, WebFlux, PostgreSQL
-- Frontend: Expo + React Native Web, React Navigation, Expo Router
-- Adatbázis: PostgreSQL 15
-- Alap portok: API 8080, Web 3000, DB 5432
+## Architektúra
 
 ```
-[Frontend] —3000→ [Backend/API] —8080→ [PostgreSQL] —5432→ [Volume]
+[Expo/React Native Web]  ──────►  [Spring Boot REST API]  ──────►  [PostgreSQL 15]
+      port 3000                          port 8080                     port 5432
 ```
 
-## Backend futtatás és konfiguráció
+- **Backend:** Spring Boot 3.4.1, Spring Security (JWT), Spring Data JPA, Spring Mail, WebFlux
+- **Frontend:** Expo SDK 54, React Native Web, Expo Router, Axios
+- **Adatbázis:** PostgreSQL 15, séma: `init_db.sql` + migrációs scriptek
 
-- Dev profil: `SPRING_PROFILES_ACTIVE=dev` (alapértelmezett a helyi futtatáshoz)
-- Helyi JDBC példa, ha a DB a gépen fut: `jdbc:postgresql://localhost:5432/mediweb`
-- Dockeres DB esetén (dev compose): `localhost:5432`, user: `postgres`, pass: `postgres`
-- Build:
-  - Tesztek: `./MediWeb_Backend/mvnw test`
-  - Csomagolás: `./MediWeb_Backend/mvnw clean package`
-  - Futás JAR-ból: `java -jar MediWeb_Backend/target/MediWeb-0.0.1-SNAPSHOT.jar`
+## Backend konfiguráció
 
-Megjegyzés: a konfigurációs fájlok nevei `application-*.yml` legyenek. Ha elgépelés (pl. `applicaition.yml`) van, javítani szükséges.
+- Dev profil: `SPRING_PROFILES_ACTIVE=dev` (alapértelmezett helyi futtatáshoz)
+- Helyi DB JDBC URL: `jdbc:postgresql://localhost:5432/mediweb`
+- Dockeres dev DB esetén ugyanez a cím, user: `postgres`, pass: `postgres`
 
-## Frontend futtatás és tippek
+Build parancsok:
 
-- Telepítés és futtatás (web):
-  - `cd MediWeb_Frontend && npm install`
-  - `npm run web` (vagy `npm start` cache törléssel)
-- API elérési alap: `http://localhost:8080` (lásd `src/api/config.js`)
-- Tesztek: `npx jest`
+```bash
+./MediWeb_Backend/mvnw test                  # tesztek futtatása
+./MediWeb_Backend/mvnw clean package         # JAR csomagolás
+java -jar MediWeb_Backend/target/MediWeb-0.0.1-SNAPSHOT.jar  # futtatás JAR-ból
+```
 
-## Build és release (áttekintés)
+## Frontend konfiguráció
 
-- Backend: Docker image a `MediWeb_Backend/Dockerfile` alapján vagy JAR
-- Frontend: jelenleg a compose a fejlesztői szervert indítja. Production buildhez érdemes statikus web buildet készíteni (pl. `npx expo export --platform web`) és egy statikus szerverrel kiszolgálni.
+- API alap URL: `http://localhost:8080` (lásd `src/api/config.js`)
+- Web build: `npx expo export --platform web`
+- Natív futtatás Expo Go-val: `npx expo start` → QR kód beolvasása
 
 ## Docker tippek
 
-- Fejlesztői DB: `docker compose -f docker-compose.dev.yml up -d`
-- Teljes stack (prod): `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
-- Logok: `docker compose logs -f`
-- Leállítás: `docker compose down`
-- Volumek törlése (óvatosan): `docker compose down -v`
+```bash
+docker compose -f docker-compose.dev.yml up -d          # fejlesztői DB indítása
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build  # teljes stack
+docker compose logs -f                                  # logok követése
+docker compose down                                     # leállítás
+docker compose down -v                                  # leállítás + volume törlés (óvatosan)
+```
 
-## Biztonság és titokkezelés
+## Hibaelhárítás
 
-- A `.env` fájlban érzékeny adatok vannak (DB jelszó, Google kulcsok). Ezt ne committold nyilvános repo-ba.
-- Követelmény a `GOOGLE_API_KEY` és `GOOGLE_CX` beállítása a keresési funkciókhoz.
+- **Portütközés** (3000/8080/5432): állíts le más folyamatot vagy módosíts portot
+- **Frontend nem éri el a backendet:** ellenőrizd a `MediWeb_Frontend/src/api/config.js` `baseURL` értékét
+- **Maven/JDK hiba:** ellenőrizd a JDK 17 telepítést (`java -version`), és mindig a wrapperrel futtasd: `./mvnw`
+- **Google bejelentkezés nem működik:** ellenőrizd a `GOOGLE_CLIENT_ID` és `EXPO_PUBLIC_GOOGLE_CLIENT_ID` env változókat
+- **Email nem megy ki:** ellenőrizd az SMTP beállításokat; Gmail esetén App Password szükséges (nem a fiók jelszava)
 
-## Közreműködés
+## Biztonság
 
-- Branch stratégia: `master` stabil, fejlesztéshez külön feature branchek
-- Commit üzenetek: tömörek, leírók; PR-ben rövid összefoglaló és tesztelési lépések
-- Issue-k: hibajegy vagy feature kérés létrehozása reprodukcióval/elfogadási kritériumokkal
+- A `.env` fájl érzékeny adatokat tartalmaz (a `.gitignore` már tartalmazza)
+- A Google Custom Search API (`GOOGLE_API_KEY`, `GOOGLE_CX`) **opcionális** — nélküle az alkalmazás teljesen működőképes, a Bing Images scraping veszi át a képkeresést
+- Produkciós SMTP konfiguráció esetén az OTP kódok kizárólag emailen kerülnek kézbesítésre
 
 ## Licenc
 
