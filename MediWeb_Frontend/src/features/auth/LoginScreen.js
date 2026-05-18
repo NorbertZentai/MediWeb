@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AuthContext } from 'contexts/AuthContext';
@@ -153,6 +153,11 @@ export default function LoginScreen() {
           <TouchableOpacity onPress={() => router.push('/register')}>
             <Text style={styles.linkText}>Nincs még fiókod? Regisztrálj!</Text>
           </TouchableOpacity>
+          {Platform.OS !== 'web' && (
+            <TouchableOpacity style={styles.guestLink} onPress={() => router.replace('/(tabs)')}>
+              <Text style={styles.guestLinkText}>Folytatás bejelentkezés nélkül</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </SafeAreaView>

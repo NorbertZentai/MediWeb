@@ -117,4 +117,14 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: theme.fontSize.sm,
   },
+  guestLink: {
+    marginTop: 20,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  guestLinkText: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+    textDecorationLine: 'underline',
+  },
 });

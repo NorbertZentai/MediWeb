@@ -1,7 +1,10 @@
 import { useCallback, useState, useEffect } from "react";
+import { Platform } from "react-native";
 import { getMedicationDetails } from "features/medication/medication.api";
 import { getReviewsForMedication } from "features/review/review.api";
 import { getProfilesForUser, fetchCurrentUser, getFavorites, removeFromFavorites } from "features/profile/profile.api";
+import { loadMedication } from "utils/medicationCache";
+import storage from "utils/storage";
 
 export function useMedicationService(medicationId) {
   const [data, setData] = useState(null);
@@ -14,6 +17,7 @@ export function useMedicationService(medicationId) {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   const fetchDetails = useCallback(async () => {
     setLoading(true);
@@ -23,9 +27,26 @@ export function useMedicationService(medicationId) {
     try {
       const result = await getMedicationDetails(medicationId);
       setData(result);
+      setIsOffline(false);
       setError(null);
     } catch (e) {
       console.error("Hiba a részletek betöltésekor:", e.message || e);
+
+      // Offline fallback: bejelentkezett native felhasználóknál próbáljuk a cache-t
+      if (Platform.OS !== 'web') {
+        try {
+          const token = await storage.getItem('authToken');
+          if (token) {
+            const cached = await loadMedication(medicationId);
+            if (cached) {
+              setData(cached);
+              setIsOffline(true);
+              setError(null);
+              return;
+            }
+          }
+        } catch (_) {}
+      }
 
       // Check if it's a 503 Service Unavailable error (timeout)
       if (e.response?.status === 503) {
@@ -113,6 +134,7 @@ export function useMedicationService(medicationId) {
     profiles,
     loading,
     error,
+    isOffline,
     setIsFavorite,
     setFavoriteId,
     fetchReviews,

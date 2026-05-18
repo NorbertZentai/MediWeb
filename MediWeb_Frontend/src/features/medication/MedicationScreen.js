@@ -10,6 +10,7 @@ import { submitReview, updateReview } from "features/review/review.api";
 import ReviewSection from "features/review/ReviewSection";
 import { useMedicationService } from "./MedicationService";
 import { createStyles } from "./MedicationScreen.style";
+import { saveMedication } from "utils/medicationCache";
 import { toast } from "utils/toast";
 import Navbar from "components/Navbar";
 import { useTheme } from "contexts/ThemeContext";
@@ -37,6 +38,7 @@ export default function MedicationDetailsScreen() {
     favoriteId,
     profiles,
     loading,
+    isOffline,
     setIsFavorite,
     fetchReviews,
     setFavoriteId,
@@ -63,6 +65,13 @@ export default function MedicationDetailsScreen() {
       });
     }
   }, [data, itemId]);
+
+  // Cache medication for offline use (bejelentkezett native felhasználóknál)
+  React.useEffect(() => {
+    if (data && currentUser && Platform.OS !== 'web') {
+      saveMedication(itemId, data).catch(() => {});
+    }
+  }, [data, currentUser, itemId]);
 
   const [selectedProfileId, setSelectedProfileId] = useState(null);
   const [profileHasMedication, setProfileHasMedication] = useState(false);
@@ -148,6 +157,12 @@ export default function MedicationDetailsScreen() {
           <Text style={styles.backButtonText}>Vissza</Text>
         </TouchableOpacity>
       </View>
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <FontAwesome5 name="wifi" size={13} color={theme.colors.warning} style={{ marginRight: 8 }} />
+          <Text style={styles.offlineBannerText}>Offline nézet – utoljára mentett adat</Text>
+        </View>
+      )}
       <ScrollView
         style={{ flex: 1, alignSelf: 'stretch' }}
         showsVerticalScrollIndicator={false}

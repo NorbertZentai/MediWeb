@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
@@ -29,7 +30,7 @@ const menuItems = [
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { logout } = useContext(AuthContext);
+  const { logout, user: authUser } = useContext(AuthContext);
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [user, setUser] = useState({ name: "", email: "", imageUrl: null });
@@ -39,6 +40,10 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   const loadUserData = useCallback(async () => {
+    if (!authUser) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const userData = await fetchCurrentUser();
@@ -65,7 +70,7 @@ export default function ProfileScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authUser]);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,6 +82,29 @@ export default function ProfileScreen() {
   const handleMenuPress = (key) => {
     router.push(`/profile/${key}`);
   };
+
+  if (!authUser && Platform.OS !== 'web') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.guestWrapper}>
+          <View style={styles.guestIconCircle}>
+            <FontAwesome5 name="user-circle" size={56} color={theme.colors.textTertiary} />
+          </View>
+          <Text style={styles.guestTitle}>Személyes fiók</Text>
+          <Text style={styles.guestSubtitle}>
+            A kedvencek, emlékeztetők és gyógyszerprofilok eléréséhez
+            jelentkezz be, vagy regisztrálj ingyen.
+          </Text>
+          <TouchableOpacity style={styles.guestLoginButton} onPress={() => router.push('/login')}>
+            <Text style={styles.guestLoginText}>Bejelentkezés</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.guestRegisterButton} onPress={() => router.push('/register')}>
+            <Text style={styles.guestRegisterText}>Regisztráció</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

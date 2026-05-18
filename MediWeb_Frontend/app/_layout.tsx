@@ -79,7 +79,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
 
-    const protectedTabs = ['favorites', 'profile', 'settings', 'admin'];
+    const protectedTabs = ['favorites', 'settings', 'admin'];
     const currentTab = segments[1]; // segments[0] = '(tabs)', segments[1] = tab name
 
     // Redirect to login only if accessing a protected tab without auth

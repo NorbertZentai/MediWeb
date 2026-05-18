@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getCacheInfo, clearCache } from "utils/medicationCache";
 import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import {
@@ -120,9 +121,16 @@ export default function SettingsTab() {
   const { user, setUser } = useContext(AuthContext);
   const [is2faEnabled, setIs2faEnabled] = useState(user?.is2faEnabled || false);
   const [setup2faUri, setSetup2faUri] = useState(null);
+  const [cacheCount, setCacheCount] = useState(0);
   const [setup2faSecret, setSetup2faSecret] = useState(null);
   const [setup2faCode, setSetup2faCode] = useState("");
   const [is2faLoading, setIs2faLoading] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      getCacheInfo().then(({ count }) => setCacheCount(count));
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -298,6 +306,12 @@ export default function SettingsTab() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleClearCache = async () => {
+    await clearCache();
+    setCacheCount(0);
+    showAlert('Cache törölve', 'Az offline mentett gyógyszeradatok törölve lettek.');
   };
 
   const handleAccountDeletion = () => {
@@ -709,6 +723,28 @@ export default function SettingsTab() {
               </TouchableOpacity>
             </View>
           </View>
+
+          {Platform.OS !== 'web' && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Offline cache</Text>
+                <Text style={styles.sectionSubtitle}>
+                  Megtekintett gyógyszerek elmentve offline olvasáshoz (max. 50 db).
+                </Text>
+              </View>
+              <View style={styles.fieldRow}>
+                <Text style={styles.fieldLabel}>Mentett gyógyszerek</Text>
+                <Text style={styles.fieldLabel}>{cacheCount} db</Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.actionButton, cacheCount === 0 && styles.actionButtonDisabled]}
+                onPress={handleClearCache}
+                disabled={cacheCount === 0}
+              >
+                <Text style={styles.actionButtonText}>Cache törlése</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.footer}>
             {lastSavedAt ? (

@@ -410,4 +410,24 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     marginTop: theme.spacing.xl,
     fontWeight: theme.fontWeight.medium,
   },
+
+  // ===== OFFLINE BANNER =====
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.backgroundElevated,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.warning,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 10,
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    borderRadius: theme.borderRadius.sm,
+  },
+  offlineBannerText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.warning,
+    fontWeight: theme.fontWeight.semibold,
+    flex: 1,
+  },
 });
