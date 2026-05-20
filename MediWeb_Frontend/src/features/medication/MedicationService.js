@@ -115,8 +115,10 @@ export function useMedicationService(medicationId) {
     fetchCurrentUser()
       .then(async (user) => {
         setCurrentUser(user);
-        await fetchFavorites();
-        await fetchProfiles();
+        if (user) {
+          await fetchFavorites();
+          await fetchProfiles();
+        }
       })
       .catch((e) => {
         console.error("Nem sikerült betölteni a felhasználót:", e.message || e);

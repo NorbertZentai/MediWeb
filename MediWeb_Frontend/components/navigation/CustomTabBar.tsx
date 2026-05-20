@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 import { View, StyleSheet, Platform, LayoutChangeEvent } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import {
     TAB_BAR_COLORS,
 } from './constants';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { AuthContext } from '@/src/contexts/AuthContext';
 
 // Icon mapping for tabs
 const TAB_ICONS: Record<string, string> = {
@@ -30,11 +31,15 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
     const { isDark } = useTheme();
     const colorScheme = isDark ? 'dark' : 'light';
     const colors = TAB_BAR_COLORS[colorScheme];
+    const { user } = useContext(AuthContext) as { user: any };
+    const isAdmin = user?.role === 'ADMIN';
 
-    // Filter routes that are hidden (href: null means hidden from tab bar)
+    // Auth-based filtering — works on both web and native
+    // (href: null is web-only in Expo Router, unreliable on Android/iOS)
     const visibleRoutes = state.routes.filter((route) => {
-        const { options } = descriptors[route.key];
-        return (options as any).href !== null;
+        if (route.name === 'admin') return isAdmin;
+        if (route.name === 'favorites' || route.name === 'settings') return !!user;
+        return true; // index, search, profile always visible
     });
 
     // Track tab container width for indicator positioning

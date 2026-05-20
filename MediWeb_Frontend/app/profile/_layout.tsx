@@ -1,8 +1,18 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useContext, useEffect } from 'react';
+import { AuthContext } from '@/src/contexts/AuthContext';
 
 export default function ProfileLayout() {
     const { theme } = useTheme();
+    const { user, loading } = useContext(AuthContext);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/login');
+        }
+    }, [user, loading]);
 
     return (
         <Stack

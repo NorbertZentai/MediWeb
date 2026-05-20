@@ -13,6 +13,7 @@ import { createStyles } from "./MedicationScreen.style";
 import { saveMedication } from "utils/medicationCache";
 import { toast } from "utils/toast";
 import Navbar from "components/Navbar";
+import GuestLoginBanner from "components/GuestLoginBanner";
 import { useTheme } from "contexts/ThemeContext";
 import { addRecentlyViewed } from "utils/recentlyViewed";
 
@@ -180,6 +181,10 @@ export default function MedicationDetailsScreen() {
             <TouchableOpacity
               style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
               onPress={async () => {
+                if (!currentUser) {
+                  toast.info("A kedvencek funkcióhoz bejelentkezés szükséges.");
+                  return;
+                }
                 try {
                   if (isFavorite && favoriteId) {
                     await removeFromFavorites(favoriteId);
@@ -198,7 +203,12 @@ export default function MedicationDetailsScreen() {
                 }
               }}
             >
-              <FontAwesome5 name="heart" size={18} solid={isFavorite} color={isFavorite ? theme.colors.favorite : theme.colors.textTertiary} />
+              <FontAwesome5
+                name={currentUser ? "heart" : "lock"}
+                size={18}
+                solid={isFavorite}
+                color={isFavorite ? theme.colors.favorite : theme.colors.textTertiary}
+              />
               <Text style={[styles.favoriteButtonText, isFavorite && styles.favoriteButtonTextActive]}>
                 {isFavorite ? "Kedvencben van" : "Kedvencekhez adás"}
               </Text>
@@ -215,48 +225,52 @@ export default function MedicationDetailsScreen() {
             </View>
           )}
 
-          {/* Profilhoz adás */}
-          <View style={styles.profileRow}>
-            <View style={styles.profilePickerWrapper}>
-              <CustomDropdown
-                options={profiles.map((p) => ({ label: p.name, value: p.id }))}
-                selectedValue={selectedProfileId}
-                onValueChange={async (value) => {
-                  const id = value ? Number(value) : null;
-                  setSelectedProfileId(id);
-                  if (id) {
-                    await handleCheckProfileMedication(id);
-                  } else {
-                    setProfileHasMedication(false);
+          {/* Profilhoz adás / vendég banner */}
+          {currentUser ? (
+            <View style={styles.profileRow}>
+              <View style={styles.profilePickerWrapper}>
+                <CustomDropdown
+                  options={profiles.map((p) => ({ label: p.name, value: p.id }))}
+                  selectedValue={selectedProfileId}
+                  onValueChange={async (value) => {
+                    const id = value ? Number(value) : null;
+                    setSelectedProfileId(id);
+                    if (id) {
+                      await handleCheckProfileMedication(id);
+                    } else {
+                      setProfileHasMedication(false);
+                    }
+                  }}
+                  placeholder="Válassz profilt..."
+                  disabled={profiles.length === 0}
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.addButton, (!selectedProfileId || profileHasMedication) && { opacity: 0.4 }]}
+                disabled={!selectedProfileId || profileHasMedication}
+                onPress={async () => {
+                  try {
+                    await addMedicationToProfile(selectedProfileId, itemId);
+                    toast.success("Hozzáadva a profilhoz!");
+                    setProfileHasMedication(true);
+                    setSelectedProfileId(null);
+                  } catch (err) {
+                    if (err.response?.status === 409) {
+                      toast.warn("Ez a gyógyszer már hozzá van adva ehhez a profilhoz.");
+                      setProfileHasMedication(true);
+                    } else {
+                      toast.error("Hiba történt a profilhoz adáskor.");
+                    }
                   }
                 }}
-                placeholder="Válassz profilt..."
-                disabled={profiles.length === 0}
-              />
+              >
+                <FontAwesome5 name="plus" size={14} color={theme.colors.white} />
+                <Text style={styles.addButtonText}>Hozzáadás</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.addButton, (!selectedProfileId || profileHasMedication) && { opacity: 0.4 }]}
-              disabled={!selectedProfileId || profileHasMedication}
-              onPress={async () => {
-                try {
-                  await addMedicationToProfile(selectedProfileId, itemId);
-                  toast.success("Hozzáadva a profilhoz!");
-                  setProfileHasMedication(true);
-                  setSelectedProfileId(null);
-                } catch (err) {
-                  if (err.response?.status === 409) {
-                    toast.warn("Ez a gyógyszer már hozzá van adva ehhez a profilhoz.");
-                    setProfileHasMedication(true);
-                  } else {
-                    toast.error("Hiba történt a profilhoz adáskor.");
-                  }
-                }
-              }}
-            >
-              <FontAwesome5 name="plus" size={14} color={theme.colors.white} />
-              <Text style={styles.addButtonText}>Hozzáadás</Text>
-            </TouchableOpacity>
-          </View>
+          ) : (
+            <GuestLoginBanner message="Gyógyszerszedési ütemezőhöz bejelentkezés szükséges." />
+          )}
 
           {/* Kép */}
           <View style={styles.imageSection}>

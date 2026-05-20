@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useContext } from 'react';
 import {
     View,
     Text,
@@ -17,10 +17,12 @@ import { getFavorites, removeFromFavorites } from 'features/profile/profile.api'
 import { toast } from 'utils/toast';
 import { createStyles } from './FavoritesScreen.style';
 import { useTheme } from 'contexts/ThemeContext';
+import { AuthContext } from 'contexts/AuthContext';
 
 export default function FavoritesScreen() {
     const router = useRouter();
     const { theme } = useTheme();
+    const { user } = useContext(AuthContext);
     const styles = useMemo(() => createStyles(theme), [theme]);
     const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -28,6 +30,7 @@ export default function FavoritesScreen() {
     const [modalVisible, setModalVisible] = useState(false);
 
     const fetchFavoritesList = async () => {
+        if (!user) return;
         setLoading(true);
         try {
             const res = await getFavorites();
@@ -43,7 +46,7 @@ export default function FavoritesScreen() {
     useFocusEffect(
         useCallback(() => {
             fetchFavoritesList();
-        }, [])
+        }, [user])
     );
 
     const confirmDelete = (fav) => {

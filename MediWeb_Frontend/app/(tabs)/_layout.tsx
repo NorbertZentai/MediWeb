@@ -140,7 +140,7 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: 'Profil',
-            href: user ? '/profile' : (Platform.OS !== 'web' ? '/profile' : null),
+            href: Platform.OS === 'web' ? (user ? '/profile' : null) : '/profile',
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && { backgroundColor: colors.activePill }]}>
                 <FontAwesome5 name="user" size={20} color={color} solid={focused} />
