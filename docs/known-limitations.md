@@ -3,12 +3,12 @@
 ## 1. Google Custom Search API napi kvóta
 - **Korlát:** Ingyenes keretben napi 100 lekérdezés
 - **Hatás:** Nagyobb adatbázis-szinkronizáció során gyorsan kimerül
-- **Megoldás:** A Bing Images scraping elsődleges képforrásként működik; a Google API csak tartalékként kerül meghívásra, ha a Bing nem ad eredményt és az API kulcs be van állítva
+- **Megoldás:** A Bing Images scraping elsődleges képforrásként működik. A Google API csak tartalékként kerül meghívásra, ha a Bing nem ad eredményt és az API kulcs be van állítva
 
 ## 2. OGYÉI és Házipatika scraping függőség
 - **Korlát:** Az adatszinkronizáció nyilvános weboldalak HTML struktúrájára támaszkodik
 - **Hatás:** Ha az OGYÉI vagy Házipatika megváltoztatja az oldal felépítését, a scraping leállhat
-- **Megoldás:** A `MedicationBatchProcessor` hibakezeléssel és retry logikával rendelkezik; a már szinkronizált adatok offline is elérhetők
+- **Megoldás:** A `MedicationBatchProcessor` hibakezeléssel és retry logikával rendelkezik. A már szinkronizált adatok offline is elérhetők
 
 ## 3. Bing Images scraping
 - **Korlát:** Nem hivatalos API — a Bing képkeresési oldal struktúraváltozása megzavarhatja a képkeresést
@@ -33,4 +33,4 @@
 ## 7. Adatbázis-szinkronizáció időtartama
 - **Korlát:** A teljes OGYÉI szinkronizáció (kb. 20 000+ gyógyszer) több órát vehet igénybe
 - **Hatás:** Az admin felületen az első szinkronizáció hosszú futási időt mutat
-- **Megoldás:** A szinkronizáció állapota valós időben követhető a `/api/medication/sync/status` végponton; a folyamat bármikor leállítható és folytatható
+- **Megoldás:** A szinkronizáció állapota valós időben követhető a `/api/medication/sync/status` végponton. A folyamat bármikor leállítható és folytatható

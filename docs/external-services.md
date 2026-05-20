@@ -3,17 +3,17 @@
 ## Kötelező szolgáltatások
 
 ### 1. PostgreSQL 15
-- **Szerepe:** Elsődleges adatbázis
+- **Szerepe:** Elsődleges relációs adatbázis
 - **Helyi futtatáshoz:** Docker Compose (`docker-compose.dev.yml`)
-- **Produkciós környezetben:** Render.com felhőszolgáltatón futó dedikált PostgreSQL adatbázis
+- **Produkciós környezetben:** Render.com dedikált PostgreSQL példány
 - **Kapcsolódó env változók:** `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `SPRING_DATASOURCE_URL`
 
 ### 2. OGYÉI (Országos Gyógyszerészeti és Élelmezés-egészségügyi Intézet)
 - **URL:** https://www.ogyei.gov.hu/
-- **Szerepe:** Gyógyszer-adatbázis forrása — szinkronizáció alapja
+- **Szerepe:** Gyógyszer-adatbázis forrása — a szinkronizáció alapja
 - **Hozzáférés:** Nyilvános weboldal, Jsoup web scraping
 - **Kapcsolódó osztályok:** `OgyeiRequestHelper`, `MedicationParser`, `MedicationBatchProcessor`
-- **Megjegyzés:** Nem hivatalos API, HTML scraping — az oldal struktúraváltozása megzavarhatja a szinkronizációt
+- **Megjegyzés:** Nem hivatalos API — az oldal struktúraváltozása megzavarhatja a szinkronizációt
 
 ### 3. Házipatika (hazipatika.com)
 - **URL:** https://www.hazipatika.com/
@@ -27,7 +27,7 @@
 
 ### 4. Google Custom Search API
 - **URL:** https://developers.google.com/custom-search/v1/overview
-- **Szerepe:** Gyógyszerkép keresés másodlagos forrása (Bing scraping után)
+- **Szerepe:** Gyógyszerkép keresés másodlagos forrása
 - **Korlát:** Ingyenes keretben **napi 100 lekérdezés**
 - **Szükséges:** API kulcs + Custom Search Engine ID
 - **Kapcsolódó env változók:** `GOOGLE_API_KEY`, `GOOGLE_CX`
@@ -39,7 +39,7 @@
 - **Szerepe:** Gyógyszerkép keresés elsődleges forrása
 - **Hozzáférés:** Nyilvános weboldal, Jsoup web scraping
 - **Kapcsolódó osztályok:** `WebImageSearchService`
-- **Megjegyzés:** Nem hivatalos API — a Bing esetleges struktúraváltozása hatással lehet rá
+- **Megjegyzés:** Nem hivatalos megoldás — a Bing esetleges struktúraváltozása hatással lehet a képkeresésre
 
 ### 6. Google OAuth2 / Google Identity Services
 - **URL:** https://developers.google.com/identity/gsi/web
@@ -58,7 +58,7 @@
 
 ### 8. SMTP (email küldés)
 - **Szerepe:** OTP verifikációs emailek és gyógyszerszedési emlékeztetők küldése
-- **Konfiguráció:** Bármely SMTP szerver (tesztelve: Gmail App Password)
+- **Konfiguráció:** Bármely SMTP szerver (fejlesztés során Gmail App Password-del tesztelve)
 - **Kapcsolódó env változók:** `MAIL_USERNAME`, `MAIL_PASSWORD`
 - **Kapcsolódó osztályok:** `EmailNotificationService`
 - **Megjegyzés:** Fejlesztői módban, ha nincs SMTP konfigurálva, az OTP kód a szerver konzolnaplójában jelenik meg

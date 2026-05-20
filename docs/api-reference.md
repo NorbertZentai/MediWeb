@@ -1,6 +1,7 @@
 # MediWeb — REST API referencia
 
-Alap URL: `http://localhost:8080`  
+Alap URL (produkció): `https://mediweb-backend-qk9m.onrender.com`  
+Alap URL (lokális fejlesztés): `http://localhost:8080`  
 Autentikáció: `Authorization: Bearer <jwt_token>` (ahol jelölve van)
 
 ---
