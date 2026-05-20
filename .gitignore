@@ -1,3 +1,10 @@
+# Claude Code / AI tool files (local only)
+.claude/
+CLAUDE.md
+Mobile_opt_plan.md
+google-search-setup.md
+render-env-setup.md
+
 # Node.js / React Native Web
 node_modules/
 npm-debug.log*
@@ -70,3 +77,8 @@ out/
 # Git temporary files
 .git/
 .gitignore.swp
+# Test screenshots and artifacts
+*.png
+.playwright-mcp/
+cookies.txt
+TestHash.java
