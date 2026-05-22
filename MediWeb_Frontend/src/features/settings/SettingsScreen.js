@@ -15,14 +15,15 @@ import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { AuthContext } from 'contexts/AuthContext';
 import { useTheme } from 'contexts/ThemeContext';
-import { fetchUserPreferences, updateUserPreferences, deleteAccount } from 'features/profile/profile.api';
+import { fetchUserPreferences, updateUserPreferences, deleteAccount, generate2FA, enable2FA, disable2FA } from 'features/profile/profile.api';
 import { registerForPushNotificationsAsync, getPushPermissionStatus } from 'utils/notifications';
+import QRCode from 'react-native-qrcode-svg';
 import PrivacyPolicyModal from './components/PrivacyPolicyModal';
 import TermsModal from './components/TermsModal';
 
 export default function SettingsScreen() {
     const router = useRouter();
-    const { logout } = useContext(AuthContext);
+    const { logout, user, setUser } = useContext(AuthContext);
     const { theme, themeMode, setThemeMode } = useTheme();
     const [emailEnabled, setEmailEnabled] = useState(true);
     const [pushEnabled, setPushEnabled] = useState(true);
@@ -33,6 +34,13 @@ export default function SettingsScreen() {
     const [logoutModalVisible, setLogoutModalVisible] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
     const [showDeletePassword, setShowDeletePassword] = useState(false);
+
+    // 2FA state
+    const [is2faEnabled, setIs2faEnabled] = useState(user?.is2faEnabled || false);
+    const [setup2faUri, setSetup2faUri] = useState(null);
+    const [setup2faSecret, setSetup2faSecret] = useState(null);
+    const [setup2faCode, setSetup2faCode] = useState('');
+    const [is2faLoading, setIs2faLoading] = useState(false);
 
     const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -90,6 +98,66 @@ export default function SettingsScreen() {
         } catch (e) {
             setPushEnabled(!value);
             console.log('Failed to update push preference:', e);
+        }
+    };
+
+    const handleGenerate2FA = async () => {
+        setIs2faLoading(true);
+        try {
+            const response = await generate2FA();
+            setSetup2faUri(response.uri);
+            setSetup2faSecret(response.secret);
+        } catch {
+            if (Platform.OS === 'web') window.alert('Nem sikerült generálni a 2FA kódot.');
+            else Alert.alert('Hiba', 'Nem sikerült generálni a 2FA kódot.');
+        } finally {
+            setIs2faLoading(false);
+        }
+    };
+
+    const handleEnable2FA = async () => {
+        if (!setup2faCode || setup2faCode.length < 6) {
+            if (Platform.OS === 'web') window.alert('Add meg a 6 jegyű kódot!');
+            else Alert.alert('Hiba', 'Add meg a 6 jegyű kódot!');
+            return;
+        }
+        setIs2faLoading(true);
+        try {
+            await enable2FA(setup2faSecret, setup2faCode);
+            setIs2faEnabled(true);
+            setSetup2faUri(null);
+            setSetup2faSecret(null);
+            setSetup2faCode('');
+            if (setUser) setUser(prev => ({ ...prev, is2faEnabled: true }));
+            if (Platform.OS === 'web') window.alert('A kétlépcsős azonosítás sikeresen bekapcsolva.');
+            else Alert.alert('Siker', 'A kétlépcsős azonosítás sikeresen bekapcsolva.');
+        } catch {
+            if (Platform.OS === 'web') window.alert('Hibás kód. Próbáld újra.');
+            else Alert.alert('Hiba', 'Hibás kód. Próbáld újra.');
+        } finally {
+            setIs2faLoading(false);
+        }
+    };
+
+    const handleDisable2FA = async () => {
+        if (!setup2faCode || setup2faCode.length < 6) {
+            if (Platform.OS === 'web') window.alert('Add meg a 6 jegyű kódot a kikapcsoláshoz!');
+            else Alert.alert('Hiba', 'Add meg a 6 jegyű kódot a kikapcsoláshoz!');
+            return;
+        }
+        setIs2faLoading(true);
+        try {
+            await disable2FA(setup2faCode);
+            setIs2faEnabled(false);
+            setSetup2faCode('');
+            if (setUser) setUser(prev => ({ ...prev, is2faEnabled: false }));
+            if (Platform.OS === 'web') window.alert('A kétlépcsős azonosítás kikapcsolva.');
+            else Alert.alert('Siker', 'A kétlépcsős azonosítás kikapcsolva.');
+        } catch {
+            if (Platform.OS === 'web') window.alert('Hibás kód. Próbáld újra.');
+            else Alert.alert('Hiba', 'Hibás kód. Próbáld újra.');
+        } finally {
+            setIs2faLoading(false);
         }
     };
 
@@ -218,6 +286,102 @@ export default function SettingsScreen() {
                             <Text style={[styles.menuLabel, { color: theme.colors.error }]}>Fiók törlése</Text>
                             <FontAwesome5 name="chevron-right" size={14} color={theme.colors.borderDark} />
                         </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* 2FA Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>BIZTONSÁG</Text>
+                    <View style={styles.card}>
+                        <View style={[styles.menuItem, { flexWrap: 'wrap', alignItems: 'flex-start', paddingVertical: 14 }]}>
+                            <View style={[styles.menuIconWrapper, is2faEnabled && { backgroundColor: '#D1FAE5' }]}>
+                                <FontAwesome5 name="shield-alt" size={18} color={is2faEnabled ? '#059669' : theme.colors.primary} />
+                            </View>
+                            <View style={styles.flex1}>
+                                <Text style={styles.menuLabel}>Kétlépcsős azonosítás (2FA)</Text>
+                                <Text style={styles.menuHelper}>
+                                    {is2faEnabled ? 'Aktív — TOTP hitelesítő alkalmazással' : 'Védd fiókodat Google Authenticatorral'}
+                                </Text>
+
+                                {/* Not enabled, no QR yet */}
+                                {!is2faEnabled && !setup2faUri && (
+                                    <TouchableOpacity
+                                        style={[styles.twoFaButton, { backgroundColor: theme.colors.primary, marginTop: 10 }]}
+                                        onPress={handleGenerate2FA}
+                                        disabled={is2faLoading}
+                                    >
+                                        <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
+                                            {is2faLoading ? 'Generálás...' : 'Bekapcsolás'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
+
+                                {/* QR setup flow */}
+                                {setup2faUri && !is2faEnabled && (
+                                    <View style={{ marginTop: 12 }}>
+                                        <Text style={[styles.menuHelper, { marginBottom: 8 }]}>
+                                            Olvasd be a QR kódot egy TOTP alkalmazással (pl. Google Authenticator):
+                                        </Text>
+                                        <View style={{ alignItems: 'flex-start', marginBottom: 8 }}>
+                                            <QRCode value={setup2faUri} size={150} />
+                                        </View>
+                                        <Text style={[styles.menuHelper, { marginBottom: 6 }]}>
+                                            Kézi megadás kódja: <Text style={{ fontWeight: '700' }}>{setup2faSecret}</Text>
+                                        </Text>
+                                        <TextInput
+                                            style={styles.twoFaInput}
+                                            placeholder="6 jegyű kód"
+                                            placeholderTextColor={theme.colors.textTertiary}
+                                            value={setup2faCode}
+                                            onChangeText={setSetup2faCode}
+                                            keyboardType="number-pad"
+                                            maxLength={6}
+                                        />
+                                        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                                            <TouchableOpacity
+                                                style={[styles.twoFaButton, { backgroundColor: theme.colors.primary, flex: 1 }]}
+                                                onPress={handleEnable2FA}
+                                                disabled={is2faLoading}
+                                            >
+                                                <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
+                                                    {is2faLoading ? 'Ellenőrzés...' : 'Megerősítés'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={[styles.twoFaButton, { backgroundColor: theme.colors.border, flex: 1 }]}
+                                                onPress={() => { setSetup2faUri(null); setSetup2faCode(''); }}
+                                            >
+                                                <Text style={[styles.twoFaButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+
+                                {/* Disable flow */}
+                                {is2faEnabled && (
+                                    <View style={{ marginTop: 10 }}>
+                                        <TextInput
+                                            style={styles.twoFaInput}
+                                            placeholder="6 jegyű kód a kikapcsoláshoz"
+                                            placeholderTextColor={theme.colors.textTertiary}
+                                            value={setup2faCode}
+                                            onChangeText={setSetup2faCode}
+                                            keyboardType="number-pad"
+                                            maxLength={6}
+                                        />
+                                        <TouchableOpacity
+                                            style={[styles.twoFaButton, { backgroundColor: theme.colors.error, marginTop: 8 }]}
+                                            onPress={handleDisable2FA}
+                                            disabled={is2faLoading}
+                                        >
+                                            <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
+                                                {is2faLoading ? 'Kikapcsolás...' : '2FA kikapcsolása'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
                     </View>
                 </View>
 
@@ -502,6 +666,26 @@ const createStyles = (theme) => StyleSheet.create({
     },
     themeButtonTextActive: {
         color: theme.colors.primary,
+    },
+    twoFaButton: {
+        paddingVertical: 9,
+        paddingHorizontal: 16,
+        borderRadius: theme.borderRadius.sm,
+        alignItems: 'center',
+    },
+    twoFaButtonText: {
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.semibold,
+    },
+    twoFaInput: {
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.sm,
+        padding: 10,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textPrimary,
+        backgroundColor: theme.colors.background,
+        marginTop: 4,
     },
     logoutButton: {
         flexDirection: 'row',

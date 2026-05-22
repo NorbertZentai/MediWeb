@@ -115,7 +115,7 @@ public class AuthController {
 
             // Create response with user data and JWT token
             Map<String, Object> response = new HashMap<>();
-            response.put("user", user);
+            response.put("user", UserDTO.from(user));
             response.put("token", jwtToken);
             response.put("type", "Bearer");
 

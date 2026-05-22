@@ -15,6 +15,7 @@ public class UserDTO {
     private String phone_number;
     private String imageUrl;
     private String role;
+    private Boolean is2faEnabled;
 
     public static UserDTO from(User user) {
         if (user == null) {
@@ -35,6 +36,7 @@ public class UserDTO {
                 .phone_number(user.getPhone_number())
                 .imageUrl(imageUrl)
                 .role(user.getRole() != null ? user.getRole().name() : "USER")
+                .is2faEnabled(Boolean.TRUE.equals(user.getIs2faEnabled()))
                 .build();
     }
 }
