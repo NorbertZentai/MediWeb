@@ -19,8 +19,7 @@ Szegedi Tudományegyetem, Informatikai Intézet, 2026
 | Adat | Érték |
 |------|-------|
 | GitHub repozitórium | https://github.com/NorbertZentai/MediWeb |
-| Végleges branch | master |
-| Végleges commit | f9e8c2c489b1f5997db9638bcf3a5f241e10fb56 |
+| Branch | master |
 
 ---
 
