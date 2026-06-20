@@ -81,3 +81,13 @@ out/
 .playwright-mcp/
 cookies.txt
 TestHash.java
+
+# Thesis defense / presentation materials (not part of the application)
+38_G1B6L5_Zentai_Norbert_vedesi_terv_javaslat.pdf
+MediWeb_Szakdogavedes_Prezentacio.pptx
+MediWeb_Vedes_Szovegkonyv.md
+scratch/
+TASK.md
+
+# Office temporary lock files
+~$*
