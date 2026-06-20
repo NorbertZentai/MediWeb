@@ -42,7 +42,6 @@ target/
 out/
 .gradle/
 .build/
-.mvn/
 !src/main/resources/static/**
 
 # Maven / Gradle cache
