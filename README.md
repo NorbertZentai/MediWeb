@@ -18,7 +18,7 @@ Egészségügyi gyógyszerszedési szokások (saját és családi) követésére
 - `docker-compose.dev.yml` – fejlesztői környezet (csak DB)
 - `docker-compose.prod.yml` – produkciós stack (DB + backend + frontend)
 - `.env.example` – szükséges környezeti változók sablonfájlja
-- `init_db.sql` – adatbázis inicializáló script
+- `MediWeb_Backend/src/main/resources/db/` – adatbázis séma (`schema.sql`), kezdőadatok (`data.sql`) és migrációs script
 - `docs/` – részletes technikai dokumentáció
 
 ## Követelmények
@@ -114,7 +114,7 @@ npx jest
 
 - **Backend:** Spring Boot 3.4.1, Spring Security (JWT), Spring Data JPA, Spring Mail, WebFlux
 - **Frontend:** Expo SDK 54, React Native Web, Expo Router, Axios
-- **Adatbázis:** PostgreSQL 15, séma: `init_db.sql` + migrációs scriptek
+- **Adatbázis:** PostgreSQL 15, séma: `MediWeb_Backend/src/main/resources/db/schema.sql` + migrációs scriptek
 
 ## Backend konfiguráció
 
