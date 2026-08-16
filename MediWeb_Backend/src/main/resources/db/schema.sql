@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 GRANT ALL ON SCHEMA public TO postgres;
 
 CREATE TABLE IF NOT EXISTS public.users (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -32,15 +32,15 @@ ADD COLUMN IF NOT EXISTS is_2fa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(32);
 
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users (id),
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES public.users (id),
     name VARCHAR(100) NOT NULL,
     notes TEXT,
     CONSTRAINT unique_profile_per_user UNIQUE (user_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS public.medications (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255),
     image_url TEXT,
     registration_number VARCHAR(100),
@@ -77,9 +77,9 @@ ALTER TABLE public.medications
 ADD COLUMN IF NOT EXISTS fokozott_felugyelet BOOLEAN NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS public.profile_medications (
-    id SERIAL PRIMARY KEY,
-    profile_id INTEGER NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
-    medication_id INTEGER NOT NULL REFERENCES public.medications (id),
+    id BIGSERIAL PRIMARY KEY,
+    profile_id BIGINT NOT NULL REFERENCES public.profiles (id) ON DELETE CASCADE,
+    medication_id BIGINT NOT NULL REFERENCES public.medications (id),
     notes TEXT,
     reminders TEXT,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,26 +87,33 @@ CREATE TABLE IF NOT EXISTS public.profile_medications (
 );
 
 CREATE TABLE IF NOT EXISTS public.favorites (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users (id),
-    medication_id INTEGER NOT NULL REFERENCES public.medications (id),
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES public.users (id),
+    medication_id BIGINT NOT NULL REFERENCES public.medications (id),
     CONSTRAINT unique_favorite_per_user UNIQUE (user_id, medication_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.reviews (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     item_id INTEGER NOT NULL REFERENCES public.medications (id),
-    user_id INTEGER NOT NULL REFERENCES public.users (id),
+    user_id BIGINT NOT NULL REFERENCES public.users (id),
     rating INTEGER NOT NULL,
     positive TEXT,
     negative TEXT,
+    checked BOOLEAN NOT NULL DEFAULT FALSE,
+    reported BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL,
     CONSTRAINT unique_user_review UNIQUE (user_id, item_id)
 );
 
+-- Add moderation flags if the table already existed
+ALTER TABLE public.reviews
+ADD COLUMN IF NOT EXISTS checked BOOLEAN NOT NULL DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS reported BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE TABLE IF NOT EXISTS public.medication_intake_log (
-    id SERIAL PRIMARY KEY,
-    profile_medication_id INTEGER NOT NULL REFERENCES public.profile_medications (id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    profile_medication_id BIGINT NOT NULL REFERENCES public.profile_medications (id) ON DELETE CASCADE,
     intake_date DATE NOT NULL,
     intake_time TIME NOT NULL,
     taken BOOLEAN NOT NULL,
@@ -116,18 +123,66 @@ CREATE TABLE IF NOT EXISTS public.medication_intake_log (
 );
 
 CREATE TABLE IF NOT EXISTS public.user_preferences (
-    user_id INTEGER PRIMARY KEY REFERENCES public.users (id) ON DELETE CASCADE,
+    user_id BIGINT PRIMARY KEY REFERENCES public.users (id) ON DELETE CASCADE,
     preferences_payload TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS public.user_data_requests (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES public.users (id) ON DELETE CASCADE,
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES public.users (id) ON DELETE CASCADE,
     request_type VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     metadata TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.review_reports (
+    id BIGSERIAL PRIMARY KEY,
+    review_id BIGINT NOT NULL REFERENCES public.reviews (id) ON DELETE CASCADE,
+    reporter_id BIGINT NOT NULL REFERENCES public.users (id) ON DELETE CASCADE,
+    reason VARCHAR(50) NOT NULL,
+    comment VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (review_id, reporter_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.verification_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.searches (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES public.users (id) ON DELETE CASCADE,
+    keyword VARCHAR(200) NOT NULL,
+    search_date TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.statistics (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES public.users (id) ON DELETE CASCADE,
+    search_count INTEGER,
+    medications_added_count INTEGER,
+    last_search TIMESTAMP,
+    last_medication_added TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.expo_push_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES public.users (id) ON DELETE CASCADE,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES public.users (id) ON DELETE CASCADE,
+    endpoint TEXT,
+    p256dh VARCHAR(255),
+    auth VARCHAR(255)
 );
