@@ -16,8 +16,8 @@
       "args": ["-y", "@modelcontextprotocol/server-memory"]
     },
     "fetch": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch"]
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
     },
     "mobile-mcp": {
       "command": "npx",
@@ -30,6 +30,10 @@
     "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
     },
     "sequential-thinking": {
       "command": "npx",
