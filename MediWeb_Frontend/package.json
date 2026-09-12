@@ -9,7 +9,8 @@
     "build:dev": "npx expo export --platform web --dev",
     "web:build": "npx expo export --platform web",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "test": "jest"
   },
   "jest": {
     "preset": "jest-expo"
