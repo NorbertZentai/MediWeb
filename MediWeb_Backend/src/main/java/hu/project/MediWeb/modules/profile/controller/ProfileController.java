@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,15 @@ public class ProfileController {
         String email = authentication.getName();
         Optional<User> userOptional = userService.findUserByEmail(email);
         return userOptional.orElse(null);
+    }
+
+    /** Ellenőrzi, hogy a profil a bejelentkezett felhasználóé; ha nem, 401 vagy 404 a válasz. */
+    private void requireOwnership(Long profileId) {
+        User user = getCurrentUser();
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        profileService.requireOwnedProfile(profileId, user);
     }
 
     @GetMapping
@@ -73,11 +83,13 @@ public class ProfileController {
 
     @GetMapping("/{profileId}/medications")
     public List<ProfileMedicationDTO> getMedicationsForProfile(@PathVariable Long profileId) {
+        requireOwnership(profileId);
         return medicationService.getMedicationsForProfile(profileId);
     }
 
     @PostMapping("/addMedication/{profileId}")
     public ResponseEntity<?> addMedication(@PathVariable Long profileId, @RequestBody Map<String, Long> request) {
+        requireOwnership(profileId);
         Long itemId = request.get("itemId");
         try {
             ProfileMedicationDTO added = medicationService.addMedication(profileId, itemId);
@@ -91,6 +103,7 @@ public class ProfileController {
     @PutMapping("/{profileId}/medications/{medicationId}")
     public ProfileMedicationDTO updateMedicationForProfile(@PathVariable Long profileId,
             @PathVariable Long medicationId, @RequestBody Map<String, Object> data) {
+        requireOwnership(profileId);
         try {
             String note = (String) data.get("note");
             ObjectMapper objectMapper = new ObjectMapper();
@@ -106,22 +119,26 @@ public class ProfileController {
     public void removeMedicationFromProfile(
             @PathVariable Long profileId,
             @PathVariable Long itemId) {
+        requireOwnership(profileId);
         medicationService.removeMedication(profileId, itemId);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProfileDTO> getProfileById(@PathVariable Long id) {
+        requireOwnership(id);
         ProfileDTO dto = profileService.findById(id);
         return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
     public ProfileDTO updateProfile(@PathVariable Long id, @RequestBody Profile updatedProfile) {
+        requireOwnership(id);
         return profileService.updateProfile(id, updatedProfile);
     }
 
     @DeleteMapping("/{id}")
     public void deleteProfile(@PathVariable Long id) {
+        requireOwnership(id);
         profileService.deleteById(id);
     }
 }

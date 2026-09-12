@@ -6,7 +6,9 @@ import hu.project.MediWeb.modules.profile.repository.ProfileRepository;
 import hu.project.MediWeb.modules.user.entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +31,17 @@ public class ProfileService {
         return profileRepository.findById(id)
                 .map(this::convertToDTO)
                 .orElse(null);
+    }
+
+    /**
+     * A profilt csak a tulajdonosa érheti el. Idegen és nem létező profilra egyaránt 404-et adunk,
+     * így a válaszból nem derül ki, hogy egy adott ID-jú profil létezik-e.
+     */
+    @Transactional
+    public Profile requireOwnedProfile(Long id, User user) {
+        return profileRepository.findById(id)
+                .filter(profile -> profile.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profil nem található: " + id));
     }
 
     @Transactional
