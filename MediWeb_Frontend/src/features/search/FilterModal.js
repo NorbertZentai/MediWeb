@@ -15,6 +15,7 @@ import { createStyles } from "./FilterModal.style";
 import { useTheme } from "contexts/ThemeContext";
 import { haptics } from "utils/haptics";
 import DatePickerModal from "components/ui/DatePickerModal";
+import { toLocalDateString } from "utils/dateUtils";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -49,7 +50,7 @@ export function FilterPanelContent({ filters, onFilterChange, onReset, showHeade
 
     const handleDateConfirm = (date) => {
         if (activeDatePicker) {
-            const formatted = date.toISOString().split("T")[0];
+            const formatted = toLocalDateString(date);
             onFilterChange(activeDatePicker, formatted);
         }
         setActiveDatePicker(null);

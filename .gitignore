@@ -1,5 +1,6 @@
 # Claude Code / AI tool files (local only)
 .claude/
+.superpowers/
 CLAUDE.md
 Mobile_opt_plan.md
 google-search-setup.md

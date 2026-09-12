@@ -8,9 +8,12 @@ import hu.project.MediWeb.modules.profile.entity.ProfileMedication;
 import hu.project.MediWeb.modules.profile.exception.DuplicateAssignmentException;
 import hu.project.MediWeb.modules.profile.repository.ProfileMedicationRepository;
 import hu.project.MediWeb.modules.profile.repository.ProfileRepository;
+import hu.project.MediWeb.modules.user.entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +35,18 @@ public class ProfileMedicationService {
         return profileMedicationRepository.findByProfileId(profileId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * A gyógyszer-hozzárendelést csak a profil tulajdonosa érheti el. Idegen és nem létező
+     * hozzárendelésre egyaránt 404-et adunk.
+     */
+    @Transactional
+    public void requireOwnedProfileMedication(Long profileMedicationId, User user) {
+        profileMedicationRepository.findById(profileMedicationId)
+                .filter(pm -> pm.getProfile().getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Nincs ilyen gyógyszerkapcsolat: " + profileMedicationId));
     }
 
     @Transactional
