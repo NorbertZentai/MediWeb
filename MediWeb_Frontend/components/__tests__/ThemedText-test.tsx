@@ -4,7 +4,11 @@ import renderer from 'react-test-renderer';
 import { ThemedText } from '../ThemedText';
 
 it(`renders correctly`, () => {
-  const tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>).toJSON();
+  let tree: renderer.ReactTestRenderer | undefined;
+  // React 19 renders asynchronously: without act() the test ends before ThemedText has rendered
+  renderer.act(() => {
+    tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>);
+  });
 
-  expect(tree).toMatchSnapshot();
+  expect(tree!.toJSON()).toMatchSnapshot();
 });
