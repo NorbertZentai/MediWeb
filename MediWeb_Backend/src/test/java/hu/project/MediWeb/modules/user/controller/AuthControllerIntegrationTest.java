@@ -1,19 +1,15 @@
 package hu.project.MediWeb.modules.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserRole;
-import hu.project.MediWeb.modules.user.repository.UserRepository;
-import hu.project.MediWeb.security.JwtUtil;
 import hu.project.MediWeb.support.AbstractIntegrationTest;
+import hu.project.MediWeb.support.AuthTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
@@ -33,29 +29,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String EMAIL = "integration@test.com";
-    private static final String RAW_PASSWORD = "Secret123!";
 
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtil jwtUtil;
+    private AuthTestSupport authTestSupport;
     @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void seedActiveUser() {
-        userRepository.findByEmail(EMAIL).ifPresent(userRepository::delete);
-        User user = User.builder()
-                .name("integration-user")
-                .email(EMAIL)
-                .password(passwordEncoder.encode(RAW_PASSWORD))
-                .role(UserRole.USER)
-                .is_active(true)
-                .registration_date(LocalDateTime.now())
-                .build();
-        userRepository.save(user);
+        authTestSupport.createUser(EMAIL, UserRole.USER);
     }
 
     private String json(Object body) throws Exception {
@@ -67,7 +49,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     void login_returnsJwtToken_forValidCredentials() throws Exception {
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(Map.of("email", EMAIL, "password", RAW_PASSWORD))))
+                        .content(json(Map.of("email", EMAIL, "password", AuthTestSupport.TEST_PASSWORD))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", is(notNullValue())))
                 .andExpect(jsonPath("$.type", is("Bearer")))
@@ -93,10 +75,10 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("GET /auth/me: érvényes JWT tokennel 200 + a felhasználó adatai")
     void me_returns200_withValidToken() throws Exception {
-        String token = jwtUtil.generateJwtToken(EMAIL);
+        String token = authTestSupport.bearerToken(EMAIL);
 
         mockMvc.perform(get("/auth/me")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is(EMAIL)))
                 .andExpect(jsonPath("$.role", is("USER")));

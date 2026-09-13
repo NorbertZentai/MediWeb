@@ -9,17 +9,14 @@ import hu.project.MediWeb.modules.profile.repository.ProfileRepository;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.modules.user.repository.UserRepository;
-import hu.project.MediWeb.security.JwtUtil;
 import hu.project.MediWeb.support.AbstractIntegrationTest;
+import hu.project.MediWeb.support.AuthTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -51,9 +48,7 @@ class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private MedicationRepository medicationRepository;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtil jwtUtil;
+    private AuthTestSupport authTestSupport;
 
     private String ownerToken;
     private String strangerToken;
@@ -64,8 +59,8 @@ class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     void seed() {
         cleanUp();
 
-        User owner = userRepository.save(activeUser("profile-owner", OWNER_EMAIL));
-        userRepository.save(activeUser("profile-stranger", STRANGER_EMAIL));
+        User owner = authTestSupport.createUser(OWNER_EMAIL, UserRole.USER);
+        authTestSupport.createUser(STRANGER_EMAIL, UserRole.USER);
 
         Profile profile = profileRepository.save(
                 Profile.builder().user(owner).name("Nagymama").notes("eredeti").build());
@@ -80,42 +75,30 @@ class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
                 .reminders("[]")
                 .build()).getId();
 
-        ownerToken = jwtUtil.generateJwtToken(OWNER_EMAIL);
-        strangerToken = jwtUtil.generateJwtToken(STRANGER_EMAIL);
+        ownerToken = authTestSupport.bearerToken(OWNER_EMAIL);
+        strangerToken = authTestSupport.bearerToken(STRANGER_EMAIL);
     }
 
     @AfterEach
     void cleanUp() {
         for (String email : new String[]{OWNER_EMAIL, STRANGER_EMAIL}) {
-            userRepository.findByEmail(email).ifPresent(u -> {
-                profileRepository.findAllByUser(u).forEach(profileRepository::delete);
-                userRepository.delete(u);
-            });
+            userRepository.findByEmail(email).ifPresent(u ->
+                    profileRepository.findAllByUser(u).forEach(profileRepository::delete));
+            authTestSupport.deleteUser(email);
         }
         medicationRepository.findById(TEST_MED_ID).ifPresent(medicationRepository::delete);
-    }
-
-    private User activeUser(String name, String email) {
-        return User.builder()
-                .name(name)
-                .email(email)
-                .password(passwordEncoder.encode("Secret123!"))
-                .role(UserRole.USER)
-                .is_active(true)
-                .registration_date(LocalDateTime.now())
-                .build();
     }
 
     @Test
     @DisplayName("A tulajdonos lekéri a saját profilját és a mai gyógyszereit")
     void owner_canAccessOwnProfile() throws Exception {
         mockMvc.perform(get("/api/profiles/{id}", profileId)
-                        .header("Authorization", "Bearer " + ownerToken))
+                        .header("Authorization", ownerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Nagymama")));
 
         mockMvc.perform(get("/api/intake/today/{profileId}", profileId)
-                        .header("Authorization", "Bearer " + ownerToken))
+                        .header("Authorization", ownerToken))
                 .andExpect(status().isOk());
     }
 
@@ -123,15 +106,15 @@ class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Más felhasználó nem olvassa a profilt, a gyógyszereit és a mai bevételeit (404)")
     void stranger_cannotReadForeignProfile() throws Exception {
         mockMvc.perform(get("/api/profiles/{id}", profileId)
-                        .header("Authorization", "Bearer " + strangerToken))
+                        .header("Authorization", strangerToken))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/profiles/{profileId}/medications", profileId)
-                        .header("Authorization", "Bearer " + strangerToken))
+                        .header("Authorization", strangerToken))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/intake/today/{profileId}", profileId)
-                        .header("Authorization", "Bearer " + strangerToken))
+                        .header("Authorization", strangerToken))
                 .andExpect(status().isNotFound());
     }
 
@@ -139,17 +122,17 @@ class ProfileControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Más felhasználó nem módosítja és nem törli a profilt, és bevételt sem rögzít rá (404)")
     void stranger_cannotModifyForeignProfile() throws Exception {
         mockMvc.perform(put("/api/profiles/{id}", profileId)
-                        .header("Authorization", "Bearer " + strangerToken)
+                        .header("Authorization", strangerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"feltort\",\"notes\":\"feltort\"}"))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(delete("/api/profiles/{id}", profileId)
-                        .header("Authorization", "Bearer " + strangerToken))
+                        .header("Authorization", strangerToken))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(post("/api/intake")
-                        .header("Authorization", "Bearer " + strangerToken)
+                        .header("Authorization", strangerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"profileMedicationId\":" + profileMedicationId + ",\"time\":\"08:00\",\"taken\":true}"))
                 .andExpect(status().isNotFound());
