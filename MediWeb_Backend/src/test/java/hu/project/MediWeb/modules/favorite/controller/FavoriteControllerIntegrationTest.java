@@ -3,18 +3,14 @@ package hu.project.MediWeb.modules.favorite.controller;
 import hu.project.MediWeb.modules.favorite.repository.FavoriteRepository;
 import hu.project.MediWeb.modules.medication.entity.Medication;
 import hu.project.MediWeb.modules.medication.repository.MedicationRepository;
-import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.modules.user.repository.UserRepository;
-import hu.project.MediWeb.security.JwtUtil;
 import hu.project.MediWeb.support.AbstractIntegrationTest;
+import hu.project.MediWeb.support.AuthTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,37 +36,26 @@ class FavoriteControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private FavoriteRepository favoriteRepository;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtUtil jwtUtil;
+    private AuthTestSupport authTestSupport;
 
     private String token;
     private Long medicationId;
 
     @BeforeEach
     void seedUserAndMedication() {
-        // Korábbi futás takarítása (FK miatt előbb a kedvencek)
-        userRepository.findByEmail(EMAIL).ifPresent(u -> {
-            favoriteRepository.findByUserId(u.getId()).forEach(favoriteRepository::delete);
-            userRepository.delete(u);
-        });
+        // Korábbi futás takarítása (FK miatt előbb a kedvencek, mielőtt a felhasználót
+        // az AuthTestSupport.createUser saját idempotens előtörlése törölné)
+        userRepository.findByEmail(EMAIL).ifPresent(u ->
+                favoriteRepository.findByUserId(u.getId()).forEach(favoriteRepository::delete));
         medicationRepository.findById(TEST_MED_ID).ifPresent(medicationRepository::delete);
 
-        User user = User.builder()
-                .name("favorite-it-user")
-                .email(EMAIL)
-                .password(passwordEncoder.encode("Secret123!"))
-                .role(UserRole.USER)
-                .is_active(true)
-                .registration_date(LocalDateTime.now())
-                .build();
-        userRepository.save(user);
+        authTestSupport.createUser(EMAIL, UserRole.USER);
 
         Medication medication = medicationRepository.save(
                 Medication.builder().id(TEST_MED_ID).name("Integration Test Medication").build());
         medicationId = medication.getId();
 
-        token = jwtUtil.generateJwtToken(EMAIL);
+        token = authTestSupport.bearerToken(EMAIL);
     }
 
     @Test
@@ -78,14 +63,14 @@ class FavoriteControllerIntegrationTest extends AbstractIntegrationTest {
     void addFavorite_thenListContainsIt() throws Exception {
         // hozzáadás
         mockMvc.perform(post("/api/favorites/{medicationId}", medicationId)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.medicationId", is(medicationId.intValue())))
                 .andExpect(jsonPath("$.medicationName", is("Integration Test Medication")));
 
         // lekérés — a frissen hozzáadott kedvenc szerepel a listában
         mockMvc.perform(get("/api/favorites")
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].medicationId", is(medicationId.intValue())))
                 .andExpect(jsonPath("$[0].medicationName", is("Integration Test Medication")));
