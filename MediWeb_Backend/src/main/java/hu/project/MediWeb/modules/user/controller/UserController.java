@@ -2,6 +2,7 @@ package hu.project.MediWeb.modules.user.controller;
 
 import hu.project.MediWeb.modules.user.dto.PasswordChangeRequest;
 import hu.project.MediWeb.modules.user.dto.PasswordConfirmationRequest;
+import hu.project.MediWeb.modules.user.dto.UserDTO;
 import hu.project.MediWeb.modules.user.dto.UserPreferencesDto;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserDataRequestType;
@@ -13,10 +14,12 @@ import hu.project.MediWeb.modules.user.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,14 +55,16 @@ public class UserController {
         return userOptional.orElse(null);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.findAllUsers();
+    public List<UserDTO> getAllUsers() {
+        return userService.findAllUsers().stream().map(UserDTO::from).toList();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
+    public UserDTO createUser(@RequestBody User user) {
+        return UserDTO.from(userService.saveUser(user));
     }
 
     @PutMapping("/username")
@@ -120,20 +125,41 @@ public class UserController {
         return ResponseEntity.ok("Siker");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.findUserById(id);
-        return user.orElse(null);
+    public UserDTO getUserById(@PathVariable Long id) {
+        return userService.findUserById(id)
+                .map(UserDTO::from)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felhasznalo nem talalhato."));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
-    public User updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
-        return userService.updateUserRole(id, UserRole.valueOf(role.toUpperCase()));
+    public UserDTO updateUserRole(@PathVariable Long id, @RequestParam("role") String role) {
+        UserRole newRole;
+        try {
+            newRole = UserRole.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ervenytelen szerepkor.");
+        }
+
+        User currentUser = getCurrentUser();
+        if (currentUser != null && currentUser.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Sajat szerepkor nem modosithato.");
+        }
+
+        User updated = userService.updateUserRole(id, newRole);
+        if (updated == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felhasznalo nem talalhato.");
+        }
+
+        return UserDTO.from(updated);
     }
 
     @GetMapping("/preferences")
