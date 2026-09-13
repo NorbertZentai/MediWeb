@@ -1,5 +1,6 @@
 package hu.project.MediWeb.modules.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,7 @@ public class User {
     private String email;
 
     @Column(nullable=false, length=255)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(length=10)
