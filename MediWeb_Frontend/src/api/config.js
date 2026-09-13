@@ -2,32 +2,13 @@ import axios from "axios";
 import { Platform } from "react-native";
 import storage from "utils/storage";
 import { emitLogout } from "utils/authEvents";
+import { resolveApiBaseUrl } from "./apiBaseUrl";
 
 // Decide API base URL for web + mobile.
-// Prefer EXPO_PUBLIC_API_URL (set in Render for web builds, and in .env for local dev).
-const getApiBaseUrl = () => {
-  let envUrl = process.env.EXPO_PUBLIC_API_URL; // Expo recommends EXPO_PUBLIC_ vars [web:317]
-  if (envUrl && typeof envUrl === "string" && envUrl.trim().length > 0) {
-    envUrl = envUrl.replace(/\/+$/, ""); // remove trailing slashes
-    
-    // Android emulators cannot use localhost or 127.0.0.1 to access the host machine
-    if (Platform.OS === "android" && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
-      return envUrl.replace("localhost", "10.0.2.2").replace("127.0.0.1", "10.0.2.2");
-    }
-    return envUrl;
-  }
-
-  // Fallbacks if EXPO_PUBLIC_API_URL is missing
-  // Android emulator uses 10.0.2.2 to access host machine's localhost
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:8080";
-  }
-
-  // iOS simulator and web dev commonly use localhost
-  return "http://localhost:8080";
-};
-
-const API_BASE_URL = getApiBaseUrl();
+// Prefer EXPO_PUBLIC_API_URL (set in Render for web builds, and in .env for
+// local dev), falling back to EXPO_PUBLIC_API_BASE_URL, then a platform
+// default. See ./apiBaseUrl.js for the shared resolution logic.
+const API_BASE_URL = resolveApiBaseUrl(process.env, Platform.OS);
 
 // --- Retry & refresh helpers ---
 

@@ -1,5 +1,5 @@
 # Multi-stage build for production Expo web
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -12,11 +12,16 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Expo inlines EXPO_PUBLIC_* variables at build time, so it must be set
+# before `npm run build` runs.
+ARG EXPO_PUBLIC_API_URL
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+
 # Build the web application in production mode for clean output
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
