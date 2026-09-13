@@ -1,0 +1,43 @@
+# Dedikált Spring 'test' profil az integrációs tesztekhez.
+# Cél: a tesztkontextus ne a 'dev' profiltól (dotenv import, devtools, cron sync) függjön,
+# hanem egy önálló, csak a szükséges beaneket kielégítő konfigurációtól.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mediweb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      # A DatabaseInitializer csak akkor futtatja a db/schema.sql-t, ha a 'users' tábla
+      # teljesen hiányzik, és csak néhány konkrét oszlopot pótol utólag (ensure*Column
+      # metódusok + DatabaseMigrationRunner) — ez nem helyettesíti általánosan a
+      # ddl-auto: update-et, ezért itt is megtartjuk, hogy egy friss Postgres ellen se
+      # csússzon el a séma.
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  mail:
+    # EmailNotificationService kötelező (nem opcionális) JavaMailSender függősége miatt
+    # kell egy spring.mail.host, különben a MailSenderAutoConfiguration nem hoz létre beant,
+    # és a teszt-kontextus egyáltalán nem indul el. Nem valódi SMTP szerver.
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+  sql:
+    init:
+      mode: never
+
+jwt:
+  # Nyilvánvalóan szintetikus, csak tesztekhez használt titok — nem éles secret.
+  secret: test-only-jwt-secret-DO-NOT-USE-IN-PRODUCTION-1234567890
+  expiration: 3600000
+
+medication:
+  sync:
+    enabled: false
