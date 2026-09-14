@@ -1,23 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { resolveApiBaseUrl } from '../api/apiBaseUrl';
 
-// Use the same base URL logic or import from config if possible (avoid circular)
-// For simplicity, we'll replicate the localhost logic or rely on a known constant
-const getApiBaseUrl = () => {
-    // If env var is set and not localhost, use it
-    if (process.env.EXPO_PUBLIC_API_URL && !process.env.EXPO_PUBLIC_API_URL.includes("localhost")) {
-        return process.env.EXPO_PUBLIC_API_URL;
-    }
-    // Android emulator
-    if (Platform.OS === "android") {
-        return "http://10.0.2.2:8080";
-    }
-    // iOS/Web
-    return "http://localhost:8080";
-};
-
-const API_Base = getApiBaseUrl();
+// Shared resolver: EXPO_PUBLIC_API_URL primary, EXPO_PUBLIC_API_BASE_URL
+// fallback, platform-aware default and Android localhost rewrite. See
+// ../api/apiBaseUrl.js for the shared resolution logic.
+const API_Base = resolveApiBaseUrl(process.env, Platform.OS);
 const LOG_ENDPOINT = `${API_Base}/api/logs`;
 const CRASH_KEY = 'APP_CRASH_REPORT_PENDING';
 

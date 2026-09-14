@@ -51,7 +51,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: REACT_APP_API_URL
+      - key: EXPO_PUBLIC_API_URL
         value: https://mediweb-api.onrender.com
     domains:
       - mediweb-app.onrender.com
