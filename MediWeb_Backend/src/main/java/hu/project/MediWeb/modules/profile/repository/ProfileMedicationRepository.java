@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import hu.project.MediWeb.modules.profile.repository.projection.PopularMedicationProjection;
 
@@ -24,4 +25,11 @@ public interface ProfileMedicationRepository extends JpaRepository<ProfileMedica
            "GROUP BY pm.medication.id, pm.medication.name " +
            "ORDER BY COUNT(pm) DESC")
     List<PopularMedicationProjection> findTopMedications(Pageable pageable);
+
+    @Query("SELECT pm FROM ProfileMedication pm " +
+           "JOIN FETCH pm.profile p " +
+           "JOIN FETCH p.user " +
+           "JOIN FETCH pm.medication " +
+           "WHERE pm.reminders LIKE CONCAT('%', :timeToken, '%')")
+    List<ProfileMedication> findReminderCandidates(@Param("timeToken") String timeToken);
 }

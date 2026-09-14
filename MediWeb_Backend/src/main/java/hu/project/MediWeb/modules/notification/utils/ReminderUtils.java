@@ -65,4 +65,13 @@ public class ReminderUtils {
 
         return false;
     }
+
+    /**
+     * Az adott időponthoz tartozó, pontosan idézőjeles "HH:mm" tokent állítja elő
+     * (pl. {@code "\"08:00\""}), amit a ProfileMedicationRepository#findReminderCandidates
+     * a reminders JSON oszlop LIKE szűréséhez használ.
+     */
+    public static String toTimeToken(LocalTime time) {
+        return "\"" + time.format(TIME_FORMATTER) + "\"";
+    }
 }

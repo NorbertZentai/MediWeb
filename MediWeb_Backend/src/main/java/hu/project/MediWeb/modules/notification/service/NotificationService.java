@@ -38,8 +38,9 @@ public class NotificationService {
         LocalDate today = nowZdt.toLocalDate();
         LocalTime now = nowZdt.toLocalTime().withSecond(0).withNano(0);
         String time = now.format(formatter);
+        String timeToken = ReminderUtils.toTimeToken(now);
 
-        List<ProfileMedication> allProfileMedications = profileMedicationRepository.findAll();
+        List<ProfileMedication> allProfileMedications = profileMedicationRepository.findReminderCandidates(timeToken);
 
         for (ProfileMedication med : allProfileMedications) {
             try {
