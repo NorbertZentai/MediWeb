@@ -67,10 +67,11 @@ public class ReminderUtils {
     }
 
     /**
-     * TODO(#54): build the exact quoted "HH:mm" token (e.g. {@code "\"08:00\""}) used to
-     * pre-filter ProfileMedicationRepository#findReminderCandidates rows in the database.
+     * Az adott időponthoz tartozó, pontosan idézőjeles "HH:mm" tokent állítja elő
+     * (pl. {@code "\"08:00\""}), amit a ProfileMedicationRepository#findReminderCandidates
+     * a reminders JSON oszlop LIKE szűréséhez használ.
      */
     public static String toTimeToken(LocalTime time) {
-        throw new UnsupportedOperationException("TODO(#54)");
+        return "\"" + time.format(TIME_FORMATTER) + "\"";
     }
 }

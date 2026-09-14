@@ -37,8 +37,9 @@ public class MissedMedicationScheduler {
         LocalDate checkDate = checkZdt.toLocalDate();
         LocalTime checkTime = checkZdt.toLocalTime().withSecond(0).withNano(0);
         String time = checkTime.format(formatter);
+        String timeToken = ReminderUtils.toTimeToken(checkTime);
 
-        List<ProfileMedication> allMedications = profileMedicationRepository.findAll();
+        List<ProfileMedication> allMedications = profileMedicationRepository.findReminderCandidates(timeToken);
 
         for (ProfileMedication med : allMedications) {
             try {
