@@ -24,4 +24,10 @@ public interface ProfileMedicationRepository extends JpaRepository<ProfileMedica
            "GROUP BY pm.medication.id, pm.medication.name " +
            "ORDER BY COUNT(pm) DESC")
     List<PopularMedicationProjection> findTopMedications(Pageable pageable);
+
+    // TODO(#54): replace with a JPQL @Query using JOIN FETCH pm.profile p JOIN FETCH p.user
+    // JOIN FETCH pm.medication WHERE pm.reminders LIKE CONCAT('%', :timeToken, '%').
+    default List<ProfileMedication> findReminderCandidates(String timeToken) {
+        throw new UnsupportedOperationException("TODO(#54)");
+    }
 }

@@ -140,4 +140,21 @@ class ReminderUtilsTest {
 
         assertThat(result).isTrue();
     }
+
+    @Test
+    @DisplayName("toTimeToken: pontosan idézőjeles \"HH:mm\" tokent ad vissza, vezető nullával")
+    void toTimeToken_returnsExactQuotedHhMm() {
+        String token = ReminderUtils.toTimeToken(LocalTime.of(8, 0));
+
+        assertThat(token).isEqualTo("\"08:00\"");
+    }
+
+    @Test
+    @DisplayName("toTimeToken: a 08:00 tokenje sosem egyezhet a 18:00 substring csapdájával")
+    void toTimeToken_neverProducesAmbiguousShortToken() {
+        String token = ReminderUtils.toTimeToken(LocalTime.of(8, 0));
+
+        assertThat("\"18:00\"").doesNotContain(token);
+        assertThat(token).isNotEqualTo("8:0");
+    }
 }

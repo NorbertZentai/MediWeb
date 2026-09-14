@@ -65,4 +65,12 @@ public class ReminderUtils {
 
         return false;
     }
+
+    /**
+     * TODO(#54): build the exact quoted "HH:mm" token (e.g. {@code "\"08:00\""}) used to
+     * pre-filter ProfileMedicationRepository#findReminderCandidates rows in the database.
+     */
+    public static String toTimeToken(LocalTime time) {
+        throw new UnsupportedOperationException("TODO(#54)");
+    }
 }

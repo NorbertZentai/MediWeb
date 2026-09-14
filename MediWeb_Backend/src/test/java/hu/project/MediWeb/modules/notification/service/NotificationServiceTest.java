@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +29,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tesztek a {@link NotificationService}-hez, egy {@link Clock#fixed} órával
- * determinisztikussá téve az emlékeztető ütemezést.
+ * determinisztikussá téve az emlékeztető ütemezést. #54 óta a szolgáltatás a
+ * {@link ProfileMedicationRepository#findReminderCandidates(String)} időtoken-alapú
+ * lekérdezést hívja {@code findAll()} helyett.
  */
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -72,54 +75,66 @@ class NotificationServiceTest {
                 .build();
     }
 
+    /** findAll() sosem szabadna hívódnia #54 után; ha mégis, üres listát ad, hogy ne NPE-zzen a régi kód. */
+    private void stubFindAllNeverUsed() {
+        lenient().when(profileMedicationRepository.findAll()).thenReturn(List.of());
+    }
+
     @Test
-    @DisplayName("Esedékes emlékeztetőnél email-t és push-t is küld")
-    void dueReminder_sendsEmailAndPush() {
+    @DisplayName("Esedékes emlékeztetőnél a candidate query hívódik a pontos tokennel, email-t és push-t is küld")
+    void dueReminder_callsCandidateQueryWithToken_andSendsEmailAndPush() {
         Clock clock = fixedClockAt("2026-09-14T08:00:30");
         NotificationService service = new NotificationService(
                 profileMedicationRepository, emailNotificationService, pushNotificationService, clock);
         User owner = owner(true, true);
         ProfileMedication med = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Aspirin");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(med));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:00\"")).thenReturn(List.of(med));
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, times(1)).findReminderCandidates("\"08:00\"");
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, times(1)).sendMedicationReminder(
                 eq(owner), eq("Aspirin"), eq(LocalDate.of(2026, 9, 14)), eq(LocalTime.of(8, 0)), eq("megjegyzés"));
         verify(pushNotificationService, times(1)).sendPushNotification(eq(owner), anyString(), anyString(), anyMap());
     }
 
     @Test
-    @DisplayName("08:01-kor nem esedékes, nincs értesítés")
+    @DisplayName("08:01-kor nem esedékes, nincs értesítés, de a candidate query akkor is a 08:01 tokennel fut")
     void oneMinuteLater_sendsNothing() {
         Clock clock = fixedClockAt("2026-09-14T08:01:00");
         NotificationService service = new NotificationService(
                 profileMedicationRepository, emailNotificationService, pushNotificationService, clock);
-        User owner = owner(true, true);
-        ProfileMedication med = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Aspirin");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(med));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:01\"")).thenReturn(List.of());
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, times(1)).findReminderCandidates("\"08:01\"");
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, never()).sendMedicationReminder(any(), any(), any(), any(), any());
         verify(pushNotificationService, never()).sendPushNotification(any(), any(), any(), any());
     }
 
     @Test
-    @DisplayName("Keddi napon a hétfőre beállított emlékeztető nem esedékes")
-    void wrongDay_sendsNothing() {
+    @DisplayName("Keddi napon a hétfőre beállított candidate (jó idő, rossz nap) nem esedékes")
+    void wrongDayCandidateFromQuery_sendsNothing() {
         Clock clock = fixedClockAt("2026-09-15T08:00:30");
         NotificationService service = new NotificationService(
                 profileMedicationRepository, emailNotificationService, pushNotificationService, clock);
         User owner = owner(true, true);
         ProfileMedication med = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Aspirin");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(med));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:00\"")).thenReturn(List.of(med));
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, times(1)).findReminderCandidates("\"08:00\"");
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, never()).sendMedicationReminder(any(), any(), any(), any(), any());
         verify(pushNotificationService, never()).sendPushNotification(any(), any(), any(), any());
     }
@@ -133,10 +148,12 @@ class NotificationServiceTest {
         User owner = owner(false, true);
         ProfileMedication med = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Aspirin");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(med));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:00\"")).thenReturn(List.of(med));
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, never()).sendMedicationReminder(any(), any(), any(), any(), any());
         verify(pushNotificationService, times(1)).sendPushNotification(eq(owner), anyString(), anyString(), anyMap());
     }
@@ -150,10 +167,12 @@ class NotificationServiceTest {
         User owner = owner(false, false);
         ProfileMedication med = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Aspirin");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(med));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:00\"")).thenReturn(List.of(med));
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, never()).sendMedicationReminder(any(), any(), any(), any(), any());
         verify(pushNotificationService, never()).sendPushNotification(any(), any(), any(), any());
     }
@@ -168,10 +187,12 @@ class NotificationServiceTest {
         ProfileMedication invalidMed = medicationWithReminders(owner, "not-a-valid-json", "Rossz gyógyszer");
         ProfileMedication validMed = medicationWithReminders(owner, "[{\"days\":[\"H\"],\"times\":[\"08:00\"]}]", "Jó gyógyszer");
 
-        when(profileMedicationRepository.findAll()).thenReturn(List.of(invalidMed, validMed));
+        stubFindAllNeverUsed();
+        when(profileMedicationRepository.findReminderCandidates("\"08:00\"")).thenReturn(List.of(invalidMed, validMed));
 
         service.sendScheduledReminders();
 
+        verify(profileMedicationRepository, never()).findAll();
         verify(emailNotificationService, times(1)).sendMedicationReminder(
                 eq(owner), eq("Jó gyógyszer"), eq(LocalDate.of(2026, 9, 14)), eq(LocalTime.of(8, 0)), any());
         verify(pushNotificationService, times(1)).sendPushNotification(eq(owner), anyString(), anyString(), anyMap());
