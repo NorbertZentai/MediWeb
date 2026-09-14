@@ -46,7 +46,7 @@ public class MedicationCatalogService {
     }
 
     private Specification<Medication> buildSpecification(MedicationSearchCriteria criteria) {
-        Specification<Medication> spec = Specification.where((Specification<Medication>) null);
+        Specification<Medication> spec = Specification.unrestricted();
 
         if (criteria == null) {
             return spec;
@@ -130,7 +130,7 @@ public class MedicationCatalogService {
             Function<jakarta.persistence.criteria.Root<Medication>, jakarta.persistence.criteria.Path<Boolean>> extractor,
             boolean invert) {
         if (enabled == null || !enabled) {
-            return Specification.where((Specification<Medication>) null);
+            return Specification.unrestricted();
         }
         return (root, query, builder) -> {
             var path = extractor.apply(root);
