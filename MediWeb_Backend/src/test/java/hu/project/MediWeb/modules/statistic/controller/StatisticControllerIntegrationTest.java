@@ -1,7 +1,5 @@
 package hu.project.MediWeb.modules.statistic.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.statistic.entity.Statistic;
 import hu.project.MediWeb.modules.statistic.repository.StatisticRepository;
 import hu.project.MediWeb.modules.user.entity.User;
@@ -14,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ class StatisticControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private AuthTestSupport authTestSupport;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     private User owner;
     private User stranger;

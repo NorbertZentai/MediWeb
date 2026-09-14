@@ -1,8 +1,8 @@
 package hu.project.MediWeb.modules.user.entity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class UserSerializationTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper objectMapper = new JsonMapper();
 
     @Test
     void serializingUser_neverExposesPasswordField() throws Exception {

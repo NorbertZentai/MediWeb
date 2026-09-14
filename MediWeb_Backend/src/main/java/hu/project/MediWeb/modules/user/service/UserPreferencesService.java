@@ -1,6 +1,5 @@
 package hu.project.MediWeb.modules.user.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.user.dto.UserPreferencesDto;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.entity.UserPreferences;
@@ -9,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 @Service
@@ -18,7 +17,7 @@ import java.io.IOException;
 public class UserPreferencesService {
 
     private final UserPreferencesRepository preferencesRepository;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Transactional(readOnly = true)
     public UserPreferencesDto getPreferencesFor(User user) {
@@ -62,7 +61,7 @@ public class UserPreferencesService {
         try {
             UserPreferencesDto dto = objectMapper.readValue(entity.getPreferencesPayload(), UserPreferencesDto.class);
             return dto == null ? UserPreferencesDto.defaultPreferences() : dto.withDefaults();
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.warn("Failed to parse preferences for user {}. Using defaults instead.", entity.getUserId(), e);
             return UserPreferencesDto.defaultPreferences();
         }
@@ -71,7 +70,7 @@ public class UserPreferencesService {
     private String serializePayload(UserPreferencesDto preferences) {
         try {
             return objectMapper.writeValueAsString(preferences.withDefaults());
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Failed to serialize user preferences", e);
         }
     }

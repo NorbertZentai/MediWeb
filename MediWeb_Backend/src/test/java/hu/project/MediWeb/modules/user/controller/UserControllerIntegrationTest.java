@@ -1,6 +1,5 @@
 package hu.project.MediWeb.modules.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.user.dto.PasswordConfirmationRequest;
 import hu.project.MediWeb.modules.user.entity.User;
 import hu.project.MediWeb.modules.user.enums.UserRole;
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -36,7 +36,7 @@ class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     private User admin;
     private User user;

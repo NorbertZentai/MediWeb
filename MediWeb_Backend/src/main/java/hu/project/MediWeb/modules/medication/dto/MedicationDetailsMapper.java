@@ -1,16 +1,17 @@
 package hu.project.MediWeb.modules.medication.dto;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.medication.entity.Medication;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class MedicationDetailsMapper {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final JsonMapper mapper = new JsonMapper();
     private static final String EMPTY_LIST_JSON = "[]";
     private static final String NULL_JSON = "null";
 
@@ -21,7 +22,7 @@ public class MedicationDetailsMapper {
         try {
             List<T> result = mapper.readValue(json, typeRef);
             return result != null ? result : Collections.emptyList();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return Collections.emptyList();
         }
     }
@@ -32,7 +33,7 @@ public class MedicationDetailsMapper {
         }
         try {
             return mapper.readValue(json, typeRef);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return null;
         }
     }
@@ -69,7 +70,7 @@ public class MedicationDetailsMapper {
                             dto.getDefectiveForms() != null ? dto.getDefectiveForms() : new ArrayList<>()))
                     .hazipatikaJson(mapper.writeValueAsString(dto.getHazipatikaInfo()))
                     .build();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Hiba DTO-ból Entity konvertálás közben", e);
         }
     }
