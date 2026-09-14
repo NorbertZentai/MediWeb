@@ -141,11 +141,6 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-		</dependency>
-
 		<!-- .env file support for Spring Boot -->
 		<dependency>
 			<groupId>me.paulschwarz</groupId>

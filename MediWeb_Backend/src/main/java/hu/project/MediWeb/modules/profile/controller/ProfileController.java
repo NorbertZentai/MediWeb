@@ -1,6 +1,5 @@
 package hu.project.MediWeb.modules.profile.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.profile.dto.ProfileDTO;
 import hu.project.MediWeb.modules.profile.dto.ProfileMedicationDTO;
 import hu.project.MediWeb.modules.profile.entity.Profile;
@@ -16,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -106,7 +106,7 @@ public class ProfileController {
         requireOwnership(profileId);
         try {
             String note = (String) data.get("note");
-            ObjectMapper objectMapper = new ObjectMapper();
+            JsonMapper objectMapper = new JsonMapper();
 
             String remindersJson = objectMapper.writeValueAsString(data.get("reminders"));
             return medicationService.updateMedication(profileId, medicationId, note, remindersJson);

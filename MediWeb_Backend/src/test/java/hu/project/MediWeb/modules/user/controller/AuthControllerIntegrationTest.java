@@ -1,6 +1,5 @@
 package hu.project.MediWeb.modules.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hu.project.MediWeb.modules.user.enums.UserRole;
 import hu.project.MediWeb.support.AbstractIntegrationTest;
 import hu.project.MediWeb.support.AuthTestSupport;
@@ -9,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -33,7 +33,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private AuthTestSupport authTestSupport;
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     @BeforeEach
     void seedActiveUser() {

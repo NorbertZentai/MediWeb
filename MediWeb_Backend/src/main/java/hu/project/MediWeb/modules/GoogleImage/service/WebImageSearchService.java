@@ -1,7 +1,5 @@
 package hu.project.MediWeb.modules.GoogleImage.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -9,6 +7,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -56,7 +56,7 @@ public class WebImageSearchService {
             "doboz", "csomag", "gyógyszer"
     );
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper objectMapper = new JsonMapper();
     private final Semaphore semaphore;
 
     public WebImageSearchService(
@@ -166,9 +166,9 @@ public class WebImageSearchService {
             if (mAttr != null && !mAttr.isEmpty()) {
                 try {
                     JsonNode node = objectMapper.readTree(mAttr);
-                    String murl = node.has("murl") ? node.get("murl").asText() : null;
-                    String title = node.has("t") ? node.get("t").asText() : "";
-                    String domain = node.has("purl") ? node.get("purl").asText() : "";
+                    String murl = node.has("murl") ? node.get("murl").asString() : null;
+                    String title = node.has("t") ? node.get("t").asString() : "";
+                    String domain = node.has("purl") ? node.get("purl").asString() : "";
                     if (murl != null && !murl.isEmpty()) {
                         candidates.add(new ImageCandidate(murl, title, domain));
                     }
