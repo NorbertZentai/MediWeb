@@ -17,7 +17,7 @@ Az alkalmazás három Docker konténerből áll, amelyek docker-compose segíts�
 
 **Parancs:** docker compose -f docker-compose.dev.yml up -d
 
-Ez elindít egy PostgreSQL 15 példányt a localhost:5432 címen, a backend és frontend natívan fut.
+Ez elindít egy PostgreSQL 18 példányt a localhost:5432 címen, a backend és frontend natívan fut.
 
 **Backend indítása**  
 **Parancs:** cd MediWeb_Backend && ./mvnw spring-boot:run
