@@ -6,6 +6,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
@@ -27,20 +28,9 @@ public class DatabaseInitializer implements CommandLineRunner {
             
             if (count != null && count == 0) {
                 System.out.println("📝 Creating database tables...");
-                
-                // Read and execute schema.sql
-                ClassPathResource schemaResource = new ClassPathResource("db/schema.sql");
-                String schemaSql = new String(schemaResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                
-                // Split by semicolon and execute each statement
-                String[] statements = schemaSql.split(";");
-                for (String statement : statements) {
-                    statement = statement.trim();
-                    if (!statement.isEmpty()) {
-                        jdbcTemplate.execute(statement);
-                    }
-                }
-                
+
+                applySchema(jdbcTemplate);
+
                 System.out.println("✅ Database tables created successfully!");
                 
                 // Read and execute data.sql
@@ -69,6 +59,31 @@ public class DatabaseInitializer implements CommandLineRunner {
         } catch (Exception e) {
             System.err.println("❌ Database initialization error: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Reads {@code db/schema.sql} and executes each non-empty, semicolon-separated statement
+     * via the given {@link JdbcTemplate}.
+     * <p>
+     * Package-private on purpose (not {@code private}): it lets
+     * {@code DatabaseInitializerSchemaIntegrationTest}, in this same package, invoke schema
+     * application a second time against an already-initialized database, proving that
+     * schema.sql's {@code IF NOT EXISTS} / {@code ADD COLUMN IF NOT EXISTS} statements are safe
+     * to re-run. Called once by {@link #run(String...)} during normal application startup, and
+     * once more directly by that test for the idempotency proof.
+     */
+    void applySchema(JdbcTemplate jdbcTemplate) throws IOException {
+        ClassPathResource schemaResource = new ClassPathResource("db/schema.sql");
+        String schemaSql = new String(schemaResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        // Split by semicolon and execute each statement
+        String[] statements = schemaSql.split(";");
+        for (String statement : statements) {
+            statement = statement.trim();
+            if (!statement.isEmpty()) {
+                jdbcTemplate.execute(statement);
+            }
         }
     }
 
