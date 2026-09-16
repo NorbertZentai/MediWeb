@@ -1,5 +1,5 @@
 # Single stage build for simplicity
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:25-jdk
 
 WORKDIR /app
 
