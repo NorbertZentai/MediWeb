@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react-native';
 import GuestLoginBanner from '../GuestLoginBanner';
 
 describe('GuestLoginBanner', () => {
-  it('megjeleníti az alapértelmezett magyar üzenetet és a gombok szövegét', () => {
-    render(<GuestLoginBanner />);
+  it('megjeleníti az alapértelmezett magyar üzenetet és a gombok szövegét', async () => {
+    await render(<GuestLoginBanner />);
 
     expect(
       screen.getByText('A funkció használatához bejelentkezés szükséges.')
