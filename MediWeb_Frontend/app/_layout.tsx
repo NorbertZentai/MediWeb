@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { Text, View } from 'react-native';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider } from '@/src/contexts/AuthContext';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { ToastProvider } from '@/src/components/ToastProvider';
@@ -123,8 +122,6 @@ function NavigationThemeWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   useEffect(() => {
     Logger.init().catch(() => {});
     SplashScreen.hideAsync();

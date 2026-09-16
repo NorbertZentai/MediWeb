@@ -1,32 +1,45 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export default function NotFoundScreen() {
+  const { theme } = useTheme();
+  const router = useRouter();
+  const styles = createStyles(theme);
+
   return (
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">This screen doesn't exist.</ThemedText>
-        <Link href="/" style={styles.link}>
-          <ThemedText type="link">Go to home screen!</ThemedText>
-        </Link>
-      </ThemedView>
+      <View style={styles.container}>
+        <Text style={styles.title}>Ez az oldal nem található.</Text>
+        <TouchableOpacity style={styles.link} onPress={() => router.push('/')}>
+          <Text style={styles.linkText}>Vissza a főoldalra</Text>
+        </TouchableOpacity>
+      </View>
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: theme.spacing.lg,
+      backgroundColor: theme.colors.background,
+    },
+    title: {
+      fontSize: theme.fontSize.lg,
+      color: theme.colors.textPrimary,
+    },
+    link: {
+      marginTop: theme.spacing.md,
+      paddingVertical: theme.spacing.md,
+    },
+    linkText: {
+      fontSize: theme.fontSize.base,
+      color: theme.colors.primary,
+    },
+  });
