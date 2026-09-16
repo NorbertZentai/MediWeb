@@ -16,9 +16,9 @@ function mockWidth(width) {
 }
 
 describe('useResponsiveLayout breakpoints', () => {
-  it('flags 375px as mobile only', () => {
+  it('flags 375px as mobile only', async () => {
     mockWidth(375);
-    const { result } = renderHook(() => useResponsiveLayout());
+    const { result } = await renderHook(() => useResponsiveLayout());
 
     expect(result.current.isMobile).toBe(true);
     expect(result.current.isTablet).toBe(false);
@@ -26,9 +26,9 @@ describe('useResponsiveLayout breakpoints', () => {
     expect(result.current.getNumColumns(3)).toBe(1);
   });
 
-  it('flags 900px as tablet only', () => {
+  it('flags 900px as tablet only', async () => {
     mockWidth(900);
-    const { result } = renderHook(() => useResponsiveLayout());
+    const { result } = await renderHook(() => useResponsiveLayout());
 
     expect(result.current.isMobile).toBe(false);
     expect(result.current.isTablet).toBe(true);
@@ -36,9 +36,9 @@ describe('useResponsiveLayout breakpoints', () => {
     expect(result.current.getNumColumns(3)).toBe(2);
   });
 
-  it('flags 1440px as desktop only', () => {
+  it('flags 1440px as desktop only', async () => {
     mockWidth(1440);
-    const { result } = renderHook(() => useResponsiveLayout());
+    const { result } = await renderHook(() => useResponsiveLayout());
 
     expect(result.current.isMobile).toBe(false);
     expect(result.current.isTablet).toBe(false);
