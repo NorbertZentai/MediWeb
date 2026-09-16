@@ -20,17 +20,12 @@
 - **Hatás:** Webes verzióban push értesítések nem érhetők el
 - **Megoldás:** Email értesítések webes felhasználók számára is elérhetők
 
-## 5. Frontend Jest snapshot teszt
-- **Korlát:** A ThemedText komponens snapshot tesztje jelenleg nem fut le sikeresen, mert a tesztkörnyezetben a ThemeContext provider nincs konfigurálva
-- **Hatás:** Az npx jest parancs hibával áll le
-- **Megoldás:** A tesztkörnyezet provider-konfigurációjának kiegészítése fejlesztési terv
-
-## 6. Google OAuth2 — platform-specifikus Client ID-k
+## 5. Google OAuth2 — platform-specifikus Client ID-k
 - **Korlát:** A Google OAuth2 bejelentkezéshez platform-specifikus Client ID-k szükségesek (web, iOS, Android külön)
 - **Hatás:** Helytelen konfiguráció esetén a Google bejelentkezés nem működik
 - **Megoldás:** Email/jelszó alapú autentikáció minden platformon elérhető és működőképes
 
-## 7. Adatbázis-szinkronizáció időtartama
+## 6. Adatbázis-szinkronizáció időtartama
 - **Korlát:** A teljes OGYÉI szinkronizáció (kb. 20 000+ gyógyszer) több órát vehet igénybe
 - **Hatás:** Az admin felületen az első szinkronizáció hosszú futási időt mutat
 - **Megoldás:** A szinkronizáció állapota valós időben követhető a /api/medication/sync/status végponton. A folyamat bármikor leállítható és folytatható
