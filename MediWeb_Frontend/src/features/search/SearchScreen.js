@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
@@ -9,6 +9,7 @@ import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import { haptics } from "utils/haptics";
 import FilterModal, { getActiveFilterCount, getActiveFilterLabels, FilterPanelContent } from "./FilterModal";
 import { useTheme } from "contexts/ThemeContext";
+import ResponsiveContainer from "components/ui/ResponsiveContainer";
 
 export default function SearchScreen() {
   const { theme } = useTheme();
@@ -30,7 +31,7 @@ export default function SearchScreen() {
 
   const router = useRouter();
   const { isMobile } = useResponsiveLayout();
-  const isDesktopWeb = Platform.OS === 'web' && !isMobile;
+  const isDesktopLayout = !isMobile;
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
@@ -68,7 +69,7 @@ export default function SearchScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['top']}>
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
-      <View style={styles.contentWrapper}>
+      <ResponsiveContainer maxWidth="wide" style={styles.contentWrapper}>
         <Text style={styles.title}>Gyógyszer kereső</Text>
 
         {/* Search bar + filter button row */}
@@ -100,7 +101,7 @@ export default function SearchScreen() {
             style={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive]}
             onPress={() => {
               haptics.light();
-              if (isDesktopWeb) {
+              if (isDesktopLayout) {
                 setFilterPanelOpen(!filterPanelOpen);
               } else {
                 setFilterModalVisible(true);
@@ -150,9 +151,9 @@ export default function SearchScreen() {
         )}
 
         {/* Desktop web: two-column layout (sidebar + results) */}
-        <View style={isDesktopWeb ? styles.webSearchLayout : null}>
+        <View style={isDesktopLayout ? styles.webSearchLayout : null}>
           {/* Sidebar filter panel (desktop web only) */}
-          {isDesktopWeb && filterPanelOpen && (
+          {isDesktopLayout && filterPanelOpen && (
             <View style={styles.filterSidebar}>
               <FilterPanelContent
                 filters={filters}
@@ -165,7 +166,7 @@ export default function SearchScreen() {
           )}
 
           {/* Results column */}
-          <View style={isDesktopWeb ? styles.resultsColumn : null}>
+          <View style={isDesktopLayout ? styles.resultsColumn : null}>
             {loading && results.length === 0 ? (
               <View style={styles.skeletonContainer}>
                 {[1, 2, 3].map((item) => (
@@ -245,27 +246,29 @@ export default function SearchScreen() {
                     </TouchableOpacity>
                   ))}
                   {hasMore && (
-                    <TouchableOpacity
-                      onPress={loadMore}
-                      disabled={loading}
-                      style={styles.loadMoreButton}
-                    >
-                      {loading ? (
-                        <ActivityIndicator size="small" color={theme.colors.primary} />
-                      ) : (
-                        <Text style={styles.loadMoreText}>További találatok betöltése</Text>
-                      )}
-                    </TouchableOpacity>
+                    <View style={{ alignItems: 'center' }}>
+                      <TouchableOpacity
+                        onPress={loadMore}
+                        disabled={loading}
+                        style={styles.loadMoreButton}
+                      >
+                        {loading ? (
+                          <ActivityIndicator size="small" color={theme.colors.primary} />
+                        ) : (
+                          <Text style={styles.loadMoreText}>További találatok betöltése</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
               </>
             )}
           </View>
         </View>
-      </View>
+      </ResponsiveContainer>
 
       {/* Filter Modal (mobile only) */}
-      {!isDesktopWeb && (
+      {!isDesktopLayout && (
         <FilterModal
           visible={filterModalVisible}
           onClose={() => setFilterModalVisible(false)}

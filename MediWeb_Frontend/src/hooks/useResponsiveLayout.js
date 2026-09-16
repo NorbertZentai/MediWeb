@@ -6,6 +6,12 @@ export const BREAKPOINTS = {
     DESKTOP: 1280,
 };
 
+export const CONTAINER_MAX_WIDTHS = {
+    narrow: 560,
+    content: 1000,
+    wide: 1400,
+};
+
 export function useResponsiveLayout() {
     const { width } = useWindowDimensions();
 
@@ -27,7 +33,7 @@ export function useResponsiveLayout() {
         // Helper for container width
         getContainerStyle: () => ({
             width: '100%',
-            maxWidth: isMobile ? '100%' : 1000,
+            maxWidth: isMobile ? '100%' : CONTAINER_MAX_WIDTHS.content,
             paddingHorizontal: isMobile ? 16 : 32,
         })
     };

@@ -39,6 +39,7 @@ const createDefaultDashboard = () => {
 };
 
 import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
+import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 
 export default function HomeScreen() {
   const { user, loading } = useContext(AuthContext);
@@ -215,7 +216,7 @@ export default function HomeScreen() {
           style={styles.page}
           contentContainerStyle={styles.pageContent}
         >
-          <View style={styles.contentWrapper}>
+          <ResponsiveContainer style={styles.contentWrapper}>
             {/* Hero section */}
             <View style={styles.heroCard}>
               <View style={styles.heroText}>
@@ -305,7 +306,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </ResponsiveContainer>
         </ScrollView>
       </SafeAreaView>
     );
@@ -325,7 +326,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <View style={styles.contentWrapper}>
+        <ResponsiveContainer style={styles.contentWrapper}>
           <View style={styles.heroCard}>
             <View style={styles.heroText}>
               <Text style={styles.heroTitle}>Üdv, {user?.name || 'felhasználó'}!</Text>
@@ -517,7 +518,7 @@ export default function HomeScreen() {
               </View>
             </>
           )}
-        </View>
+        </ResponsiveContainer>
       </ScrollView>
     </SafeAreaView>
   );

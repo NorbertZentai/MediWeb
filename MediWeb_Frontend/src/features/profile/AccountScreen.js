@@ -15,6 +15,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { toast } from "utils/toast";
 import { useTheme } from "contexts/ThemeContext";
 import defaultAvatar from "assets/default-avatar.jpg";
+import ResponsiveContainer from "components/ui/ResponsiveContainer";
 import {
     updateUsername,
     updateEmail,
@@ -145,7 +146,8 @@ export default function AccountScreen() {
     }
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={styles.container}>
+        <ResponsiveContainer style={styles.content}>
             {/* Avatar Section */}
             <View style={styles.avatarSection}>
                 <Image
@@ -262,6 +264,7 @@ export default function AccountScreen() {
                     />
                 </View>
             )}
+        </ResponsiveContainer>
         </ScrollView>
     );
 }
@@ -272,10 +275,7 @@ const createStyles = (theme) => StyleSheet.create({
         backgroundColor: theme.colors.background,
     },
     content: {
-        width: "100%",
-        maxWidth: 1000,
-        alignSelf: "center",
-        padding: theme.spacing.md,
+        paddingTop: theme.spacing.md,
         paddingBottom: 40,
     },
     loadingContainer: {

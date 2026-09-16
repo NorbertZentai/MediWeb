@@ -9,9 +9,6 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingBottom: 100,
   },
   contentWrapper: {
-    width: "100%",
-    maxWidth: 1400,
-    paddingHorizontal: 16,
     paddingVertical: 32,
   },
   title: {
@@ -231,7 +228,6 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 32,
     backgroundColor: theme.colors.backgroundCard,
     borderRadius: theme.borderRadius.md,
-    alignSelf: "center",
     borderWidth: 2,
     borderColor: theme.colors.primary,
   },

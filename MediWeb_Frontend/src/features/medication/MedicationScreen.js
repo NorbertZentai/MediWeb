@@ -16,6 +16,7 @@ import Navbar from "components/Navbar";
 import GuestLoginBanner from "components/GuestLoginBanner";
 import { useTheme } from "contexts/ThemeContext";
 import { addRecentlyViewed } from "utils/recentlyViewed";
+import ResponsiveContainer from "components/ui/ResponsiveContainer";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -152,12 +153,12 @@ export default function MedicationDetailsScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       <Navbar />
-      <View style={styles.backButtonRow}>
+      <ResponsiveContainer style={styles.backButtonRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <FontAwesome5 name="arrow-left" size={18} color={theme.colors.textPrimary} />
           <Text style={styles.backButtonText}>Vissza</Text>
         </TouchableOpacity>
-      </View>
+      </ResponsiveContainer>
       {isOffline && (
         <View style={styles.offlineBanner}>
           <FontAwesome5 name="wifi" size={13} color={theme.colors.warning} style={{ marginRight: 8 }} />
@@ -169,7 +170,7 @@ export default function MedicationDetailsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={styles.contentWrapper}>
+        <ResponsiveContainer style={styles.contentWrapper}>
           {/* Header with title and favorite button */}
           <View style={styles.headerRow}>
             <View style={styles.headerTextWrapper}>
@@ -428,7 +429,7 @@ export default function MedicationDetailsScreen() {
             updateReview={handleUpdateReview}
             theme={theme}
           />
-        </View>
+        </ResponsiveContainer>
       </ScrollView>
     </SafeAreaView>
   );

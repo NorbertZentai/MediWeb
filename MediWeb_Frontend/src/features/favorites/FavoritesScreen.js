@@ -18,6 +18,7 @@ import { toast } from 'utils/toast';
 import { createStyles } from './FavoritesScreen.style';
 import { useTheme } from 'contexts/ThemeContext';
 import { AuthContext } from 'contexts/AuthContext';
+import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 
 export default function FavoritesScreen() {
     const router = useRouter();
@@ -72,9 +73,9 @@ export default function FavoritesScreen() {
         <SafeAreaView style={styles.container}>
             <ScrollView
                 style={styles.scrollView}
-                contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
+              <ResponsiveContainer style={styles.content}>
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Kedvencek</Text>
@@ -130,6 +131,7 @@ export default function FavoritesScreen() {
                         ))}
                     </View>
                 )}
+              </ResponsiveContainer>
             </ScrollView>
 
             {/* Törlés megerősítő modal */}
