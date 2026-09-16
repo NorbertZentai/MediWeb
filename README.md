@@ -91,8 +91,6 @@ cd MediWeb_Frontend
 npx jest
 ```
 
-> Megjegyzés: a `ThemedText` snapshot teszt jelenleg nem fut le sikeresen — a tesztkörnyezet ThemeContext provider-konfigurációja kiegészítésre szorul.
-
 ## Funkcionalitás
 
 - **Autentikáció:** Regisztráció email + jelszóval, OTP email-verifikáció, bejelentkezés, Google OAuth2, kétfaktoros hitelesítés (TOTP/2FA), JWT tokenfrissítés
