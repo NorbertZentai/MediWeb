@@ -10,8 +10,7 @@ import {
     Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { getFavorites, removeFromFavorites } from 'features/profile/profile.api';
 import { toast } from 'utils/toast';

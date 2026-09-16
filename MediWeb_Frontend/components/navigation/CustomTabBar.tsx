@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useContext } from 'react';
 import { View, StyleSheet, Platform, LayoutChangeEvent } from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { BottomTabBarProps } from 'expo-router/js-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
