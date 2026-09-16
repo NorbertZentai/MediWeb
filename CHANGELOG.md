@@ -2,6 +2,21 @@
 
 Releases published by the AI Conveyor on the integration branch.
 
+## demo-v0.2.0 — 2026-09-16
+
+### Refactoring
+- **backend:** migrate remaining Jackson 2 usages to Jackson 3 API (#70)
+
+### Tests
+- **notification:** verify test-notification endpoint is admin-only and dev-only at runtime (#61)
+
+### Build and CI
+- **backend:** upgrade Spring Boot parent from 3.4.1 to 4.1.1 (#67)
+- **backend:** bump Lombok to 1.18.48 for JDK 25 support (#68)
+- build the backend on JDK 25 (#69)
+- **dev:** upgrade docker-compose Postgres to the latest major version (#71)
+- **backend:** move backend to Java 25 and bump dependencies to latest (#72)
+
 ## demo-v0.1.0 — 2026-09-14
 
 ### Features
