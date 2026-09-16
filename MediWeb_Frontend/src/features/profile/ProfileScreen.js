@@ -19,6 +19,7 @@ import { getRecentlyViewed } from "utils/recentlyViewed";
 import { createStyles } from "./ProfileScreen.style";
 import { useTheme } from "contexts/ThemeContext";
 import defaultAvatar from "assets/default-avatar.jpg";
+import ResponsiveContainer from "components/ui/ResponsiveContainer";
 
 const menuItems = [
   { key: "account", label: "Fiók adatok", icon: "user-edit", description: "Név, email, jelszó szerkesztése" },
@@ -107,7 +108,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView>
+    <ResponsiveContainer style={styles.content}>
       {/* User Card */}
       <View style={styles.userCard}>
         <Image
@@ -272,6 +274,7 @@ export default function ProfileScreen() {
         )}
       </View>
 
+    </ResponsiveContainer>
     </ScrollView>
     </SafeAreaView>
   );

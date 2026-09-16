@@ -9,11 +9,8 @@ export const createStyles = (theme) => StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: theme.spacing.md,
+        paddingTop: theme.spacing.md,
         paddingBottom: 100,
-        width: "100%",
-        maxWidth: 1000,
-        alignSelf: "center",
     },
     header: {
         marginBottom: theme.spacing.lg,

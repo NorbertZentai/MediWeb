@@ -10,11 +10,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     backgroundColor: theme.colors.background,
   },
   pageContent: {
-    paddingHorizontal: isMobile ? 12 : 32,
     paddingBottom: isMobile ? 100 : 64,
-    width: '100%',
-    maxWidth: 1000,
-    alignSelf: 'center',
     backgroundColor: theme.colors.background,
   },
   contentWrapper: {
@@ -310,7 +306,6 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
   authCard: {
     width: '100%',
     maxWidth: 520,
-    alignSelf: 'center',
     backgroundColor: theme.colors.backgroundCard,
     borderRadius: 22,
     padding: 32,
