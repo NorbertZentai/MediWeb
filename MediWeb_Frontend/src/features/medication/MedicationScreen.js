@@ -154,7 +154,12 @@ export default function MedicationDetailsScreen() {
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
       <Navbar />
       <ResponsiveContainer style={styles.backButtonRow}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Vissza"
+        >
           <FontAwesome5 name="arrow-left" size={18} color={theme.colors.textPrimary} />
           <Text style={styles.backButtonText}>Vissza</Text>
         </TouchableOpacity>
@@ -203,6 +208,8 @@ export default function MedicationDetailsScreen() {
                   console.error(e);
                 }
               }}
+              accessibilityRole="button"
+              accessibilityLabel={isFavorite ? 'Eltávolítás a kedvencekből' : 'Hozzáadás a kedvencekhez'}
             >
               <FontAwesome5
                 name={currentUser ? "heart" : "lock"}
@@ -264,6 +271,8 @@ export default function MedicationDetailsScreen() {
                     }
                   }
                 }}
+                accessibilityRole="button"
+                accessibilityLabel="Hozzáadás a profilhoz"
               >
                 <FontAwesome5 name="plus" size={14} color={theme.colors.white} />
                 <Text style={styles.addButtonText}>Hozzáadás</Text>
@@ -298,6 +307,8 @@ export default function MedicationDetailsScreen() {
                   key={i}
                   style={styles.iconButton}
                   onPress={() => Linking.openURL(doc.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={doc.label}
                 >
                   <View style={styles.iconCircle}>
                     <FontAwesome5 name={doc.icon} size={20} color={theme.colors.primary} />
@@ -486,7 +497,14 @@ const Accordion = React.memo(function Accordion({ title, isOpen, onToggle, child
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={styles.accordionWrapper}>
-      <TouchableOpacity onPress={onToggle} style={styles.accordionHeader} activeOpacity={0.7}>
+      <TouchableOpacity
+        onPress={onToggle}
+        style={styles.accordionHeader}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ expanded: isOpen }}
+      >
         <Text style={styles.accordionTitle}>{title}</Text>
         <FontAwesome5 name={isOpen ? "chevron-up" : "chevron-down"} size={14} color={theme.colors.textTertiary} />
       </TouchableOpacity>

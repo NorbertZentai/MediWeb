@@ -128,6 +128,7 @@ export default function RegisterScreen() {
               placeholderTextColor={theme.colors.textTertiary}
               value={name}
               onChangeText={setName}
+              accessibilityLabel="Név"
             />
 
             <Text style={styles.label}>Email cím</Text>
@@ -142,6 +143,7 @@ export default function RegisterScreen() {
               }}
               keyboardType="email-address"
               autoCapitalize="none"
+              accessibilityLabel="Email cím"
             />
 
             <Text style={styles.label}>Jelszó</Text>
@@ -156,15 +158,18 @@ export default function RegisterScreen() {
                   if (passwordError) setPasswordError('');
                 }}
                 secureTextEntry={!showPassword}
+                accessibilityLabel="Jelszó"
               />
-              <TouchableOpacity 
-                onPress={() => setShowPassword(!showPassword)} 
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Jelszó elrejtése' : 'Jelszó megjelenítése'}
               >
-                <Ionicons 
-                  name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
-                  size={20} 
-                  color={theme.colors.textTertiary} 
+                <Ionicons
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color={theme.colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
@@ -181,15 +186,18 @@ export default function RegisterScreen() {
                   if (passwordError) setPasswordError('');
                 }}
                 secureTextEntry={!showConfirmPassword}
+                accessibilityLabel="Jelszó megerősítése"
               />
-              <TouchableOpacity 
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)} 
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeIcon}
+                accessibilityRole="button"
+                accessibilityLabel={showConfirmPassword ? 'Jelszó elrejtése' : 'Jelszó megjelenítése'}
               >
-                <Ionicons 
-                  name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'} 
-                  size={20} 
-                  color={theme.colors.textTertiary} 
+                <Ionicons
+                  name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                  size={20}
+                  color={theme.colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
@@ -204,6 +212,7 @@ export default function RegisterScreen() {
               placeholderTextColor={theme.colors.textTertiary}
               value={dateOfBirth}
               onChangeText={setDateOfBirth}
+              accessibilityLabel="Születési dátum"
             />
 
             <Text style={styles.label}>Nem</Text>
@@ -211,24 +220,38 @@ export default function RegisterScreen() {
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'male' && styles.segmentButtonActive]}
                 onPress={() => setGender('male')}
+                accessibilityRole="button"
+                accessibilityLabel="Férfi"
+                accessibilityState={{ selected: gender === 'male' }}
               >
                 <Text style={[styles.segmentText, gender === 'male' && styles.segmentTextActive]}>Férfi</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'female' && styles.segmentButtonActive]}
                 onPress={() => setGender('female')}
+                accessibilityRole="button"
+                accessibilityLabel="Nő"
+                accessibilityState={{ selected: gender === 'female' }}
               >
                 <Text style={[styles.segmentText, gender === 'female' && styles.segmentTextActive]}>Nő</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'other' && styles.segmentButtonActive]}
                 onPress={() => setGender('other')}
+                accessibilityRole="button"
+                accessibilityLabel="Egyéb"
+                accessibilityState={{ selected: gender === 'other' }}
               >
                 <Text style={[styles.segmentText, gender === 'other' && styles.segmentTextActive]}>Egyéb</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={handleRegister} style={styles.button}>
+            <TouchableOpacity
+              onPress={handleRegister}
+              style={styles.button}
+              accessibilityRole="button"
+              accessibilityLabel="Regisztráció"
+            >
               <Text style={styles.buttonText}>Regisztráció</Text>
             </TouchableOpacity>
 
@@ -238,20 +261,32 @@ export default function RegisterScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity 
-              style={styles.googleButton} 
+            <TouchableOpacity
+              style={styles.googleButton}
               disabled={!request}
               onPress={() => promptAsync()}
+              accessibilityRole="button"
+              accessibilityLabel="Regisztráció Google-lel"
             >
               <Ionicons name="logo-google" size={20} color="#EA4335" />
               <Text style={styles.googleButtonText}>Regisztráció Google-lel</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.push('/login')}>
+            <TouchableOpacity
+              onPress={() => router.push('/login')}
+              style={styles.linkButton}
+              accessibilityRole="link"
+              accessibilityLabel="Már van fiókod? Jelentkezz be!"
+            >
               <Text style={styles.linkText}>Már van fiókod? Jelentkezz be!</Text>
             </TouchableOpacity>
             {Platform.OS !== 'web' && (
-              <TouchableOpacity style={styles.guestLink} onPress={() => router.replace('/(tabs)')}>
+              <TouchableOpacity
+                style={styles.guestLink}
+                onPress={() => router.replace('/(tabs)')}
+                accessibilityRole="link"
+                accessibilityLabel="Folytatás bejelentkezés nélkül"
+              >
                 <Text style={styles.guestLinkText}>Folytatás bejelentkezés nélkül</Text>
               </TouchableOpacity>
             )}

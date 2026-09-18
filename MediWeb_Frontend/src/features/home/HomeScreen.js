@@ -228,6 +228,8 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={styles.heroButton}
                   onPress={() => router.push('/search')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Gyógyszer keresése"
                 >
                   <Text style={styles.heroButtonText}>Gyógyszer keresése</Text>
                 </TouchableOpacity>
@@ -238,7 +240,12 @@ export default function HomeScreen() {
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
-                <TouchableOpacity onPress={() => router.push('/search')}>
+                <TouchableOpacity
+                  style={styles.sectionActionButton}
+                  onPress={() => router.push('/search')}
+                  accessibilityRole="link"
+                  accessibilityLabel="Összes keresése"
+                >
                   <Text style={styles.sectionAction}>Összes keresése</Text>
                 </TouchableOpacity>
               </View>
@@ -262,6 +269,8 @@ export default function HomeScreen() {
                           router.push(`/medication/${identifier}`);
                         }
                       }}
+                      accessibilityRole="link"
+                      accessibilityLabel={medication.name}
                     >
                       <Text style={styles.popularCardTitle} numberOfLines={2}>{medication.name}</Text>
                       {medication.searchCount !== undefined && (
@@ -295,12 +304,16 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={[styles.primaryButton, styles.fullWidthButton]}
                   onPress={() => router.push('/login')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Bejelentkezés"
                 >
                   <Text style={styles.primaryButtonText}>Bejelentkezés</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.secondaryButton, styles.fullWidthButton]}
                   onPress={() => router.push('/register')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Regisztráció"
                 >
                   <Text style={styles.secondaryButtonText}>Regisztráció</Text>
                 </TouchableOpacity>
@@ -337,6 +350,8 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.heroButton}
                 onPress={() => router.push('/search')}
+                accessibilityRole="button"
+                accessibilityLabel="Gyógyszer keresése"
               >
                 <Text style={styles.heroButtonText}>Gyógyszer keresése</Text>
               </TouchableOpacity>
@@ -374,13 +389,18 @@ export default function HomeScreen() {
                   <View style={styles.sectionCard}>
                     <View style={styles.sectionHeader}>
                       <Text style={styles.sectionTitle}>Népszerű gyógyszerek</Text>
-                      <TouchableOpacity onPress={() => router.push('/search')}>
+                      <TouchableOpacity
+                        style={styles.sectionActionButton}
+                        onPress={() => router.push('/search')}
+                        accessibilityRole="link"
+                        accessibilityLabel="Összes keresése"
+                      >
                         <Text style={styles.sectionAction}>Összes keresése</Text>
                       </TouchableOpacity>
                     </View>
                     {dashboard.popularMedications?.length ? (
-                      <ScrollView 
-                        horizontal 
+                      <ScrollView
+                        horizontal
                         showsHorizontalScrollIndicator={true}
                         contentContainerStyle={{ paddingBottom: 16 }}
                       >
@@ -394,6 +414,8 @@ export default function HomeScreen() {
                                 router.push(`/medication/${identifier}`);
                               }
                             }}
+                            accessibilityRole="link"
+                            accessibilityLabel={medication.name}
                           >
                             <Text style={styles.popularCardTitle} numberOfLines={2}>{medication.name}</Text>
                             {medication.searchCount !== undefined && (
@@ -434,6 +456,8 @@ export default function HomeScreen() {
                                 : '';
                             router.push(`/profile/intake${query}`);
                           }}
+                          accessibilityRole="button"
+                          accessibilityLabel={med.medicationName}
                         >
                           <View style={styles.todayCardHeader}>
                             <Text style={styles.todayCardTitle} numberOfLines={1}>{med.medicationName}</Text>
@@ -501,6 +525,8 @@ export default function HomeScreen() {
                           key={action.label}
                           style={styles.quickActionCard}
                           onPress={action.onPress}
+                          accessibilityRole="button"
+                          accessibilityLabel={action.label}
                         >
                           <View style={[styles.quickActionIconWrapper, { backgroundColor: `${action.color}15` }]}>
                             <Ionicons name={action.icon} size={24} color={action.color} />

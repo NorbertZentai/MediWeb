@@ -1,5 +1,10 @@
 import { Platform } from 'react-native';
 
+// Shared minimum touch target (WCAG 2.5.5 / platform HIG guidance): every
+// interactive control should expose an effective hit area of at least
+// 44x44 (via style minWidth/minHeight or a compensating hitSlop).
+export const MIN_TOUCH_TARGET = 44;
+
 const shared = {
   spacing: {
     xs: 4,

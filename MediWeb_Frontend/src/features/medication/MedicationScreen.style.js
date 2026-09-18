@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme, isMobile = false) => StyleSheet.create({
   // ===== LAYOUT =====
@@ -31,6 +32,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     alignSelf: "flex-start",
     paddingVertical: theme.spacing.xs,
     paddingRight: theme.spacing.md,
+    minHeight: MIN_TOUCH_TARGET,
   },
 
   backButtonText: {
@@ -103,6 +105,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     borderRadius: theme.borderRadius.full,
     borderWidth: 1.5,
     borderColor: theme.colors.border,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 
@@ -144,6 +147,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 12,
     borderRadius: theme.borderRadius.md,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 
@@ -197,6 +201,8 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     alignItems: "center",
     flex: 1,
     paddingVertical: theme.spacing.sm,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
   },
 
   iconCircle: {
@@ -318,6 +324,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 

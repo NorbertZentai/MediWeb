@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
     // --- Desktop Navbar ---
@@ -28,6 +29,8 @@ export const createStyles = (theme) => StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     logoIconWrapper: {
         width: 36,
@@ -58,6 +61,8 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 16,
         borderRadius: 10,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     navLinkText: {
         fontSize: theme.fontSize.sm,
@@ -77,8 +82,8 @@ export const createStyles = (theme) => StyleSheet.create({
         marginHorizontal: 12,
     },
     themeToggle: {
-        width: 38,
-        height: 38,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         borderRadius: 10,
         justifyContent: "center",
         alignItems: "center",
@@ -91,6 +96,8 @@ export const createStyles = (theme) => StyleSheet.create({
         borderRadius: 10,
         borderWidth: 1.5,
         borderColor: theme.colors.primary,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     loginButtonText: {
         fontSize: theme.fontSize.sm,
@@ -103,6 +110,8 @@ export const createStyles = (theme) => StyleSheet.create({
         borderRadius: 10,
         backgroundColor: theme.colors.primary,
         marginLeft: 8,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     registerButtonText: {
         fontSize: theme.fontSize.sm,
@@ -116,6 +125,8 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 10,
         backgroundColor: theme.colors.errorLight || theme.colors.favoriteLight, // Fallback
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     logoutText: {
         fontSize: theme.fontSize.sm,

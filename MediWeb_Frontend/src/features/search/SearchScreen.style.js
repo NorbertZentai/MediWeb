@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -49,6 +50,10 @@ export const createStyles = (theme) => StyleSheet.create({
   clearButton: {
     padding: theme.spacing.sm,
     marginLeft: theme.spacing.sm,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // ===== FILTER BUTTON =====
@@ -106,6 +111,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderRadius: theme.borderRadius.full,
     borderWidth: 1,
     borderColor: theme.colors.secondaryLight,
+    minHeight: MIN_TOUCH_TARGET,
   },
   activeChipText: {
     fontSize: theme.fontSize.sm,
@@ -123,6 +129,8 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: theme.colors.borderDark,
     borderStyle: "dashed",
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
   },
   clearAllChipText: {
     fontSize: theme.fontSize.sm,
@@ -153,6 +161,10 @@ export const createStyles = (theme) => StyleSheet.create({
   viewSwitcherButton: {
     padding: 8,
     borderRadius: 6,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
   viewSwitcherButtonActive: {
     backgroundColor: theme.colors.primaryLight,
@@ -178,6 +190,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     alignItems: "flex-start",
     marginBottom: 16,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   listItem: {
@@ -190,6 +203,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignSelf: "stretch",
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   medName: {
@@ -230,6 +244,9 @@ export const createStyles = (theme) => StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     borderWidth: 2,
     borderColor: theme.colors.primary,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadMoreText: {
     fontSize: theme.fontSize.base,
@@ -291,6 +308,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: theme.colors.secondaryLight,
+    minHeight: MIN_TOUCH_TARGET,
   },
   clearAllButtonText: {
     fontSize: theme.fontSize.base,

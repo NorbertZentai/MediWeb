@@ -97,6 +97,8 @@ export default function FavoritesScreen() {
                         <TouchableOpacity
                             style={styles.primaryButton}
                             onPress={() => router.push('/search')}
+                            accessibilityRole="button"
+                            accessibilityLabel="Gyógyszerek keresése"
                         >
                             <FontAwesome5 name="search" size={16} color={theme.colors.white} />
                             <Text style={styles.primaryButtonText}>Gyógyszerek keresése</Text>
@@ -110,6 +112,8 @@ export default function FavoritesScreen() {
                                 style={styles.card}
                                 activeOpacity={0.7}
                                 onPress={() => router.push(`/medication/${fav.medicationId}`)}
+                                accessibilityRole="link"
+                                accessibilityLabel={fav.medicationName}
                             >
                                 <View style={styles.cardIconWrapper}>
                                     <FontAwesome5 name="pills" size={18} color={theme.colors.primary} />
@@ -123,6 +127,8 @@ export default function FavoritesScreen() {
                                     style={styles.deleteIconButton}
                                     onPress={() => confirmDelete(fav)}
                                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Eltávolítás a kedvencekből"
                                 >
                                     <FontAwesome5 name="trash-alt" size={16} color={theme.colors.error} />
                                 </TouchableOpacity>
@@ -153,12 +159,16 @@ export default function FavoritesScreen() {
                             <Pressable
                                 style={styles.cancelButton}
                                 onPress={() => setModalVisible(false)}
+                                accessibilityRole="button"
+                                accessibilityLabel="Mégse"
                             >
                                 <Text style={styles.cancelButtonText}>Mégse</Text>
                             </Pressable>
                             <Pressable
                                 style={styles.deleteButton}
                                 onPress={handleDelete}
+                                accessibilityRole="button"
+                                accessibilityLabel="Törlés"
                             >
                                 <Text style={styles.deleteButtonText}>Törlés</Text>
                             </Pressable>

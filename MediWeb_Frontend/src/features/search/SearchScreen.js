@@ -90,6 +90,8 @@ export default function SearchScreen() {
                 onPress={() => setSearchQuery("")}
                 style={styles.clearButton}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel="Keresés törlése"
               >
                 <FontAwesome5 name="times-circle" size={18} color={theme.colors.textTertiary} />
               </TouchableOpacity>
@@ -108,6 +110,8 @@ export default function SearchScreen() {
               }
             }}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Szűrők megnyitása"
           >
             <FontAwesome5
               name="sliders-h"
@@ -132,6 +136,8 @@ export default function SearchScreen() {
                   style={styles.activeChip}
                   onPress={() => removeFilter(field, type)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label} szűrő eltávolítása`}
                 >
                   <Text style={styles.activeChipText} numberOfLines={1}>{label}</Text>
                   <FontAwesome5 name="times" size={10} color={theme.colors.primary} style={styles.activeChipClose} />
@@ -143,6 +149,8 @@ export default function SearchScreen() {
                   haptics.light();
                   resetAllFilters();
                 }}
+                accessibilityRole="button"
+                accessibilityLabel="Összes szűrő törlése"
               >
                 <Text style={styles.clearAllChipText}>Összes törlése</Text>
               </TouchableOpacity>
@@ -191,6 +199,8 @@ export default function SearchScreen() {
                       setSearchQuery("");
                       resetAllFilters();
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Szűrők törlése"
                   >
                     <FontAwesome5 name="redo" size={16} color={theme.colors.primary} />
                     <Text style={styles.clearAllButtonText}>Szűrők törlése</Text>
@@ -209,12 +219,18 @@ export default function SearchScreen() {
                       <TouchableOpacity
                         style={[styles.viewSwitcherButton, viewMode === "grid" && styles.viewSwitcherButtonActive]}
                         onPress={() => setViewMode("grid")}
+                        accessibilityRole="button"
+                        accessibilityLabel="Rács nézet"
+                        accessibilityState={{ selected: viewMode === "grid" }}
                       >
                         <MaterialIcons name="grid-view" size={24} color={viewMode === "grid" ? theme.colors.primary : theme.colors.textSecondary} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.viewSwitcherButton, viewMode === "list" && styles.viewSwitcherButtonActive]}
                         onPress={() => setViewMode("list")}
+                        accessibilityRole="button"
+                        accessibilityLabel="Lista nézet"
+                        accessibilityState={{ selected: viewMode === "list" }}
                       >
                         <MaterialIcons name="view-list" size={24} color={viewMode === "list" ? theme.colors.primary : theme.colors.textSecondary} />
                       </TouchableOpacity>
@@ -235,6 +251,8 @@ export default function SearchScreen() {
                         router.push(`/medication/${med.id}`);
                       }}
                       activeOpacity={0.7}
+                      accessibilityRole="link"
+                      accessibilityLabel={med.name}
                     >
                       <Text style={styles.medName}>{med.name}</Text>
                       <Text style={styles.substance}>{med.substance}</Text>
@@ -251,6 +269,8 @@ export default function SearchScreen() {
                         onPress={loadMore}
                         disabled={loading}
                         style={styles.loadMoreButton}
+                        accessibilityRole="button"
+                        accessibilityLabel="További találatok betöltése"
                       >
                         {loading ? (
                           <ActivityIndicator size="small" color={theme.colors.primary} />

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -58,6 +59,8 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   button: {
     backgroundColor: theme.colors.primary,
@@ -67,11 +70,19 @@ export const createStyles = (theme) => StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 12,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
   },
   buttonText: {
     color: theme.colors.white,
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
+  },
+  linkButton: {
+    width: "100%",
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
   linkText: {
     color: theme.colors.primary,
@@ -94,6 +105,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DADCE0',
     marginTop: 10,
+    minHeight: MIN_TOUCH_TARGET,
   },
   googleButtonText: {
     color: '#3C4043',
@@ -121,6 +133,8 @@ export const createStyles = (theme) => StyleSheet.create({
     marginTop: 20,
     paddingVertical: 8,
     alignItems: 'center',
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
   },
   guestLinkText: {
     color: theme.colors.textTertiary,
