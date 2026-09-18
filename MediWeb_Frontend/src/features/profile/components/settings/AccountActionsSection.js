@@ -1,24 +1,27 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import React, { useContext, useMemo, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from 'contexts/ThemeContext';
-// NOTE (pre-existing GDPR defect, verified on origin/ai/demo, see issue #77 risk
-// notes): profile.api.js does not export requestAccountDeletion. This call was
-// already broken before the split; the refactor must keep it exactly as-is and
-// not "fix" it by renaming to deleteAccount or adding the missing export.
-import { requestAccountDeletion, exportDataDirect } from 'features/profile/profile.api';
+import { AuthContext } from 'contexts/AuthContext';
+import { deleteAccount, exportDataDirect } from 'features/profile/profile.api';
 import { showAlert, showConfirm } from 'utils/dialogs';
 import { createStyles } from '../SettingsTab.style';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 // 'Fiókműveletek' — data export (exportDataDirect) and account deletion
-// (requestAccountDeletion), moved verbatim from SettingsTab.js:246-327/698-723
-// per Rhea's plan-review MUST (both stay under this heading, not 'Adatkezelés').
+// (deleteAccount), moved out of SettingsTab.js per issue #77. The deletion flow is
+// the one issue #84 wired to the real endpoint: it requires password re-entry and
+// surfaces the backend's error message instead of swallowing it.
 export default function AccountActionsSection() {
     const { theme, isDark } = useTheme();
     const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+    const { logout } = useContext(AuthContext);
+    const router = useRouter();
     const [exporting, setExporting] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [showDeletePasswordForm, setShowDeletePasswordForm] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
 
     const handleDataExport = async () => {
         if (exporting) {
@@ -63,26 +66,38 @@ export default function AccountActionsSection() {
         }
     };
 
-    const performAccountDeletion = async () => {
+    const performAccountDeletion = async (password) => {
+        if (!password) {
+            showAlert('Hiba', 'Kérjük, add meg a jelszavad a törléshez!');
+            return;
+        }
         if (deleting) {
             return;
         }
         setDeleting(true);
         try {
-            await requestAccountDeletion();
-            showAlert(
-                'Kérés rögzítve',
-                'A fiók törlési kérelmét fogadtuk. Ügyfélszolgálatunk felveszi veled a kapcsolatot.'
-            );
+            await deleteAccount(password);
+            setShowDeletePasswordForm(false);
+            setDeletePassword('');
+            showAlert('Fiók törölve', 'A fiókod sikeresen törlésre került.');
+            logout();
+            router.replace('/');
         } catch (error) {
-            console.error('Fiók törlési kérelem sikertelen', error);
+            console.error('Fiók törlése sikertelen', error);
             showAlert(
                 'Hiba történt',
-                'Nem sikerült rögzíteni a törlési kérelmet. Próbáld újra később.'
+                error.response?.data?.message || 'Nem sikerült törölni a fiókot. Próbáld újra később.'
             );
         } finally {
             setDeleting(false);
         }
+    };
+
+    const handleConfirmAccountDeletion = () => performAccountDeletion(deletePassword);
+
+    const handleCancelAccountDeletion = () => {
+        setShowDeletePasswordForm(false);
+        setDeletePassword('');
     };
 
     const handleAccountDeletion = () => {
@@ -92,7 +107,10 @@ export default function AccountActionsSection() {
             {
                 confirmText: 'Törlés',
                 destructive: true,
-                onConfirm: performAccountDeletion,
+                onConfirm: () => {
+                    setDeletePassword('');
+                    setShowDeletePasswordForm(true);
+                },
             }
         );
     };
@@ -102,7 +120,7 @@ export default function AccountActionsSection() {
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Fiókműveletek</Text>
                 <Text style={styles.sectionSubtitle}>
-                    Itt tudod kikérni az adataidat vagy kérvényezni a fiókod törlését. A műveletek végrehajtása előtt emailben értesítünk.
+                    Itt tudod kikérni az adataidat vagy véglegesen törölni a fiókodat. A törléshez meg kell adnod a jelszavad, és a művelet nem vonható vissza.
                 </Text>
             </View>
             <View style={styles.fieldColumn}>
@@ -134,6 +152,49 @@ export default function AccountActionsSection() {
                         </Text>
                     )}
                 </TouchableOpacity>
+
+                {showDeletePasswordForm && (
+                    <View style={{ marginTop: 15 }}>
+                        <TextInput
+                            testID="account-deletion-password-input"
+                            style={styles.textInput}
+                            secureTextEntry
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            value={deletePassword}
+                            onChangeText={setDeletePassword}
+                            placeholder="Jelszó"
+                            placeholderTextColor={theme.colors.textTertiary}
+                        />
+                        <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                            <TouchableOpacity
+                                testID="account-deletion-confirm-button"
+                                style={[
+                                    styles.actionButton,
+                                    styles.dangerButton,
+                                    deleting && styles.actionButtonDisabled,
+                                ]}
+                                onPress={handleConfirmAccountDeletion}
+                                disabled={deleting}
+                            >
+                                {deleting ? (
+                                    <ActivityIndicator color={theme.colors.error} />
+                                ) : (
+                                    <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
+                                        Törlés megerősítése
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.actionButton}
+                                onPress={handleCancelAccountDeletion}
+                                disabled={deleting}
+                            >
+                                <Text style={styles.actionButtonText}>Mégse</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
             </View>
         </View>
     );
