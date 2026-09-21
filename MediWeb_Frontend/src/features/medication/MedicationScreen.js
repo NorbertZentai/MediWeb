@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, useWindowDimensions, StatusBar, Linking } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, LayoutAnimation, UIManager, Platform, StatusBar, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import CustomDropdown from "components/CustomDropdown";
 import RenderHtml from "react-native-render-html";
 import { useLocalSearchParams, Link, useRouter } from "expo-router";
@@ -26,8 +27,7 @@ export default function MedicationDetailsScreen() {
   const { id: itemId } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDark } = useTheme();
-  const { width: contentWidth } = useWindowDimensions();
-  const isMobile = contentWidth < 768;
+  const { isMobile, screenWidth: contentWidth } = useResponsiveLayout();
   const styles = useMemo(() => createStyles(theme, isMobile), [theme, isMobile]);
 
   const {
