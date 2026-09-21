@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Modal, Pressable, StyleSheet } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { theme } from "styles/theme";
+import { theme, MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function ConfirmModal({
   visible,
@@ -35,12 +35,19 @@ export default function ConfirmModal({
           <Text style={styles.title}>{title}</Text>
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           <View style={styles.actions}>
-            <Pressable style={styles.cancelButton} onPress={onCancel}>
+            <Pressable
+              style={styles.cancelButton}
+              onPress={onCancel}
+              accessibilityRole="button"
+              accessibilityLabel="Mégse"
+            >
               <Text style={styles.cancelButtonText}>Mégse</Text>
             </Pressable>
             <Pressable
               style={[styles.confirmButton, { backgroundColor: confirmBg }]}
               onPress={onConfirm}
+              accessibilityRole="button"
+              accessibilityLabel={confirmLabel}
             >
               <Text style={styles.confirmButtonText}>{confirmLabel}</Text>
             </Pressable>
@@ -93,6 +100,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: "center",
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   cancelButtonText: {
     fontSize: theme.fontSize.sm,
@@ -104,6 +113,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: theme.borderRadius.sm,
     alignItems: "center",
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   confirmButtonText: {
     fontSize: theme.fontSize.sm,

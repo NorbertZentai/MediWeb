@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { theme } from "styles/theme";
+import { theme, MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function EmptyState({ icon, emoji, title, subtitle, actionLabel, onAction }) {
   return (
@@ -15,7 +15,12 @@ export default function EmptyState({ icon, emoji, title, subtitle, actionLabel, 
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         {actionLabel && onAction && (
-          <TouchableOpacity style={styles.actionButton} onPress={onAction}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={onAction}
+            accessibilityRole="button"
+            accessibilityLabel={actionLabel}
+          >
             <Text style={styles.actionButtonText}>{actionLabel}</Text>
           </TouchableOpacity>
         )}
@@ -66,6 +71,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: theme.borderRadius.sm,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   actionButtonText: {

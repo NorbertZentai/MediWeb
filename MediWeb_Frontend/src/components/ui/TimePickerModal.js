@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function TimePickerModal({
     visible,
@@ -77,6 +78,9 @@ export default function TimePickerModal({
                                                     selectedHour === h && styles.selectedTimeItem
                                                 ]}
                                                 onPress={() => setSelectedHour(h)}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={h.toString().padStart(2, '0')}
+                                                hitSlop={{ top: 2, bottom: 2 }}
                                             >
                                                 <Text style={[
                                                     styles.timeText,
@@ -107,6 +111,9 @@ export default function TimePickerModal({
                                                     selectedMinute === m && styles.selectedTimeItem
                                                 ]}
                                                 onPress={() => setSelectedMinute(m)}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={m.toString().padStart(2, '0')}
+                                                hitSlop={{ top: 2, bottom: 2 }}
                                             >
                                                 <Text style={[
                                                     styles.timeText,
@@ -121,10 +128,20 @@ export default function TimePickerModal({
                             </View>
 
                             <View style={styles.footer}>
-                                <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+                                <TouchableOpacity
+                                    onPress={onCancel}
+                                    style={styles.cancelButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Mégse"
+                                >
                                     <Text style={styles.cancelButtonText}>Mégse</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
+                                <TouchableOpacity
+                                    onPress={handleConfirm}
+                                    style={styles.confirmButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Kész"
+                                >
                                     <Text style={styles.confirmButtonText}>Kész</Text>
                                 </TouchableOpacity>
                             </View>
@@ -187,6 +204,7 @@ const createStyles = (theme) => StyleSheet.create({
     },
     timeItem: {
         height: 40,
+        minWidth: MIN_TOUCH_TARGET,
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 8,
@@ -222,6 +240,10 @@ const createStyles = (theme) => StyleSheet.create({
     cancelButton: {
         paddingVertical: 10,
         paddingHorizontal: 16,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: "center",
+        alignItems: "center",
     },
     cancelButtonText: {
         fontSize: theme.fontSize.base,
@@ -233,6 +255,10 @@ const createStyles = (theme) => StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 24,
         borderRadius: 10,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: "center",
+        alignItems: "center",
     },
     confirmButtonText: {
         fontSize: theme.fontSize.base,

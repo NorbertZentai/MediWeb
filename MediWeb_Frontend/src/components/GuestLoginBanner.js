@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function GuestLoginBanner({ message = "A funkció használatához bejelentkezés szükséges." }) {
   const router = useRouter();
@@ -16,12 +17,16 @@ export default function GuestLoginBanner({ message = "A funkció használatához
         <TouchableOpacity
           style={[styles.button, { backgroundColor: theme.colors.primary }]}
           onPress={() => router.push("/login")}
+          accessibilityRole="button"
+          accessibilityLabel="Bejelentkezés"
         >
           <Text style={[styles.buttonText, { color: theme.colors.white }]}>Bejelentkezés</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.buttonOutline, { borderColor: theme.colors.primary }]}
           onPress={() => router.push("/register")}
+          accessibilityRole="button"
+          accessibilityLabel="Regisztráció"
         >
           <Text style={[styles.buttonText, { color: theme.colors.primary }]}>Regisztráció</Text>
         </TouchableOpacity>
@@ -58,6 +63,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonOutline: {
     backgroundColor: "transparent",
