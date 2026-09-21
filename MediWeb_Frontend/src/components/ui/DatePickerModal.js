@@ -9,7 +9,7 @@ import {
     TouchableWithoutFeedback,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { theme } from "styles/theme"; // Feltételezve, hogy itt van a theme
+import { theme, MIN_TOUCH_TARGET } from "styles/theme"; // Feltételezve, hogy itt van a theme
 import { haptics } from "utils/haptics";
 
 const DAYS_OF_WEEK = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
@@ -129,13 +129,23 @@ export default function DatePickerModal({
 
                             {/* Month Navigation */}
                             <View style={styles.navRow}>
-                                <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
+                                <TouchableOpacity
+                                    onPress={handlePrevMonth}
+                                    style={styles.navButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Előző hónap"
+                                >
                                     <FontAwesome5 name="chevron-left" size={16} color={theme.colors.textPrimary} />
                                 </TouchableOpacity>
                                 <Text style={styles.monthText}>
                                     {viewDate.getFullYear()}. {MONTHS[viewDate.getMonth()]}
                                 </Text>
-                                <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
+                                <TouchableOpacity
+                                    onPress={handleNextMonth}
+                                    style={styles.navButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Következő hónap"
+                                >
                                     <FontAwesome5 name="chevron-right" size={16} color={theme.colors.textPrimary} />
                                 </TouchableOpacity>
                             </View>
@@ -164,6 +174,10 @@ export default function DatePickerModal({
                                                 !selected && today && styles.dayCellToday,
                                             ]}
                                             onPress={() => handleSelectDate(day)}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={String(day)}
+                                            accessibilityState={{ selected }}
+                                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                                         >
                                             <Text style={[
                                                 styles.dayText,
@@ -179,10 +193,20 @@ export default function DatePickerModal({
 
                             {/* Footer Buttons */}
                             <View style={styles.footer}>
-                                <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+                                <TouchableOpacity
+                                    onPress={onCancel}
+                                    style={styles.cancelButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Mégse"
+                                >
                                     <Text style={styles.cancelButtonText}>Mégse</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
+                                <TouchableOpacity
+                                    onPress={handleConfirm}
+                                    style={styles.confirmButton}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Kiválaszt"
+                                >
                                     <Text style={styles.confirmButtonText}>Kiválaszt</Text>
                                 </TouchableOpacity>
                             </View>
@@ -227,6 +251,10 @@ const styles = StyleSheet.create({
     },
     navButton: {
         padding: 10,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: "center",
+        alignItems: "center",
     },
     monthText: {
         fontSize: theme.fontSize.base,
@@ -290,6 +318,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         marginRight: 10,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: "center",
+        alignItems: "center",
     },
     cancelButtonText: {
         fontSize: theme.fontSize.base,
@@ -301,6 +333,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 24,
         borderRadius: 20,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: "center",
+        alignItems: "center",
         ...theme.shadows.sm,
     },
     confirmButtonText: {

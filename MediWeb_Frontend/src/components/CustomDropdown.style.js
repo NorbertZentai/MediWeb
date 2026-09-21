@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
     container: {
@@ -78,6 +79,7 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: theme.spacing.md,
         borderRadius: theme.borderRadius.sm,
+        minHeight: MIN_TOUCH_TARGET,
     },
     optionSelected: {
         backgroundColor: theme.colors.primaryLight || theme.colors.primaryMuted,

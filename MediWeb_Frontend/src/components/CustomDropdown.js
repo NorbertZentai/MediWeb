@@ -15,6 +15,7 @@ import {
 import { FontAwesome5 } from "@expo/vector-icons";
 import { createStyles } from "./CustomDropdown.style";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 /**
  * A custom, styled dropdown replacement for @react-native-picker/picker.
@@ -145,43 +146,36 @@ export default function CustomDropdown({
                     const isSelected = item.value === selectedValue;
                     const isLast = index === options.length - 1;
                     return (
-                        <div
+                        <TouchableOpacity
                             key={String(item.value ?? index)}
-                            onClick={(e) => {
+                            onPress={(e) => {
                                 e.stopPropagation();
                                 handleSelect(item.value);
                             }}
+                            accessibilityRole="menuitem"
+                            accessibilityLabel={item.label}
+                            accessibilityState={{ selected: isSelected }}
                             style={{
-                                display: "flex",
                                 flexDirection: "row",
                                 alignItems: "center",
                                 justifyContent: "space-between",
-                                padding: "12px 16px",
+                                paddingVertical: 12,
+                                paddingHorizontal: 16,
+                                minHeight: MIN_TOUCH_TARGET,
+                                minWidth: MIN_TOUCH_TARGET,
                                 backgroundColor: isSelected ? (theme.colors.primaryLight || theme.colors.primaryMuted) : "transparent",
-                                borderBottom: !isLast ? `1px solid ${theme.colors.divider}` : "none",
-                                cursor: "pointer",
-                                transition: "background-color 0.2s",
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!isSelected) {
-                                    e.currentTarget.style.backgroundColor = theme.colors.backgroundElevated;
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!isSelected) {
-                                    e.currentTarget.style.backgroundColor = "transparent";
-                                }
+                                borderBottomWidth: !isLast ? 1 : 0,
+                                borderBottomColor: theme.colors.divider,
                             }}
                         >
-                            <span style={{
+                            <Text style={{
                                 fontSize: theme.fontSize.base,
                                 color: isSelected ? theme.colors.primary : theme.colors.textPrimary,
                                 fontWeight: isSelected ? theme.fontWeight.semibold : theme.fontWeight.normal,
                                 flex: 1,
-                                fontFamily: "System", // System font stack
                             }}>
                                 {item.label}
-                            </span>
+                            </Text>
                             {isSelected && (
                                 <FontAwesome5
                                     name="check"
@@ -189,7 +183,7 @@ export default function CustomDropdown({
                                     color={theme.colors.primary}
                                 />
                             )}
-                        </div>
+                        </TouchableOpacity>
                     );
                 })}
             </div>
@@ -208,6 +202,9 @@ export default function CustomDropdown({
                     ]}
                     onPress={handleToggle}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={displayLabel}
+                    accessibilityState={{ expanded: open, disabled }}
                 >
                     <Text
                         style={[
@@ -270,6 +267,9 @@ export default function CustomDropdown({
                 ]}
                 onPress={() => !disabled && setOpen(true)}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={displayLabel}
+                accessibilityState={{ expanded: open, disabled }}
             >
                 <Text
                     style={[
@@ -332,6 +332,9 @@ export default function CustomDropdown({
                                             ]}
                                             onPress={() => handleSelect(item.value)}
                                             activeOpacity={0.6}
+                                            accessibilityRole="menuitem"
+                                            accessibilityLabel={item.label}
+                                            accessibilityState={{ selected: isSelected }}
                                         >
                                             <Text
                                                 style={[
