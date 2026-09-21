@@ -5,31 +5,24 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { getCacheInfo, clearCache } from "utils/medicationCache";
 import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
-import {
-  fetchUserPreferences,
-  deleteAccount,
-  exportDataDirect,
-  updateUserPreferences,
-  generate2FA,
-  enable2FA,
-  disable2FA,
-} from "features/profile/profile.api";
+import { fetchUserPreferences, updateUserPreferences } from "features/profile/profile.api";
 import { AuthContext } from "contexts/AuthContext";
-import QRCode from "react-native-qrcode-svg";
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { createStyles } from "./SettingsTab.style";
 import { useTheme } from "contexts/ThemeContext";
 import { registerForPushNotificationsAsync, getPushPermissionStatus } from "utils/notifications";
+import { showAlert, showConfirm } from "utils/dialogs";
+import NotificationSettingsSection from "./settings/NotificationSettingsSection";
+import GeneralSettingsSection from "./settings/GeneralSettingsSection";
+import DataSection from "./settings/DataSection";
+import TwoFactorSection from "./settings/TwoFactorSection";
+import AccountActionsSection from "./settings/AccountActionsSection";
+import OfflineCacheSection from "./settings/OfflineCacheSection";
 
 const DEFAULT_PREFERENCES = {
   notifications: {
@@ -49,20 +42,6 @@ const DEFAULT_PREFERENCES = {
   },
 };
 
-const LANGUAGE_OPTIONS = [{ value: "hu", label: "Magyar" }];
-
-const THEME_OPTIONS = [
-  { value: "system", label: "Rendszer" },
-  { value: "light", label: "Világos" },
-  { value: "dark", label: "Sötét" },
-];
-
-const TIMEZONE_OPTIONS = [
-  { value: "Europe/Budapest", label: "Budapest (GMT+1)" },
-  { value: "Europe/London", label: "London (GMT)" },
-  { value: "America/New_York", label: "New York (GMT-5)" },
-];
-
 const mergePreferences = (incoming) => ({
   notifications: {
     ...DEFAULT_PREFERENCES.notifications,
@@ -78,61 +57,16 @@ const mergePreferences = (incoming) => ({
   },
 });
 
-/**
- * Cross-platform alert helper.
- * On web, Alert.alert() silently fails, so we fall back to window.alert / window.confirm.
- */
-const showAlert = (title, message) => {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}\n\n${message}`);
-  } else {
-    Alert.alert(title, message);
-  }
-};
-
-const showConfirm = (title, message, { confirmText = "OK", onConfirm, cancelText = "Mégse", destructive = false }) => {
-  if (Platform.OS === 'web') {
-    if (window.confirm(`${title}\n\n${message}`)) {
-      onConfirm?.();
-    }
-  } else {
-    Alert.alert(title, message, [
-      { text: cancelText, style: "cancel" },
-      { text: confirmText, style: destructive ? "destructive" : "default", onPress: onConfirm },
-    ]);
-  }
-};
-
 export default function SettingsTab() {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { theme, isDark } = useTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showDeletePasswordForm, setShowDeletePasswordForm] = useState(false);
-  const [deletePassword, setDeletePassword] = useState("");
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
-  const [initialPreferences, setInitialPreferences] = useState(
-    DEFAULT_PREFERENCES
-  );
+  const [initialPreferences, setInitialPreferences] = useState(DEFAULT_PREFERENCES);
   const [lastSavedAt, setLastSavedAt] = useState(null);
-
-  const { user, setUser } = useContext(AuthContext);
-  const [is2faEnabled, setIs2faEnabled] = useState(user?.is2faEnabled || false);
-  const [setup2faUri, setSetup2faUri] = useState(null);
-  const [cacheCount, setCacheCount] = useState(0);
-  const [setup2faSecret, setSetup2faSecret] = useState(null);
-  const [setup2faCode, setSetup2faCode] = useState("");
-  const [is2faLoading, setIs2faLoading] = useState(false);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      getCacheInfo().then(({ count }) => setCacheCount(count));
-    }
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -148,10 +82,7 @@ export default function SettingsTab() {
         setLastSavedAt(new Date());
       } catch (error) {
         console.error("Beállítások betöltése sikertelen", error);
-        showAlert(
-          "Hiba történt",
-          "Nem sikerült betölteni a beállításokat. Az alapértelmezett értékeket használjuk."
-        );
+        showAlert("Hiba történt", "Nem sikerült betölteni a beállításokat. Az alapértelmezett értékeket használjuk.");
         setPreferences(DEFAULT_PREFERENCES);
         setInitialPreferences(DEFAULT_PREFERENCES);
       } finally {
@@ -167,11 +98,10 @@ export default function SettingsTab() {
     };
   }, []);
 
-  const hasChanges = useMemo(() => {
-    return (
-      JSON.stringify(preferences) !== JSON.stringify(initialPreferences)
-    );
-  }, [preferences, initialPreferences]);
+  const hasChanges = useMemo(
+    () => JSON.stringify(preferences) !== JSON.stringify(initialPreferences),
+    [preferences, initialPreferences]
+  );
 
   const setPreferenceValue = (section, key, value) => {
     setPreferences((prev) => ({
@@ -189,10 +119,7 @@ export default function SettingsTab() {
       if (status !== "granted") {
         const token = await registerForPushNotificationsAsync();
         if (!token) {
-          Alert.alert(
-            "Engedély szükséges",
-            "A push értesítésekhez engedélyezned kell az értesítéseket a telefon beállításaiban."
-          );
+          Alert.alert("Engedély szükséges", "A push értesítésekhez engedélyezned kell az értesítéseket a telefon beállításaiban.");
           return;
         }
       }
@@ -202,14 +129,6 @@ export default function SettingsTab() {
 
   const handleSelect = (section, key, value) => {
     setPreferenceValue(section, key, value);
-    if (key === 'theme') {
-      // Logika a téma váltáshoz, ha a globális témát is frissíteni kell
-      // A theme.js valószínűleg a settings alapján működik, vagy külön state-ben van.
-      // Itt nem hívom a toggleTheme-et automatikusan, mert az backend hívástól függhet,
-      // de az UI update miatt lehet, hogy kellene.
-      // A useTheme hook most már a contextből jön, így ha a user settings változik,
-      // akkor a globális state-nek is változnia kellene, de ez lehet, hogy a ThemeProvider dolga.
-    }
   };
 
   const handleInputChange = (section, key, value) => {
@@ -230,242 +149,13 @@ export default function SettingsTab() {
       setInitialPreferences(merged);
       setLastSavedAt(new Date());
       showAlert("Sikeres mentés", "A beállítások frissültek.");
-
-      // Ha a téma változott, akkor frissítsük a globális témát is
-      // Ez feltételezi, hogy a ThemeContext tudja kezelni a user preferences alapján történő beállítást,
-      // vagy reload kell.
     } catch (error) {
       console.error("Beállítások mentése sikertelen", error);
-      showAlert(
-        "Mentés sikertelen",
-        "Nem sikerült menteni a módosításokat. Próbáld újra később."
-      );
+      showAlert("Mentés sikertelen", "Nem sikerült menteni a módosításokat. Próbáld újra később.");
     } finally {
       setSaving(false);
     }
   };
-
-  const handleDataExport = async () => {
-    if (exporting) {
-      return;
-    }
-    setExporting(true);
-    try {
-      const data = await exportDataDirect();
-      const jsonData = JSON.stringify(data, null, 2);
-      
-      if (Platform.OS === 'web') {
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `mediweb_export_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        showAlert("Siker", "Az adatok letöltése megkezdődött.");
-      } else {
-        const fileUri = FileSystem.documentDirectory + `mediweb_export_${new Date().toISOString().split('T')[0]}.json`;
-        await FileSystem.writeAsStringAsync(fileUri, jsonData, { encoding: FileSystem.EncodingType.UTF8 });
-        
-        const canShare = await Sharing.isAvailableAsync();
-        if (canShare) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Saját adatok exportálása',
-          });
-        } else {
-          showAlert("Siker", `Az adataid le lettek mentve a következő helyre: ${fileUri}`);
-        }
-      }
-    } catch (error) {
-      console.error("Adatexport indítása sikertelen", error);
-      showAlert(
-        "Hiba történt",
-        "Nem sikerült exportálni az adatokat. Próbáld újra később."
-      );
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const performAccountDeletion = async (password) => {
-    if (!password) {
-      showAlert("Hiba", "Kérjük, add meg a jelszavad a törléshez!");
-      return;
-    }
-    if (deleting) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      await deleteAccount(password);
-      setShowDeletePasswordForm(false);
-      setDeletePassword("");
-      showAlert("Fiók törölve", "A fiókod sikeresen törlésre került.");
-      logout();
-      router.replace("/");
-    } catch (error) {
-      console.error("Fiók törlése sikertelen", error);
-      showAlert(
-        "Hiba történt",
-        error.response?.data?.message || "Nem sikerült törölni a fiókot. Próbáld újra később."
-      );
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleConfirmAccountDeletion = () => performAccountDeletion(deletePassword);
-
-  const handleCancelAccountDeletion = () => {
-    setShowDeletePasswordForm(false);
-    setDeletePassword("");
-  };
-
-  const handleClearCache = async () => {
-    await clearCache();
-    setCacheCount(0);
-    showAlert('Cache törölve', 'Az offline mentett gyógyszeradatok törölve lettek.');
-  };
-
-  const handleAccountDeletion = () => {
-    showConfirm(
-      "Fiók törlése",
-      "Biztosan törölni szeretnéd a fiókodat? Ezt a műveletet nem lehet visszavonni.",
-      {
-        confirmText: "Törlés",
-        destructive: true,
-        onConfirm: () => {
-          setDeletePassword("");
-          setShowDeletePasswordForm(true);
-        },
-      }
-    );
-  };
-
-  const handleGenerate2FA = async () => {
-    setIs2faLoading(true);
-    try {
-      const response = await generate2FA();
-      setSetup2faUri(response.uri);
-      setSetup2faSecret(response.secret);
-    } catch (error) {
-      showAlert("Hiba", "Nem sikerült generálni a 2FA kódot.");
-    } finally {
-      setIs2faLoading(false);
-    }
-  };
-
-  const handleEnable2FA = async () => {
-    if (!setup2faCode || setup2faCode.length < 6) {
-      showAlert("Hiba", "Kérjük, add meg a 6 számjegyű kódot.");
-      return;
-    }
-    setIs2faLoading(true);
-    try {
-      const response = await enable2FA(setup2faSecret, setup2faCode);
-      setIs2faEnabled(true);
-      setSetup2faUri(null);
-      setSetup2faSecret(null);
-      setSetup2faCode("");
-      showAlert("Siker", response.message || "A 2FA sikeresen bekapcsolva.");
-      
-      // Update local user state
-      if (setUser) {
-        setUser(prev => ({ ...prev, is2faEnabled: true }));
-      }
-    } catch (error) {
-      showAlert("Hiba", error.response?.data?.message || "Hibás kód.");
-    } finally {
-      setIs2faLoading(false);
-    }
-  };
-
-  const handleDisable2FA = async () => {
-    if (!setup2faCode || setup2faCode.length < 6) {
-      showAlert("Hiba", "A kikapcsoláshoz meg kell adnod a jelenlegi 6 számjegyű kódot.");
-      return;
-    }
-    setIs2faLoading(true);
-    try {
-      const response = await disable2FA(setup2faCode);
-      setIs2faEnabled(false);
-      setSetup2faCode("");
-      showAlert("Siker", response.message || "A 2FA sikeresen kikapcsolva.");
-      
-      // Update local user state
-      if (setUser) {
-        setUser(prev => ({ ...prev, is2faEnabled: false }));
-      }
-    } catch (error) {
-      showAlert("Hiba", error.response?.data?.message || "Hibás kód.");
-    } finally {
-      setIs2faLoading(false);
-    }
-  };
-
-  const renderToggleRow = (title, helper, section, key) => (
-    <View style={styles.fieldRow} key={`${section}.${key}`}>
-      <View style={styles.fieldTextWrapper}>
-        <Text style={styles.fieldLabel}>{title}</Text>
-        {helper ? <Text style={styles.fieldHelper}>{helper}</Text> : null}
-      </View>
-      <View style={styles.switchWrapper}>
-        <Switch
-          value={preferences[section][key]}
-          onValueChange={handleToggle(section, key)}
-          trackColor={{ false: theme.colors.border || theme.colors.borderDark, true: theme.colors.secondary }}
-          thumbColor={preferences[section][key] ? theme.colors.secondaryDark || theme.colors.primary : theme.colors.background}
-          ios_backgroundColor={theme.colors.border || theme.colors.borderDark}
-        />
-      </View>
-    </View>
-  );
-
-  const renderPillGroup = (
-    title,
-    helper,
-    options,
-    section,
-    key,
-    { disabled = false, infoText } = {}
-  ) => (
-    <View style={styles.fieldColumn} key={`${section}.${key}`}>
-      <View>
-        <Text style={styles.fieldLabel}>{title}</Text>
-        {helper ? <Text style={styles.fieldHelper}>{helper}</Text> : null}
-      </View>
-      <View style={styles.pillGroup}>
-        {options.map((option) => {
-          const isActive = preferences[section][key] === option.value;
-          return (
-            <TouchableOpacity
-              key={option.value}
-              style={[
-                styles.pill,
-                isActive && styles.pillActive,
-                disabled && styles.pillDisabled,
-              ]}
-              onPress={() => {
-                if (disabled) {
-                  return;
-                }
-                handleSelect(section, key, option.value);
-              }}
-              activeOpacity={disabled ? 1 : 0.7}
-            >
-              <Text
-                style={[styles.pillLabel, isActive && styles.pillLabelActive]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      {infoText ? <Text style={styles.comingSoonText}>{infoText}</Text> : null}
-    </View>
-  );
 
   if (loading) {
     return (
@@ -482,329 +172,21 @@ export default function SettingsTab() {
     >
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Értesítési beállítások</Text>
-              <Text style={styles.sectionSubtitle}>
-                Állítsd be, hogyan szeretnél értesítéseket kapni a gyógyszereidről és
-                az egészségeddel kapcsolatos teendőkről.
-              </Text>
-            </View>
+          <NotificationSettingsSection preferences={preferences} onToggle={handleToggle} />
 
-            <View style={styles.subsectionHeader}>
-              <FontAwesome5 name="envelope" size={14} color={theme.colors.textSecondary} />
-              <Text style={styles.subsectionTitle}>Email értesítések</Text>
-            </View>
-            {renderToggleRow(
-              "Gyógyszer emlékeztetők",
-              "Email értesítések a közelgő gyógyszerbevételekről.",
-              "notifications",
-              "medicationReminders"
-            )}
-            {renderToggleRow(
-              "Heti email összefoglaló",
-              "Vasárnap délben elküldött összegző email a heti gyógyszerhasználatról.",
-              "notifications",
-              "summaryEmails"
-            )}
-            {renderToggleRow(
-              "Recept megújítás",
-              "Értesítés, amikor közeledik egy recept megújításának határideje.",
-              "notifications",
-              "refillAlerts"
-            )}
+          <GeneralSettingsSection
+            preferences={preferences}
+            onSelect={handleSelect}
+            onInputChange={handleInputChange}
+          />
 
-            <View style={styles.divider} />
+          <DataSection preferences={preferences} onToggle={handleToggle} />
 
-            <View style={styles.subsectionHeader}>
-              <FontAwesome5 name="mobile-alt" size={14} color={theme.colors.textSecondary} />
-              <Text style={styles.subsectionTitle}>Telefonos push értesítések</Text>
-            </View>
-            {Platform.OS === "web" ? (
-              <View style={styles.infoBox}>
-                <FontAwesome5 name="info-circle" size={14} color={theme.colors.primary} />
-                <Text style={styles.infoBoxText}>
-                  A telefonos push értesítések csak a mobil alkalmazásban érhetők el. Töltsd le az appot, hogy push értesítéseket kapj!
-                </Text>
-              </View>
-            ) : null}
-            {renderToggleRow(
-              "Push értesítések",
-              "Azonnali értesítések a telefonodra gyógyszerbevételi emlékeztetőkről.",
-              "notifications",
-              "pushEnabled"
-            )}
-          </View>
+          <TwoFactorSection />
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Általános beállítások</Text>
-              <Text style={styles.sectionSubtitle}>
-                Testreszabhatod az app megjelenését és alapvető működését.
-              </Text>
-            </View>
-            {renderPillGroup(
-              "Alkalmazás nyelve",
-              "A felület fő nyelve.",
-              LANGUAGE_OPTIONS,
-              "general",
-              "language",
-              {
-                infoText: "Angol nyelv hamarosan érkezik.",
-              }
-            )}
-            {renderPillGroup(
-              "Téma mód",
-              "Válaszd ki a számodra kényelmes megjelenést.",
-              THEME_OPTIONS,
-              "general",
-              "theme",
-              {
-                disabled: false, // Changed from true to allow selection
-              }
-            )}
-            {renderPillGroup(
-              "Időzóna",
-              "Az értesítések és összefoglalók időzítéséhez használjuk.",
-              TIMEZONE_OPTIONS,
-              "general",
-              "timezone"
-            )}
-            <View style={styles.inlineInputs}>
-              <View style={styles.inlineInputWrapper}>
-                <Text style={styles.inlineLabel}>Napi összefoglaló ideje</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={preferences.general.dailyDigestHour}
-                  onChangeText={(text) => handleInputChange("general", "dailyDigestHour", text)}
-                  placeholder="08:00"
-                  placeholderTextColor={theme.colors.textTertiary}
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
-                />
-                <Text style={styles.fieldHelper}>
-                  Melyik időpontban kapj napi összefoglaló értesítést.
-                </Text>
-              </View>
-            </View>
-          </View>
+          <AccountActionsSection />
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Adatkezelés</Text>
-              <Text style={styles.sectionSubtitle}>
-                Szabályozd, hogyan kezeljük és használjuk fel az adataidat.
-              </Text>
-            </View>
-            {renderToggleRow(
-              "Anonimizált analitikák engedélyezése",
-              "Segíts nekünk a szolgáltatás fejlesztésében névtelen statisztikák megosztásával.",
-              "data",
-              "anonymizedAnalytics"
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Biztonság (2FA)</Text>
-              <Text style={styles.sectionSubtitle}>
-                Védje fiókját kétlépcsős azonosítással (Google Authenticator).
-              </Text>
-            </View>
-
-            <View style={styles.fieldColumn}>
-              {!is2faEnabled && !setup2faUri && (
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={handleGenerate2FA}
-                  disabled={is2faLoading}
-                >
-                  {is2faLoading ? (
-                    <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
-                  ) : (
-                    <Text style={styles.actionButtonText}>2FA bekapcsolása</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-
-              {setup2faUri && !is2faEnabled && (
-                <View style={{ alignItems: 'center', marginVertical: 10 }}>
-                  <Text style={{ marginBottom: 10, textAlign: 'center', color: theme.colors.textPrimary }}>
-                    Olvasd be a QR kódot a Google Authenticator alkalmazással!
-                  </Text>
-                  <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 10, marginBottom: 15 }}>
-                    <QRCode value={setup2faUri} size={150} />
-                  </View>
-                  <Text style={{ marginBottom: 10, textAlign: 'center', color: theme.colors.textSecondary }}>
-                    Kézi megadás kódja: {setup2faSecret}
-                  </Text>
-
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="6 számjegyű kód"
-                    placeholderTextColor={theme.colors.textTertiary}
-                    value={setup2faCode}
-                    onChangeText={setSetup2faCode}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                  />
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, { marginTop: 15, width: '100%' }]}
-                    onPress={handleEnable2FA}
-                    disabled={is2faLoading}
-                  >
-                    {is2faLoading ? (
-                      <ActivityIndicator color={theme.colors.white} />
-                    ) : (
-                      <Text style={styles.actionButtonText}>Megerősítés és bekapcsolás</Text>
-                    )}
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={{ marginTop: 15 }}
-                    onPress={() => { setSetup2faUri(null); setSetup2faCode(""); }}
-                  >
-                    <Text style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}>Mégse</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {is2faEnabled && (
-                <View style={{ alignItems: 'center', width: '100%' }}>
-                  <Text style={{ marginBottom: 15, color: theme.colors.success, fontWeight: 'bold' }}>
-                    <FontAwesome5 name="check-circle" /> A kétlépcsős azonosítás (2FA) aktív.
-                  </Text>
-                  
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="Jelenlegi 6 számjegyű kód"
-                    placeholderTextColor={theme.colors.textTertiary}
-                    value={setup2faCode}
-                    onChangeText={setSetup2faCode}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                  />
-                  
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.dangerButton, { marginTop: 15, width: '100%' }]}
-                    onPress={handleDisable2FA}
-                    disabled={is2faLoading}
-                  >
-                    {is2faLoading ? (
-                      <ActivityIndicator color={theme.colors.white} />
-                    ) : (
-                      <Text style={[styles.actionButtonText, styles.dangerButtonText]}>2FA kikapcsolása</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Fiókműveletek</Text>
-              <Text style={styles.sectionSubtitle}>
-                Itt tudod kikérni az adataidat vagy véglegesen törölni a fiókodat. A törléshez meg kell adnod a jelszavad, és a művelet nem vonható vissza.
-              </Text>
-            </View>
-            <View style={styles.fieldColumn}>
-              <TouchableOpacity
-                style={[styles.actionButton, exporting && styles.actionButtonDisabled]}
-                onPress={handleDataExport}
-                disabled={exporting}
-              >
-                {exporting ? (
-                  <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
-                ) : (
-                  <Text style={styles.actionButtonText}>Adatok exportálása</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.actionButton,
-                  styles.dangerButton,
-                  deleting && styles.actionButtonDisabled,
-                ]}
-                onPress={handleAccountDeletion}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <ActivityIndicator color={theme.colors.error} />
-                ) : (
-                  <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
-                    Fiók törlése
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              {showDeletePasswordForm && (
-                <View style={{ marginTop: 15 }}>
-                  <TextInput
-                    testID="account-deletion-password-input"
-                    style={styles.textInput}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    value={deletePassword}
-                    onChangeText={setDeletePassword}
-                    placeholder="Jelszó"
-                    placeholderTextColor={theme.colors.textTertiary}
-                  />
-                  <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-                    <TouchableOpacity
-                      testID="account-deletion-confirm-button"
-                      style={[
-                        styles.actionButton,
-                        styles.dangerButton,
-                        deleting && styles.actionButtonDisabled,
-                      ]}
-                      onPress={handleConfirmAccountDeletion}
-                      disabled={deleting}
-                    >
-                      {deleting ? (
-                        <ActivityIndicator color={theme.colors.error} />
-                      ) : (
-                        <Text style={[styles.actionButtonText, styles.dangerButtonText]}>
-                          Törlés megerősítése
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={handleCancelAccountDeletion}
-                      disabled={deleting}
-                    >
-                      <Text style={styles.actionButtonText}>Mégse</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {Platform.OS !== 'web' && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Offline cache</Text>
-                <Text style={styles.sectionSubtitle}>
-                  Megtekintett gyógyszerek elmentve offline olvasáshoz (max. 50 db).
-                </Text>
-              </View>
-              <View style={styles.fieldRow}>
-                <Text style={styles.fieldLabel}>Mentett gyógyszerek</Text>
-                <Text style={styles.fieldLabel}>{cacheCount} db</Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.actionButton, cacheCount === 0 && styles.actionButtonDisabled]}
-                onPress={handleClearCache}
-                disabled={cacheCount === 0}
-              >
-                <Text style={styles.actionButtonText}>Cache törlése</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {Platform.OS !== 'web' && <OfflineCacheSection />}
 
           <View style={styles.footer}>
             {lastSavedAt ? (
@@ -836,18 +218,14 @@ export default function SettingsTab() {
             <TouchableOpacity
               style={styles.logoutButton}
               onPress={() => {
-                showConfirm(
-                  "Kijelentkezés",
-                  "Biztosan ki szeretnél jelentkezni?",
-                  {
-                    confirmText: "Kijelentkezés",
-                    destructive: true,
-                    onConfirm: () => {
-                      logout();
-                      router.replace("/");
-                    },
-                  }
-                );
+                showConfirm("Kijelentkezés", "Biztosan ki szeretnél jelentkezni?", {
+                  confirmText: "Kijelentkezés",
+                  destructive: true,
+                  onConfirm: () => {
+                    logout();
+                    router.replace("/");
+                  },
+                });
               }}
             >
               <FontAwesome5 name="sign-out-alt" size={18} color={theme.colors.error} />

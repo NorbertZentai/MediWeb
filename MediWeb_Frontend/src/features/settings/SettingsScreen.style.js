@@ -1,0 +1,202 @@
+import { StyleSheet, Platform } from 'react-native';
+
+export const createStyles = (theme) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    content: {
+        padding: theme.spacing.md,
+        paddingTop: Platform.OS === 'ios' ? 70 : 60,
+        paddingBottom: 100,
+    },
+    header: {
+        marginBottom: theme.spacing.lg,
+    },
+    headerTitle: {
+        fontSize: theme.fontSize.xxxl - 4,
+        fontWeight: theme.fontWeight.bold,
+        color: theme.colors.textPrimary,
+    },
+    section: {
+        marginBottom: theme.spacing.lg,
+    },
+    sectionTitle: {
+        fontSize: theme.fontSize.xs + 1,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.textSecondary,
+        marginBottom: theme.spacing.sm + 4,
+        letterSpacing: 0.5,
+    },
+    card: {
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.md,
+        overflow: 'hidden',
+        ...theme.shadows.sm,
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: theme.spacing.md,
+        paddingHorizontal: theme.spacing.md,
+    },
+    menuIconWrapper: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: theme.colors.primaryMuted,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    menuLabel: {
+        flex: 1,
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.medium,
+        color: theme.colors.textPrimary,
+    },
+    menuHelper: {
+        fontSize: theme.fontSize.xs,
+        color: theme.colors.textSecondary,
+        marginTop: 2,
+    },
+    menuValue: {
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textSecondary,
+        marginRight: theme.spacing.sm,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: theme.colors.divider,
+        marginLeft: 70,
+    },
+    flex1: {
+        flex: 1,
+    },
+    themeOptions: {
+        flexDirection: 'row',
+        gap: theme.spacing.sm,
+        marginTop: theme.spacing.sm,
+        flexWrap: 'wrap',
+    },
+    themeButton: {
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        borderRadius: theme.borderRadius.sm,
+        backgroundColor: theme.colors.divider,
+    },
+    themeButtonActive: {
+        backgroundColor: theme.colors.primaryMuted,
+    },
+    themeButtonText: {
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.medium,
+        color: theme.colors.textSecondary,
+    },
+    themeButtonTextActive: {
+        color: theme.colors.primary,
+    },
+    twoFaButton: {
+        paddingVertical: 9,
+        paddingHorizontal: 16,
+        borderRadius: theme.borderRadius.sm,
+        alignItems: 'center',
+    },
+    twoFaButtonText: {
+        fontSize: theme.fontSize.sm,
+        fontWeight: theme.fontWeight.semibold,
+    },
+    twoFaInput: {
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        borderRadius: theme.borderRadius.sm,
+        padding: 10,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textPrimary,
+        backgroundColor: theme.colors.background,
+        marginTop: 4,
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        backgroundColor: theme.colors.favoriteLight,
+        paddingVertical: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
+        borderWidth: 1,
+        borderColor: '#FECACA',
+    },
+    logoutText: {
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.semibold,
+        color: theme.colors.error,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    alertBox: {
+        width: '100%',
+        maxWidth: 400,
+        backgroundColor: theme.colors.backgroundCard,
+        borderRadius: theme.borderRadius.md,
+        padding: 24,
+        alignItems: 'center',
+        ...theme.shadows.md,
+    },
+    alertTitle: {
+        fontSize: theme.fontSize.xl,
+        fontWeight: theme.fontWeight.bold,
+        marginBottom: 12,
+    },
+    alertMessage: {
+        fontSize: theme.fontSize.base,
+        textAlign: 'center',
+        marginBottom: 20,
+        lineHeight: 22,
+    },
+    passwordContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+        borderRadius: theme.borderRadius.sm,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: 12,
+        fontSize: theme.fontSize.base,
+        color: theme.colors.textPrimary,
+    },
+    eyeIcon: {
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    alertButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+    alertButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: theme.borderRadius.sm,
+        alignItems: 'center',
+    },
+    alertButtonText: {
+        fontSize: theme.fontSize.base,
+        fontWeight: theme.fontWeight.bold,
+    },
+});
