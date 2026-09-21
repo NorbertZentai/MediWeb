@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,10 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons"
 import { toast } from "utils/toast";
-import { theme } from "styles/theme";
+import { MIN_TOUCH_TARGET } from "styles/theme";
+import { useTheme } from "contexts/ThemeContext";
 
-import { styles } from "../ProfileScreen.style";
+import { createStyles } from "../ProfileScreen.style";
 import defaultAvatar from "assets/default-avatar.jpg";
 import {
   updateUsername,
@@ -26,6 +27,9 @@ import {
 } from "features/profile/profile.api";
 
 export default function ProfileHeader() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -144,7 +148,12 @@ export default function ProfileHeader() {
         <Text style={styles.infoCardLabel}>{label}</Text>
         <Text style={styles.infoCardValue} numberOfLines={1}>{value}</Text>
       </View>
-      <TouchableOpacity style={styles.infoCardEditButton} onPress={onEdit}>
+      <TouchableOpacity
+        style={[styles.infoCardEditButton, { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET }]}
+        onPress={onEdit}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} szerkesztése`}
+      >
         <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
       </TouchableOpacity>
     </View>
@@ -166,8 +175,10 @@ export default function ProfileHeader() {
               style={styles.profileImage}
             />
             <TouchableOpacity
-              style={styles.editImageButton}
+              style={[styles.editImageButton, { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET }]}
               onPress={() => openEditModal("image")}
+              accessibilityRole="button"
+              accessibilityLabel="Profilkép szerkesztése"
             >
               <FontAwesome5 name="camera" size={12} color={theme.colors.white} />
             </TouchableOpacity>
@@ -205,6 +216,8 @@ export default function ProfileHeader() {
         <Pressable
           style={styles.modalOverlay}
           onPress={() => setModalVisible(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Bezárás"
         >
           <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHandle} />
@@ -246,7 +259,12 @@ export default function ProfileHeader() {
               </>
             ) : editingField === "image" ? (
               <>
-                <TouchableOpacity style={styles.uploadButton} onPress={selectImage}>
+                <TouchableOpacity
+                  style={[styles.uploadButton, { minHeight: MIN_TOUCH_TARGET }]}
+                  onPress={selectImage}
+                  accessibilityRole="button"
+                  accessibilityLabel="Kép feltöltése"
+                >
                   <FontAwesome5 name="cloud-upload-alt" size={32} color={theme.colors.primary} />
                   <Text style={styles.uploadText}>Kép kiválasztása</Text>
                 </TouchableOpacity>
@@ -278,12 +296,19 @@ export default function ProfileHeader() {
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { minHeight: MIN_TOUCH_TARGET }]}
                 onPress={() => setModalVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Mégse"
               >
                 <Text style={styles.cancelButtonText}>Mégse</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <TouchableOpacity
+                style={[styles.saveButton, { minHeight: MIN_TOUCH_TARGET }]}
+                onPress={handleSave}
+                accessibilityRole="button"
+                accessibilityLabel="Mentés"
+              >
                 <Text style={styles.saveButtonText}>Mentés</Text>
               </TouchableOpacity>
             </View>

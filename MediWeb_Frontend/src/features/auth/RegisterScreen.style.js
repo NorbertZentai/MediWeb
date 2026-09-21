@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -78,6 +79,8 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   label: {
     fontSize: theme.fontSize.sm,
@@ -98,7 +101,9 @@ export const createStyles = (theme) => StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: "center",
+    justifyContent: "center",
     borderRadius: theme.borderRadius.sm - 2,
+    minHeight: MIN_TOUCH_TARGET,
   },
   segmentButtonActive: {
     backgroundColor: theme.colors.primary,
@@ -119,14 +124,22 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: theme.borderRadius.sm,
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
     marginBottom: 16,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   buttonText: {
     color: theme.colors.white,
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
+  },
+  linkButton: {
+    width: "100%",
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
   linkText: {
     color: theme.colors.primary,
@@ -148,6 +161,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DADCE0',
     marginTop: 10,
+    minHeight: MIN_TOUCH_TARGET,
   },
   googleButtonText: {
     color: '#3C4043',
@@ -175,6 +189,8 @@ export const createStyles = (theme) => StyleSheet.create({
     marginTop: 20,
     paddingVertical: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: MIN_TOUCH_TARGET,
   },
   guestLinkText: {
     color: theme.colors.textTertiary,

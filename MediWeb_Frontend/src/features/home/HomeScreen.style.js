@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme, isMobile = false, isDark = false) => StyleSheet.create({
   pageWrapper: {
@@ -51,6 +52,8 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     paddingHorizontal: 26,
     borderRadius: 16,
     marginTop: 20,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
     ...theme.shadows.sm,
   },
   heroButtonText: {
@@ -141,6 +144,11 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     color: theme.colors.textPrimary,
     flex: 1,
   },
+  sectionActionButton: {
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
   sectionAction: {
     fontSize: theme.fontSize.sm,
     fontWeight: theme.fontWeight.semibold,
@@ -154,6 +162,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     backgroundColor: theme.colors.backgroundElevated,
     borderRadius: 18,
     overflow: 'hidden',
+    minHeight: MIN_TOUCH_TARGET,
   },
   popularCardTitle: {
     fontSize: theme.fontSize.base,
@@ -188,6 +197,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderColor: theme.colors.border,
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   quickActionIconWrapper: {
@@ -233,6 +243,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderRadius: 18,
     padding: 18,
     marginBottom: 16,
+    minHeight: MIN_TOUCH_TARGET,
   },
   todayCardHeader: {
     flexDirection: 'row',
@@ -332,7 +343,9 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 14,
+    minHeight: MIN_TOUCH_TARGET,
   },
   primaryButtonText: {
     fontSize: theme.fontSize.base,
@@ -343,8 +356,10 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.colors.primary,
+    minHeight: MIN_TOUCH_TARGET,
   },
   secondaryButtonText: {
     fontSize: theme.fontSize.base,

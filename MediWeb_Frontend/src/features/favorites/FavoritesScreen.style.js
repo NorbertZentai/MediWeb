@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
     container: {
@@ -56,6 +57,7 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: theme.borderRadius.md,
+        minHeight: MIN_TOUCH_TARGET,
         ...theme.shadows.sm,
     },
     primaryButtonText: {
@@ -74,6 +76,7 @@ export const createStyles = (theme) => StyleSheet.create({
         borderRadius: theme.borderRadius.md,
         borderWidth: 1,
         borderColor: theme.colors.border,
+        minHeight: MIN_TOUCH_TARGET,
         ...theme.shadows.sm,
     },
     cardIconWrapper: {
@@ -97,6 +100,10 @@ export const createStyles = (theme) => StyleSheet.create({
     deleteIconButton: {
         padding: theme.spacing.sm,
         marginLeft: theme.spacing.sm,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     modalOverlay: {
         flex: 1,
@@ -139,6 +146,8 @@ export const createStyles = (theme) => StyleSheet.create({
         borderWidth: 1,
         borderColor: theme.colors.border,
         alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: MIN_TOUCH_TARGET,
     },
     cancelButtonText: {
         fontSize: theme.fontSize.sm,
@@ -151,6 +160,8 @@ export const createStyles = (theme) => StyleSheet.create({
         borderRadius: theme.borderRadius.md,
         backgroundColor: theme.colors.error,
         alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: MIN_TOUCH_TARGET,
     },
     deleteButtonText: {
         fontSize: theme.fontSize.sm,

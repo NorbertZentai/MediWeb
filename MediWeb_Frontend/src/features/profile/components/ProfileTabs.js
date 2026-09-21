@@ -31,6 +31,9 @@ export default function ProfileTabs({ selectedTab, onTabChange }) {
             style={[styles.tabButton, isActive && styles.tabButtonActive]}
             onPress={() => onTabChange(tab.key)}
             activeOpacity={0.7}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={tab.label}
           >
             <FontAwesome5
               name={tab.icon}

@@ -95,6 +95,7 @@ export default function LoginScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             onSubmitEditing={handleLogin}
+            accessibilityLabel="Email cím"
           />
           <View style={styles.passwordContainer}>
             <TextInput
@@ -105,15 +106,18 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               onSubmitEditing={handleLogin}
               secureTextEntry={!showPassword}
+              accessibilityLabel="Jelszó"
             />
-            <TouchableOpacity 
-              onPress={() => setShowPassword(!showPassword)} 
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
               style={styles.eyeIcon}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Jelszó elrejtése' : 'Jelszó megjelenítése'}
             >
-              <Ionicons 
-                name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
-                size={20} 
-                color={theme.colors.textTertiary} 
+              <Ionicons
+                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                size={20}
+                color={theme.colors.textTertiary}
               />
             </TouchableOpacity>
           </View>
@@ -131,7 +135,12 @@ export default function LoginScreen() {
             />
           )}
 
-          <TouchableOpacity onPress={handleLogin} style={styles.button}>
+          <TouchableOpacity
+            onPress={handleLogin}
+            style={styles.button}
+            accessibilityRole="button"
+            accessibilityLabel="Bejelentkezés"
+          >
             <Text style={styles.buttonText}>Bejelentkezés</Text>
           </TouchableOpacity>
 
@@ -141,20 +150,32 @@ export default function LoginScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity 
-            style={styles.googleButton} 
+          <TouchableOpacity
+            style={styles.googleButton}
             disabled={!request}
             onPress={() => promptAsync()}
+            accessibilityRole="button"
+            accessibilityLabel="Belépés Google-lel"
           >
             <Ionicons name="logo-google" size={20} color="#EA4335" />
             <Text style={styles.googleButtonText}>Belépés Google-lel</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.push('/register')}>
+          <TouchableOpacity
+            onPress={() => router.push('/register')}
+            style={styles.linkButton}
+            accessibilityRole="link"
+            accessibilityLabel="Nincs még fiókod? Regisztrálj!"
+          >
             <Text style={styles.linkText}>Nincs még fiókod? Regisztrálj!</Text>
           </TouchableOpacity>
           {Platform.OS !== 'web' && (
-            <TouchableOpacity style={styles.guestLink} onPress={() => router.replace('/(tabs)')}>
+            <TouchableOpacity
+              style={styles.guestLink}
+              onPress={() => router.replace('/(tabs)')}
+              accessibilityRole="link"
+              accessibilityLabel="Folytatás bejelentkezés nélkül"
+            >
               <Text style={styles.guestLinkText}>Folytatás bejelentkezés nélkül</Text>
             </TouchableOpacity>
           )}

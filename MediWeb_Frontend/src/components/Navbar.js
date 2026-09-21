@@ -44,7 +44,12 @@ export default function Navbar() {
 
   // Logo Component
   const Logo = () => (
-    <TouchableOpacity onPress={() => handleNav("/")} style={styles.logoContainer}>
+    <TouchableOpacity
+      onPress={() => handleNav("/")}
+      style={styles.logoContainer}
+      accessibilityRole="button"
+      accessibilityLabel="MediWeb főoldal"
+    >
       <View style={styles.logoIconWrapper}>
         <FontAwesome5 name="pills" size={20} color={theme.colors.white} />
       </View>
@@ -71,6 +76,8 @@ export default function Navbar() {
             onPress={() => handleNav(to)}
             style={[styles.navLink, isActive(to) && styles.activeLink]}
             activeOpacity={0.7}
+            accessibilityRole="link"
+            accessibilityLabel={label}
           >
             <FontAwesome5
               name={icon}
@@ -91,6 +98,8 @@ export default function Navbar() {
           onPress={toggleTheme}
           style={styles.themeToggle}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Sötét mód váltása"
         >
           <FontAwesome5
             name={isDark ? "sun" : "moon"}
@@ -105,6 +114,8 @@ export default function Navbar() {
               onPress={() => handleNav("/login")}
               style={styles.loginButton}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Bejelentkezés"
             >
               <Text style={styles.loginButtonText}>Bejelentkezés</Text>
             </TouchableOpacity>
@@ -112,6 +123,8 @@ export default function Navbar() {
               onPress={() => handleNav("/register")}
               style={styles.registerButton}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Regisztráció"
             >
               <Text style={styles.registerButtonText}>Regisztráció</Text>
             </TouchableOpacity>
@@ -121,6 +134,8 @@ export default function Navbar() {
             onPress={handleLogout}
             style={styles.logoutButton}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Kijelentkezés"
           >
             <FontAwesome5 name="sign-out-alt" size={14} color={theme.colors.error} style={{ marginRight: 6 }} />
             <Text style={styles.logoutText}>Kijelentkezés</Text>
