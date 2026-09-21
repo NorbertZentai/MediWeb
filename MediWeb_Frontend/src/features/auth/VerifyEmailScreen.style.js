@@ -57,7 +57,7 @@ export const createStyles = (theme) => StyleSheet.create({
         borderWidth: 1,
         borderColor: theme.colors.border,
         borderRadius: theme.borderRadius.md,
-        padding: Platform.OS === 'web' ? 16 : 14,
+        padding: theme.spacing.md,
         fontSize: 24,
         letterSpacing: 10,
         textAlign: 'center',

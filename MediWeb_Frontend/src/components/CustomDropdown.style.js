@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, Platform } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 export const createStyles = (theme) => StyleSheet.create({
     container: {
@@ -55,7 +55,6 @@ export const createStyles = (theme) => StyleSheet.create({
         borderTopRightRadius: theme.borderRadius.xl,
         paddingTop: theme.spacing.sm,
         paddingBottom: Platform.OS === "ios" ? 34 : theme.spacing.md,
-        maxHeight: Dimensions.get("window").height * 0.5,
         ...theme.shadows.lg,
     },
     dropdownHandle: {

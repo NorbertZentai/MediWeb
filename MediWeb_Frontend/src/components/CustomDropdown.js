@@ -7,7 +7,7 @@ import {
     FlatList,
     StyleSheet,
     Animated,
-    Dimensions,
+    useWindowDimensions,
     TouchableWithoutFeedback,
     Platform,
     findNodeHandle,
@@ -37,6 +37,7 @@ export default function CustomDropdown({
 }) {
     const { theme } = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
+    const { height: windowHeight } = useWindowDimensions();
     const [open, setOpen] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const triggerRef = useRef(null);
@@ -298,6 +299,7 @@ export default function CustomDropdown({
                         <Animated.View
                             style={[
                                 styles.dropdownCard,
+                                { maxHeight: windowHeight * 0.5 },
                                 {
                                     opacity: fadeAnim,
                                     transform: [

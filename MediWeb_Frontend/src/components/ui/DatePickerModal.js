@@ -5,15 +5,12 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
-    Dimensions,
     Platform,
     TouchableWithoutFeedback,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { theme } from "styles/theme"; // Feltételezve, hogy itt van a theme
 import { haptics } from "utils/haptics";
-
-const { width } = Dimensions.get("window");
 
 const DAYS_OF_WEEK = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
 const MONTHS = [

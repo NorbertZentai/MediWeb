@@ -7,7 +7,6 @@ import {
     Modal,
     ScrollView,
     Platform,
-    Dimensions,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,8 +15,6 @@ import { useTheme } from "contexts/ThemeContext";
 import { haptics } from "utils/haptics";
 import DatePickerModal from "components/ui/DatePickerModal";
 import { toLocalDateString } from "utils/dateUtils";
-
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const BOOLEAN_FILTERS = [
     { field: "hasFinalSample", label: "Van véglegminta engedélye", icon: "vial" },
