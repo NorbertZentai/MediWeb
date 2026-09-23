@@ -30,6 +30,8 @@ export default function AboutSection() {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => setTermsModalVisible(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Felhasználási feltételek"
                 >
                     <View style={styles.menuIconWrapper}>
                         <FontAwesome5 name="file-alt" size={18} color={theme.colors.primary} />
@@ -43,6 +45,8 @@ export default function AboutSection() {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => setPrivacyModalVisible(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Adatvédelmi irányelvek"
                 >
                     <View style={styles.menuIconWrapper}>
                         <FontAwesome5 name="shield-alt" size={18} color={theme.colors.primary} />

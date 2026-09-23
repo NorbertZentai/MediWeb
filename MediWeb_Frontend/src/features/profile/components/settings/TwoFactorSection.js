@@ -5,6 +5,7 @@ import { AuthContext } from 'contexts/AuthContext';
 import { useTheme } from 'contexts/ThemeContext';
 import { generate2FA, enable2FA, disable2FA } from 'features/profile/profile.api';
 import { showAlert } from 'utils/dialogs';
+import { MIN_TOUCH_TARGET } from 'styles/theme';
 import QRCode from 'react-native-qrcode-svg';
 import { createStyles } from '../SettingsTab.style';
 
@@ -96,6 +97,9 @@ export default function TwoFactorSection() {
                         style={styles.actionButton}
                         onPress={handleGenerate2FA}
                         disabled={is2faLoading}
+                        accessibilityRole="button"
+                        accessibilityLabel="2FA bekapcsolása"
+                        accessibilityState={{ disabled: is2faLoading }}
                     >
                         {is2faLoading ? (
                             <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
@@ -119,6 +123,7 @@ export default function TwoFactorSection() {
 
                         <TextInput
                             style={styles.textInput}
+                            accessibilityLabel="6 számjegyű kód"
                             placeholder="6 számjegyű kód"
                             placeholderTextColor={theme.colors.textTertiary}
                             value={setup2faCode}
@@ -131,6 +136,9 @@ export default function TwoFactorSection() {
                             style={[styles.actionButton, { marginTop: 15, width: '100%' }]}
                             onPress={handleEnable2FA}
                             disabled={is2faLoading}
+                            accessibilityRole="button"
+                            accessibilityLabel="Megerősítés és bekapcsolás"
+                            accessibilityState={{ disabled: is2faLoading }}
                         >
                             {is2faLoading ? (
                                 <ActivityIndicator color={theme.colors.white} />
@@ -140,8 +148,10 @@ export default function TwoFactorSection() {
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={{ marginTop: 15 }}
+                            style={{ marginTop: 15, minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', alignItems: 'center' }}
                             onPress={() => { setSetup2faUri(null); setSetup2faCode(''); }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Mégse"
                         >
                             <Text style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}>Mégse</Text>
                         </TouchableOpacity>
@@ -156,6 +166,7 @@ export default function TwoFactorSection() {
 
                         <TextInput
                             style={styles.textInput}
+                            accessibilityLabel="Jelenlegi 6 számjegyű kód"
                             placeholder="Jelenlegi 6 számjegyű kód"
                             placeholderTextColor={theme.colors.textTertiary}
                             value={setup2faCode}
@@ -168,6 +179,9 @@ export default function TwoFactorSection() {
                             style={[styles.actionButton, styles.dangerButton, { marginTop: 15, width: '100%' }]}
                             onPress={handleDisable2FA}
                             disabled={is2faLoading}
+                            accessibilityRole="button"
+                            accessibilityLabel="2FA kikapcsolása"
+                            accessibilityState={{ disabled: is2faLoading }}
                         >
                             {is2faLoading ? (
                                 <ActivityIndicator color={theme.colors.white} />

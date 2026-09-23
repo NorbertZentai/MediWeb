@@ -201,6 +201,9 @@ export default function SettingsTab() {
               ]}
               onPress={handleSave}
               disabled={!hasChanges || saving}
+              accessibilityRole="button"
+              accessibilityLabel="Beállítások mentése"
+              accessibilityState={{ disabled: !hasChanges || saving, busy: saving }}
             >
               {saving ? (
                 <ActivityIndicator color={theme.colors.white} />
@@ -217,6 +220,8 @@ export default function SettingsTab() {
             </View>
             <TouchableOpacity
               style={styles.logoutButton}
+              accessibilityRole="button"
+              accessibilityLabel="Kijelentkezés"
               onPress={() => {
                 showConfirm("Kijelentkezés", "Biztosan ki szeretnél jelentkezni?", {
                   confirmText: "Kijelentkezés",

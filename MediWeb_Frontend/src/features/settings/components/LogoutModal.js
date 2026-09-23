@@ -18,10 +18,10 @@ export default function LogoutModal({ visible, onCancel, onConfirm }) {
                         Biztosan ki szeretnél jelentkezni?
                     </Text>
                     <View style={styles.alertButtons}>
-                        <TouchableOpacity onPress={onCancel} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mégse" onPress={onCancel} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
                             <Text style={[styles.alertButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onConfirm} style={[styles.alertButton, { backgroundColor: theme.colors.primary }]}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Kijelentkezés" onPress={onConfirm} style={[styles.alertButton, { backgroundColor: theme.colors.primary }]}>
                             <Text style={[styles.alertButtonText, { color: '#fff' }]}>Kijelentkezés</Text>
                         </TouchableOpacity>
                     </View>

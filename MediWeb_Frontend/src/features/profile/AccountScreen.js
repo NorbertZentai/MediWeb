@@ -14,6 +14,7 @@ import {
 import { FontAwesome5 } from "@expo/vector-icons";
 import { toast } from "utils/toast";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 import defaultAvatar from "assets/default-avatar.jpg";
 import ResponsiveContainer from "components/ui/ResponsiveContainer";
 import {
@@ -24,6 +25,8 @@ import {
     updateProfileImage,
     fetchCurrentUser,
 } from "features/profile/profile.api";
+
+const EDIT_FIELD_LABELS = { name: "Név", email: "Email", phone: "Telefonszám" };
 
 export default function AccountScreen() {
     const { theme } = useTheme();
@@ -131,7 +134,12 @@ export default function AccountScreen() {
                 <Text style={styles.infoLabel}>{label}</Text>
                 <Text style={styles.infoValue}>{value || "-"}</Text>
             </View>
-            <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
+            <TouchableOpacity
+                style={styles.editBtn}
+                onPress={onEdit}
+                accessibilityRole="button"
+                accessibilityLabel={`${label} szerkesztése`}
+            >
                 <FontAwesome5 name="pen" size={12} color={theme.colors.textSecondary} />
             </TouchableOpacity>
         </View>
@@ -156,6 +164,8 @@ export default function AccountScreen() {
                 />
                 <TouchableOpacity
                     style={styles.changeAvatarBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Kép módosítása"
                     onPress={() => {
                         if (Platform.OS !== 'web') {
                             Alert.alert("Profilkép", "A profilkép feltöltése jelenleg csak weben érhető el.");
@@ -181,6 +191,7 @@ export default function AccountScreen() {
                         <>
                             <TextInput
                                 style={styles.input}
+                                accessibilityLabel="Jelenlegi jelszó"
                                 placeholder="Jelenlegi jelszó"
                                 placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
@@ -189,6 +200,7 @@ export default function AccountScreen() {
                             />
                             <TextInput
                                 style={styles.input}
+                                accessibilityLabel="Új jelszó"
                                 placeholder="Új jelszó"
                                 placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
@@ -197,6 +209,7 @@ export default function AccountScreen() {
                             />
                             <TextInput
                                 style={styles.input}
+                                accessibilityLabel="Új jelszó megerősítése"
                                 placeholder="Új jelszó megerősítése"
                                 placeholderTextColor={theme.colors.textTertiary}
                                 secureTextEntry
@@ -209,6 +222,7 @@ export default function AccountScreen() {
                             style={styles.input}
                             value={inputValue}
                             onChangeText={setInputValue}
+                            accessibilityLabel={EDIT_FIELD_LABELS[editingField]}
                             placeholder="Írj ide..."
                             placeholderTextColor={theme.colors.textTertiary}
                             autoFocus
@@ -220,13 +234,21 @@ export default function AccountScreen() {
                     )}
 
                     <View style={styles.editActions}>
-                        <TouchableOpacity style={styles.cancelBtn} onPress={cancelEdit}>
+                        <TouchableOpacity
+                            style={styles.cancelBtn}
+                            onPress={cancelEdit}
+                            accessibilityRole="button"
+                            accessibilityLabel="Mégse"
+                        >
                             <Text style={styles.cancelBtnText}>Mégse</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.saveBtn}
                             onPress={handleSave}
                             disabled={saving}
+                            accessibilityRole="button"
+                            accessibilityLabel="Mentés"
+                            accessibilityState={{ disabled: saving, busy: saving }}
                         >
                             {saving ? (
                                 <ActivityIndicator size="small" color={theme.colors.white} />
@@ -298,6 +320,8 @@ const createStyles = (theme) => StyleSheet.create({
         borderColor: theme.colors.primaryMuted,
     },
     changeAvatarBtn: {
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         flexDirection: "row",
         alignItems: "center",
         gap: theme.spacing.sm,
@@ -349,8 +373,10 @@ const createStyles = (theme) => StyleSheet.create({
         color: theme.colors.textPrimary,
     },
     editBtn: {
-        width: 36,
-        height: 36,
+        width: MIN_TOUCH_TARGET,
+        height: MIN_TOUCH_TARGET,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         borderRadius: 10,
         backgroundColor: theme.colors.divider,
         justifyContent: "center",
@@ -387,6 +413,8 @@ const createStyles = (theme) => StyleSheet.create({
     },
     cancelBtn: {
         flex: 1,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         paddingVertical: 14,
         borderRadius: theme.borderRadius.md,
         backgroundColor: theme.colors.backgroundElevated,
@@ -401,6 +429,8 @@ const createStyles = (theme) => StyleSheet.create({
     },
     saveBtn: {
         flex: 1,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         paddingVertical: 14,
         borderRadius: theme.borderRadius.md,
         backgroundColor: theme.colors.primary,

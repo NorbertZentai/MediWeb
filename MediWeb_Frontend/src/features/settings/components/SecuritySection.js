@@ -92,6 +92,9 @@ export default function SecuritySection() {
                                 style={[styles.twoFaButton, { backgroundColor: theme.colors.primary, marginTop: 10 }]}
                                 onPress={handleGenerate2FA}
                                 disabled={is2faLoading}
+                                accessibilityRole="button"
+                                accessibilityLabel={is2faLoading ? 'Generálás...' : 'Kétlépcsős azonosítás (2FA) bekapcsolása'}
+                                accessibilityState={{ disabled: is2faLoading }}
                             >
                                 <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
                                     {is2faLoading ? 'Generálás...' : 'Bekapcsolás'}
@@ -112,6 +115,7 @@ export default function SecuritySection() {
                                 </Text>
                                 <TextInput
                                     style={styles.twoFaInput}
+                                    accessibilityLabel="6 jegyű kód"
                                     placeholder="6 jegyű kód"
                                     placeholderTextColor={theme.colors.textTertiary}
                                     value={setup2faCode}
@@ -124,6 +128,9 @@ export default function SecuritySection() {
                                         style={[styles.twoFaButton, { backgroundColor: theme.colors.primary, flex: 1 }]}
                                         onPress={handleEnable2FA}
                                         disabled={is2faLoading}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={is2faLoading ? 'Ellenőrzés...' : 'Megerősítés'}
+                                        accessibilityState={{ disabled: is2faLoading }}
                                     >
                                         <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
                                             {is2faLoading ? 'Ellenőrzés...' : 'Megerősítés'}
@@ -132,6 +139,8 @@ export default function SecuritySection() {
                                     <TouchableOpacity
                                         style={[styles.twoFaButton, { backgroundColor: theme.colors.border, flex: 1 }]}
                                         onPress={() => { setSetup2faUri(null); setSetup2faCode(''); }}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Mégse"
                                     >
                                         <Text style={[styles.twoFaButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
                                     </TouchableOpacity>
@@ -143,6 +152,7 @@ export default function SecuritySection() {
                             <View style={{ marginTop: 10 }}>
                                 <TextInput
                                     style={styles.twoFaInput}
+                                    accessibilityLabel="6 jegyű kód a kikapcsoláshoz"
                                     placeholder="6 jegyű kód a kikapcsoláshoz"
                                     placeholderTextColor={theme.colors.textTertiary}
                                     value={setup2faCode}
@@ -154,6 +164,9 @@ export default function SecuritySection() {
                                     style={[styles.twoFaButton, { backgroundColor: theme.colors.error, marginTop: 8 }]}
                                     onPress={handleDisable2FA}
                                     disabled={is2faLoading}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={is2faLoading ? 'Kikapcsolás...' : '2FA kikapcsolása'}
+                                    accessibilityState={{ disabled: is2faLoading }}
                                 >
                                     <Text style={[styles.twoFaButtonText, { color: '#fff' }]}>
                                         {is2faLoading ? 'Kikapcsolás...' : '2FA kikapcsolása'}

@@ -115,6 +115,8 @@ export default function SettingsScreen() {
                     <TouchableOpacity
                         style={styles.logoutButton}
                         onPress={handleLogout}
+                        accessibilityRole="button"
+                        accessibilityLabel="Kijelentkezés"
                     >
                         <FontAwesome5 name="sign-out-alt" size={18} color={theme.colors.error} />
                         <Text style={styles.logoutText}>Kijelentkezés</Text>

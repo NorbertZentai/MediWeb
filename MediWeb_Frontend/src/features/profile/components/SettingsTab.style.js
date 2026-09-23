@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme, isDark = false) => StyleSheet.create({
   container: {
@@ -108,6 +109,9 @@ export const createStyles = (theme, isDark = false) => StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
     backgroundColor: theme.colors.backgroundElevated,
   },
   pillActive: {
@@ -170,6 +174,7 @@ export const createStyles = (theme, isDark = false) => StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     paddingVertical: 14,
     paddingHorizontal: 28,
+    minHeight: MIN_TOUCH_TARGET,
     alignItems: "center",
     ...theme.shadows.sm,
   },
@@ -186,7 +191,9 @@ export const createStyles = (theme, isDark = false) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border || theme.colors.borderDark,
     paddingVertical: 12,
+    minHeight: MIN_TOUCH_TARGET,
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: theme.colors.backgroundElevated,
   },
   actionButtonText: {
@@ -212,6 +219,7 @@ export const createStyles = (theme, isDark = false) => StyleSheet.create({
     backgroundColor: theme.colors.favoriteLight,
     borderRadius: theme.borderRadius.md,
     paddingVertical: 16,
+    minHeight: MIN_TOUCH_TARGET,
     borderWidth: 1,
     borderColor: theme.colors.favoriteLight,
   },

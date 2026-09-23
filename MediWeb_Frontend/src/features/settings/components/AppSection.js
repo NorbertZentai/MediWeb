@@ -23,6 +23,9 @@ export default function AppSection() {
                             <TouchableOpacity
                                 style={[styles.themeButton, themeMode === 'light' && styles.themeButtonActive]}
                                 onPress={() => setThemeMode('light')}
+                                accessibilityRole="button"
+                                accessibilityLabel="Világos"
+                                accessibilityState={{ selected: themeMode === 'light' }}
                             >
                                 <Text style={[styles.themeButtonText, themeMode === 'light' && styles.themeButtonTextActive]}>
                                     Világos
@@ -31,6 +34,9 @@ export default function AppSection() {
                             <TouchableOpacity
                                 style={[styles.themeButton, themeMode === 'dark' && styles.themeButtonActive]}
                                 onPress={() => setThemeMode('dark')}
+                                accessibilityRole="button"
+                                accessibilityLabel="Sötét"
+                                accessibilityState={{ selected: themeMode === 'dark' }}
                             >
                                 <Text style={[styles.themeButtonText, themeMode === 'dark' && styles.themeButtonTextActive]}>
                                     Sötét
@@ -39,6 +45,9 @@ export default function AppSection() {
                             <TouchableOpacity
                                 style={[styles.themeButton, themeMode === 'system' && styles.themeButtonActive]}
                                 onPress={() => setThemeMode('system')}
+                                accessibilityRole="button"
+                                accessibilityLabel="Rendszer"
+                                accessibilityState={{ selected: themeMode === 'system' }}
                             >
                                 <Text style={[styles.themeButtonText, themeMode === 'system' && styles.themeButtonTextActive]}>
                                     Rendszer
@@ -53,6 +62,8 @@ export default function AppSection() {
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => {/* TODO: Language selection */ }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Nyelv"
                 >
                     <View style={styles.menuIconWrapper}>
                         <FontAwesome5 name="globe" size={18} color={theme.colors.primary} />
