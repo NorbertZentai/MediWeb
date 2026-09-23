@@ -171,25 +171,25 @@ export default function SyncTab() {
                 <View style={styles.syncActionsGrid}>
                     {!isRunning ? (
                         <>
-                            <TouchableOpacity style={[styles.syncBtn, { backgroundColor: theme.colors.primary }]} onPress={() => handleStartSync(false)}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Szinkron indítás" style={[styles.syncBtn, { backgroundColor: theme.colors.primary }]} onPress={() => handleStartSync(false)}>
                                 <FontAwesome5 name="play" size={14} color="#fff" />
                                 <Text style={styles.syncBtnText}>Szinkron indítás</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.syncBtn, { backgroundColor: theme.colors.warning }]} onPress={() => handleStartSync(true)}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Kényszerített" style={[styles.syncBtn, { backgroundColor: theme.colors.warning }]} onPress={() => handleStartSync(true)}>
                                 <FontAwesome5 name="redo" size={14} color="#fff" />
                                 <Text style={styles.syncBtnText}>Kényszerített</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.syncBtn, { backgroundColor: theme.colors.info }]} onPress={() => handleImageSync(false, false)}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hiányzó képek" style={[styles.syncBtn, { backgroundColor: theme.colors.info }]} onPress={() => handleImageSync(false, false)}>
                                 <FontAwesome5 name="image" size={14} color="#fff" />
                                 <Text style={styles.syncBtnText}>Hiányzó képek</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.syncBtn, { backgroundColor: theme.colors.secondary }]} onPress={() => handleImageSync(false, true)}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Képek + cleanup" style={[styles.syncBtn, { backgroundColor: theme.colors.secondary }]} onPress={() => handleImageSync(false, true)}>
                                 <FontAwesome5 name="broom" size={14} color="#fff" />
                                 <Text style={styles.syncBtnText}>Képek + cleanup</Text>
                             </TouchableOpacity>
                         </>
                     ) : (
-                        <TouchableOpacity style={[styles.syncBtn, { backgroundColor: theme.colors.error }]} onPress={handleStopSync}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Leállítás" style={[styles.syncBtn, { backgroundColor: theme.colors.error }]} onPress={handleStopSync}>
                             <FontAwesome5 name="stop" size={14} color="#fff" />
                             <Text style={styles.syncBtnText}>
                                 {syncStatus.cancellationRequested ? 'Leállítás...' : 'Leállítás'}
@@ -217,6 +217,9 @@ export default function SyncTab() {
                         </View>
                     ))}
                     <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="Beállítások mentése"
+                        accessibilityState={{ disabled: saving }}
                         style={[styles.saveConfigBtn, saving && { opacity: 0.5 }]}
                         onPress={handleSaveConfig}
                         disabled={saving}

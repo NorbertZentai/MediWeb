@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { createStyles } from '../AdminScreen.style';
 
 // ────────── Shared Components ──────────
 
@@ -23,7 +25,37 @@ export function SyncStatBadge({ label, value, color }) {
     );
 }
 
-// TODO(#98): stub, implement accessible pagination (renders nothing until implemented)
 export function AdminPagination({ page, totalPages, onChange }) {
-    return null;
+    const { theme } = useTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+    if (totalPages <= 1) return null;
+
+    const prevDisabled = page === 0;
+    const nextDisabled = page >= totalPages - 1;
+
+    return (
+        <View style={styles.pagination}>
+            <TouchableOpacity
+                style={[styles.pageBtn, prevDisabled && styles.pageBtnDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Előző oldal"
+                accessibilityState={{ disabled: prevDisabled }}
+                onPress={() => onChange(Math.max(0, page - 1))}
+                disabled={prevDisabled}
+            >
+                <FontAwesome5 name="chevron-left" size={12} color={prevDisabled ? theme.colors.textTertiary : theme.colors.primary} />
+            </TouchableOpacity>
+            <Text style={styles.pageText}>{`${page + 1} / ${totalPages}`}</Text>
+            <TouchableOpacity
+                style={[styles.pageBtn, nextDisabled && styles.pageBtnDisabled]}
+                accessibilityRole="button"
+                accessibilityLabel="Következő oldal"
+                accessibilityState={{ disabled: nextDisabled }}
+                onPress={() => onChange(Math.min(totalPages - 1, page + 1))}
+                disabled={nextDisabled}
+            >
+                <FontAwesome5 name="chevron-right" size={12} color={nextDisabled ? theme.colors.textTertiary : theme.colors.primary} />
+            </TouchableOpacity>
+        </View>
+    );
 }
