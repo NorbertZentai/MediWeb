@@ -37,6 +37,7 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Profil neve"
+              accessibilityLabel="Profil neve"
               placeholderTextColor={theme.colors.textTertiary}
               value={name}
               onChangeText={setName}
@@ -45,6 +46,7 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
             <TextInput
               style={styles.modalInput}
               placeholder="Leírás (opcionális)"
+              accessibilityLabel="Leírás (opcionális)"
               placeholderTextColor={theme.colors.textTertiary}
               value={description}
               onChangeText={setDescription}
@@ -54,11 +56,21 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
 
           <View style={styles.modalFooter}>
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={onClose}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mégse"
+              >
                 <Text style={styles.cancelButton}>Mégse</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleSubmit}>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mentés"
+              >
                 <Text style={styles.saveButton}>Mentés</Text>
               </TouchableOpacity>
             </View>

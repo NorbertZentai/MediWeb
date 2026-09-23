@@ -17,29 +17,43 @@ export default function ProfileCard({ profile, isSelected, onSelect, onEdit, onD
   };
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.profileCard,
-        isSelected && styles.profileCardSelected,
-      ]}
-      activeOpacity={0.8}
-      onPress={onSelect}
-    >
-      <View style={styles.profileCardHeader}>
-        <Text style={styles.profileCardTitle}>{profile.name}</Text>
-        <View style={styles.profileCardActions}>
-          <TouchableOpacity onPress={() => onEdit(profile)}>
-            <FontAwesome5 name="edit" size={16} style={styles.icon} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete}>
-            <FontAwesome5 name="trash" size={16} style={styles.icon} />
-          </TouchableOpacity>
+    <View style={styles.profileCardWrapper}>
+      <TouchableOpacity
+        style={[
+          styles.profileCard,
+          isSelected && styles.profileCardSelected,
+        ]}
+        activeOpacity={0.8}
+        onPress={onSelect}
+        accessibilityRole="button"
+        accessibilityLabel={profile.name}
+      >
+        <View style={styles.profileCardHeader}>
+          <Text style={styles.profileCardTitle}>{profile.name}</Text>
+          <View style={styles.profileCardActions}>
+            <TouchableOpacity
+              onPress={() => onEdit(profile)}
+              style={styles.touchTarget}
+              accessibilityRole="button"
+              accessibilityLabel={`Szerkesztés: ${profile.name}`}
+            >
+              <FontAwesome5 name="edit" size={16} style={styles.icon} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleDelete}
+              style={styles.touchTarget}
+              accessibilityRole="button"
+              accessibilityLabel={`Törlés: ${profile.name}`}
+            >
+              <FontAwesome5 name="trash" size={16} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <Text style={styles.profileCardDescription}>
-        {profile.notes || "Nincs leírás."}
-      </Text>
-    </TouchableOpacity>
+        <Text style={styles.profileCardDescription}>
+          {profile.notes || "Nincs leírás."}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }

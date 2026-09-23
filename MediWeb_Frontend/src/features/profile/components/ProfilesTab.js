@@ -84,7 +84,12 @@ export default function ProfilesTab() {
       style={[styles.tabContent, { padding: 0 }]}
       contentContainerStyle={styles.profileListContent}
     >
-      <TouchableOpacity style={styles.addProfileButton} onPress={() => setAddModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.addProfileButton}
+        onPress={() => setAddModalVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Új profil hozzáadása"
+      >
         <Text style={styles.addProfileButtonText}>ÚJ PROFIL</Text>
       </TouchableOpacity>
 
@@ -118,7 +123,11 @@ export default function ProfilesTab() {
                   <TouchableOpacity onPress={() => {
                     setActiveProfileId(profile.id);
                     setAssignVisible(true);
-                  }} style={styles.addMedicationButton}>
+                  }}
+                    style={styles.addMedicationButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Gyógyszer hozzáadása: ${profile.name}`}
+                  >
                     <Text style={styles.addMedicationButtonText}>Gyógyszer hozzáadása</Text>
                   </TouchableOpacity>
                 </View>
@@ -256,10 +265,20 @@ export default function ProfilesTab() {
                 Biztosan törölni szeretnéd a(z) "{deletingProfile.name}" profilt?
               </Text>
               <View style={styles.modalDeleteActions}>
-                <TouchableOpacity onPress={() => setDeletingProfile(null)}>
+                <TouchableOpacity
+                  onPress={() => setDeletingProfile(null)}
+                  style={styles.touchTarget}
+                  accessibilityRole="button"
+                  accessibilityLabel="Mégse"
+                >
                   <Text style={styles.cancelButton}>Mégse</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton} onPress={confirmDeleteProfile}>
+                <TouchableOpacity
+                  style={[styles.deleteButton, styles.touchTarget]}
+                  onPress={confirmDeleteProfile}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Törlés: ${deletingProfile.name}`}
+                >
                   <Text style={styles.deleteButtonText}>Törlés</Text>
                 </TouchableOpacity>
               </View>
@@ -282,10 +301,20 @@ export default function ProfilesTab() {
                 Biztosan törölni szeretnéd a(z) "{medicationToDelete.medicationName}" gyógyszert?
               </Text>
               <View style={styles.modalDeleteActions}>
-                <TouchableOpacity onPress={() => setMedicationToDelete(null)}>
+                <TouchableOpacity
+                  onPress={() => setMedicationToDelete(null)}
+                  style={styles.touchTarget}
+                  accessibilityRole="button"
+                  accessibilityLabel="Mégse"
+                >
                   <Text style={styles.cancelButton}>Mégse</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton} onPress={confirmDeleteMedication}>
+                <TouchableOpacity
+                  style={[styles.deleteButton, styles.touchTarget]}
+                  onPress={confirmDeleteMedication}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Törlés: ${medicationToDelete.medicationName}`}
+                >
                   <Text style={styles.deleteButtonText}>Törlés</Text>
                 </TouchableOpacity>
               </View>

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
   // --- Általános konténer ---
@@ -90,7 +91,25 @@ export const createStyles = (theme) => StyleSheet.create({
   },
 
   // --- Gombok ---
+  // Shared minimum touch target (a11y): icon buttons, modal footer buttons, text links
+  touchTarget: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  medicationTitleButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+  },
+  profileCardWrapper: {
+    width: "100%",
+    maxWidth: 680,
+  },
   addProfileButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: theme.colors.secondary,
     paddingVertical: theme.borderRadius.md,
     paddingHorizontal: 20,
@@ -106,6 +125,8 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.base,
   },
   addMedicationButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: theme.colors.secondary,
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
@@ -121,8 +142,8 @@ export const createStyles = (theme) => StyleSheet.create({
 
   // --- Profilkártya ---
   profileCard: {
-    width: "100%",
-    maxWidth: 680,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: theme.colors.backgroundCard,
     padding: theme.spacing.md,
     borderRadius: 10,
@@ -188,8 +209,8 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
     lineHeight: 20,
-    paddingRight: 80,
-    paddingBottom: 40,
+    paddingRight: 2 * MIN_TOUCH_TARGET + theme.spacing.md,
+    paddingBottom: MIN_TOUCH_TARGET + theme.spacing.md,
   },
   medicationsWrapper: {
     width: "100%",
@@ -446,6 +467,8 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   timeInput: {
     width: 80,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
     padding: 6,
     borderRadius: 6,
     borderWidth: 1,
@@ -525,8 +548,8 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     padding: theme.spacing.md,
     marginBottom: theme.borderRadius.md,
-    width: "100%",
-    maxWidth: 680,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   assignCardSelected: {
@@ -678,6 +701,8 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     minWidth: 120,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
     alignItems: "center",
   },
 
@@ -693,6 +718,10 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 6,
     marginLeft: theme.spacing.sm,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   missedSubmitButtonText: {

@@ -41,6 +41,7 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
             <Text style={styles.sectionHeaderTextInModal}>Név</Text>
             <TextInput
               style={styles.modalInput}
+              accessibilityLabel="Név"
               value={name}
               onChangeText={setName}
             />
@@ -48,16 +49,27 @@ export default function EditProfileModal({ profile, onClose, onProfileUpdated })
             <Text style={styles.sectionHeaderTextInModal}>Megjegyzés</Text>
             <TextInput
               style={styles.modalInput}
+              accessibilityLabel="Megjegyzés"
               value={notes}
               onChangeText={setNotes}
               multiline
             />
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={onClose}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mégse"
+              >
                 <Text style={styles.cancelButton}>Mégse</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave}>
+              <TouchableOpacity
+                onPress={handleSave}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mentés"
+              >
                 <Text style={styles.saveButton}>Mentés</Text>
               </TouchableOpacity>
             </View>

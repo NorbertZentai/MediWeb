@@ -131,31 +131,43 @@ export default function AssignMedicationModal({ profileId, visible, onClose, onA
                 </Text>
               ) : (
                 favorites.map((med, index) => (
-                  <Pressable
-                    key={med.id || index}
-                    onPress={() => med.medicationId && toggleSelect(med.medicationId)}
-                    style={[
-                      styles.assignCard,
-                      selectedIds.includes(med.medicationId) &&
-                      styles.assignCardSelected,
-                    ]}
-                  >
-                    <Text style={styles.assignCardTitle}>
-                      {index + 1}. {med.medicationName}
-                    </Text>
-                  </Pressable>
+                  <View key={med.id || index} style={styles.profileCardWrapper}>
+                    <Pressable
+                      onPress={() => med.medicationId && toggleSelect(med.medicationId)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${med.medicationName} kiválasztása`}
+                      accessibilityState={{ selected: selectedIds.includes(med.medicationId) }}
+                      style={[
+                        styles.assignCard,
+                        selectedIds.includes(med.medicationId) &&
+                        styles.assignCardSelected,
+                      ]}
+                    >
+                      <Text style={styles.assignCardTitle}>
+                        {index + 1}. {med.medicationName}
+                      </Text>
+                    </Pressable>
+                  </View>
                 ))
               )}
             </ScrollView>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={onClose}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mégse"
+              >
                 <Text style={styles.cancelButton}>Mégse</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleAssign}
                 disabled={selectedIds.length === 0}
+                accessibilityRole="button"
+                accessibilityLabel="Hozzáadás"
                 style={[
+                  styles.touchTarget,
                   selectedIds.length === 0 && styles.disabledButton,
                 ]}
               >
