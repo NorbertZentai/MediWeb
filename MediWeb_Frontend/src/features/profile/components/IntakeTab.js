@@ -5,6 +5,7 @@ import { getProfilesForUser, getTodaysMedications, submitIntake } from "features
 import { createStyles } from "./ProfilesTab.style";
 import { useTheme } from "contexts/ThemeContext";
 import TimePickerModal from "components/ui/TimePickerModal";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function IntakeTab() {
   const { theme } = useTheme();
@@ -145,6 +146,9 @@ export default function IntakeTab() {
               <TouchableOpacity
                 key={profile.id}
                 onPress={() => setSelectedProfile(profile)}
+                accessibilityRole="button"
+                accessibilityLabel={`${profile.name} profil kiválasztása`}
+                accessibilityState={{ selected: selectedProfile?.id === profile.id }}
                 style={[
                   styles.intakeButtonProfile,
                   selectedProfile?.id === profile.id && styles.intakeButtonProfileSelected,
@@ -175,22 +179,30 @@ export default function IntakeTab() {
                 medications.map((med) => (
                   <View key={med.profileMedicationId} style={styles.intakeCard}>
                     <Text style={styles.intakeCardTitle}>{med.medicationName}</Text>
-                    {med.times && med.times.map((time, idx) => (
-                      <View key={time + idx} style={styles.intakeRow}>
-                        <Text style={styles.intakeTime}>{time}</Text>
-                        <Text style={med.takenFlags && med.takenFlags[idx] ? styles.takenText : styles.notTakenText}>
-                          {med.takenFlags && med.takenFlags[idx] ? "✅ Bevéve" : "❌ Nincs bejelölve"}
-                        </Text>
-                        {(!med.takenFlags || !med.takenFlags[idx]) && (
-                          <TouchableOpacity
-                            onPress={() => handleIntake(med.profileMedicationId, time, true)}
-                            style={styles.intakeButton}
-                          >
-                            <Text style={styles.intakeButtonText}>Bevettem</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    ))}
+                    {med.times && med.times.map((time, idx) => {
+                      const taken = !!(med.takenFlags && med.takenFlags[idx]);
+                      return (
+                        <TouchableOpacity
+                          key={time + idx}
+                          onPress={() => handleIntake(med.profileMedicationId, time, true)}
+                          disabled={taken}
+                          accessibilityRole="checkbox"
+                          accessibilityLabel={`${med.medicationName} ${time} bevétele`}
+                          accessibilityState={{ checked: taken }}
+                          style={[styles.intakeRow, { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET }]}
+                        >
+                          <Text style={styles.intakeTime}>{time}</Text>
+                          <Text style={taken ? styles.takenText : styles.notTakenText}>
+                            {taken ? "✅ Bevéve" : "❌ Nincs bejelölve"}
+                          </Text>
+                          {!taken && (
+                            <View style={styles.intakeButton}>
+                              <Text style={styles.intakeButtonText}>Bevettem</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
                 ))
               )}
@@ -214,12 +226,16 @@ export default function IntakeTab() {
                         <View style={styles.intakeRow}>
                           <TouchableOpacity
                             style={styles.missedTimeButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${missed.medicationName} ${missed.scheduledTime} bevételi időpont kiválasztása`}
                             onPress={() => handleOpenTimePicker(missed.profileMedicationId, missed.scheduledTime)}
                           >
                             <Text style={styles.missedTimeButtonText}>{displayTime}</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
                             style={styles.missedSubmitButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${missed.medicationName} ${missed.scheduledTime} rögzítése`}
                             onPress={() => handleMissedSubmit(missed.profileMedicationId, missed.scheduledTime)}
                           >
                             <Text style={styles.missedSubmitButtonText}>Rögzítés</Text>

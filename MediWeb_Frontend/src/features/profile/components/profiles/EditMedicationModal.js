@@ -6,6 +6,15 @@ import { useTheme } from "contexts/ThemeContext";
 import TimePickerModal from "components/ui/TimePickerModal";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
+const DAY_LABELS = {
+  H: "Hétfő",
+  K: "Kedd",
+  Sze: "Szerda",
+  Cs: "Csütörtök",
+  P: "Péntek",
+  Szo: "Szombat",
+  V: "Vasárnap",
+};
 
 export default function EditMedicationModal({ profileId, medication, onClose, onUpdated, onDeleted }) {
   const { theme } = useTheme();
@@ -117,6 +126,7 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
               value={note}
               onChangeText={setNote}
               placeholder="Megjegyzés..."
+              accessibilityLabel="Megjegyzés..."
               placeholderTextColor={theme.colors.textTertiary}
               multiline
             />
@@ -138,6 +148,10 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                         <TouchableOpacity
                           key={day}
                           onPress={() => toggleDay(index, day)}
+                          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${DAY_LABELS[day]} kiválasztása`}
+                          accessibilityState={{ selected: isSelected }}
                           style={[
                             styles.dayButton,
                             isSelected && styles.dayButtonSelected,
@@ -157,6 +171,8 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                       <View key={timeIndex}>
                         <TouchableOpacity
                           onPress={() => openTimePicker(index, timeIndex)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Időpont beállítása: ${reminder.times[timeIndex] || "nincs megadva"}`}
                           style={[
                             styles.timeInput,
                             { justifyContent: "center", alignItems: "center" }
@@ -174,13 +190,23 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
                   </View>
                 </View>
 
-                <TouchableOpacity onPress={() => deleteReminderGroup(index)}>
+                <TouchableOpacity
+                  onPress={() => deleteReminderGroup(index)}
+                  style={[styles.touchTarget, { alignItems: "flex-start" }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${index + 1}. emlékeztető törlése`}
+                >
                   <Text style={styles.deleteReminderText}>Emlékeztető törlése</Text>
                 </TouchableOpacity>
               </View>
             ))}
 
-            <TouchableOpacity onPress={addReminderGroup}>
+            <TouchableOpacity
+              onPress={addReminderGroup}
+              style={styles.touchTarget}
+              accessibilityRole="button"
+              accessibilityLabel="Új emlékeztető hozzáadása"
+            >
               <Text style={styles.addReminderButton}>+ Új emlékeztető</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -203,15 +229,30 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
           <View style={styles.modalFooter}>
             <View style={styles.modalFooterRow}>
               <View style={styles.modalFooterLeft}>
-                <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={[styles.deleteButton, styles.touchTarget]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Törlés: ${medication.medicationName}`}
+                >
                   <Text style={styles.deleteButtonText}>TÖRLÉS</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.modalFooterRight}>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.touchTarget}
+                  accessibilityRole="button"
+                  accessibilityLabel="Mégse"
+                >
                   <Text style={styles.cancelButton}>Mégse</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSave}>
+                <TouchableOpacity
+                  onPress={handleSave}
+                  style={styles.touchTarget}
+                  accessibilityRole="button"
+                  accessibilityLabel="Mentés"
+                >
                   <Text style={styles.saveButton}>Mentés</Text>
                 </TouchableOpacity>
               </View>

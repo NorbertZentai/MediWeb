@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, ActivityIndicator, TouchableOpacity, Modal, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { getFavorites, removeFromFavorites } from "features/profile/profile.api";
 import { toast } from 'utils/toast';
-import { styles } from "./ProfilesTab.style";
-import { theme } from "styles/theme";
+import { createStyles } from "./ProfilesTab.style";
+import { useTheme } from "contexts/ThemeContext";
 
 export default function FavoritesTab() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFavorite, setSelectedFavorite] = useState(null);
@@ -74,19 +76,31 @@ export default function FavoritesTab() {
         ) : (
           <View style={styles.profileListWrapper}>
             {favorites.map((fav, index) => (
-              <View key={fav.id} style={styles.profileCard}>
+              <View key={fav.id} style={styles.profileCardWrapper}>
+              <View style={styles.profileCard}>
                 <View style={styles.profileCardHeader}>
-                  <TouchableOpacity onPress={() => router.push(`/medication/${fav.medicationId}`)}>
+                  <TouchableOpacity
+                    onPress={() => router.push(`/medication/${fav.medicationId}`)}
+                    style={styles.medicationTitleButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${fav.medicationName} megnyitása`}
+                  >
                     <Text style={styles.medicationName}>
                       {index + 1}. {fav.medicationName}
                     </Text>
                   </TouchableOpacity>
                   <View style={styles.profileCardActions}>
-                    <TouchableOpacity onPress={() => confirmDelete(fav)}>
+                    <TouchableOpacity
+                      onPress={() => confirmDelete(fav)}
+                      style={styles.touchTarget}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Törlés: ${fav.medicationName}`}
+                    >
                       <FontAwesome5 name="trash-alt" size={18} style={styles.icon} />
                     </TouchableOpacity>
                   </View>
                 </View>
+              </View>
               </View>
             ))}
           </View>
@@ -109,10 +123,20 @@ export default function FavoritesTab() {
               {selectedFavorite?.medicationName}
             </Text>
             <View style={styles.modalDeleteActions}>
-              <Pressable onPress={() => setModalVisible(false)}>
+              <Pressable
+                onPress={() => setModalVisible(false)}
+                style={styles.touchTarget}
+                accessibilityRole="button"
+                accessibilityLabel="Mégse"
+              >
                 <Text style={styles.cancelButton}>Mégse</Text>
               </Pressable>
-              <Pressable onPress={handleDelete} style={styles.deleteButton}>
+              <Pressable
+                onPress={handleDelete}
+                style={[styles.deleteButton, styles.touchTarget]}
+                accessibilityRole="button"
+                accessibilityLabel={`Törlés: ${selectedFavorite?.medicationName ?? "kedvenc"}`}
+              >
                 <Text style={styles.deleteButtonText}>Törlés</Text>
               </Pressable>
             </View>

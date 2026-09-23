@@ -25,7 +25,12 @@ export default function MedicationCard({ medication, onEditNote, onDelete }) {
   return (
     <View style={styles.medicationCard}>
       {/* Title - Full Width */}
-      <TouchableOpacity onPress={openMedicationPage}>
+      <TouchableOpacity
+        onPress={openMedicationPage}
+        style={styles.medicationTitleButton}
+        accessibilityRole="button"
+        accessibilityLabel={medication.medicationName}
+      >
         <Text style={styles.medicationName}>{medication.medicationName}</Text>
       </TouchableOpacity>
 
@@ -40,6 +45,9 @@ export default function MedicationCard({ medication, onEditNote, onDelete }) {
           onPress={onEditNote}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.6}
+          style={styles.touchTarget}
+          accessibilityRole="button"
+          accessibilityLabel={`Szerkesztés: ${medication.medicationName}`}
         >
           <FontAwesome5
             name="edit"
@@ -51,6 +59,9 @@ export default function MedicationCard({ medication, onEditNote, onDelete }) {
           onPress={handleDelete}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.6}
+          style={styles.touchTarget}
+          accessibilityRole="button"
+          accessibilityLabel={`Törlés: ${medication.medicationName}`}
         >
           <FontAwesome5
             name="trash"

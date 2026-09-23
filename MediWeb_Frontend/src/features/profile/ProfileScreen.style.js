@@ -74,8 +74,8 @@ export const createStyles = (theme) => StyleSheet.create({
     marginTop: 2,
   },
   editButton: {
-    width: 40,
-    height: 40,
+    width: MIN_TOUCH_TARGET,
+    height: MIN_TOUCH_TARGET,
     borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.divider,
     justifyContent: "center",
@@ -89,6 +89,8 @@ export const createStyles = (theme) => StyleSheet.create({
     ...theme.shadows.md,
   },
   menuItem: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: theme.spacing.md,
@@ -144,6 +146,12 @@ export const createStyles = (theme) => StyleSheet.create({
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
+  },
+  sectionActionButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: "center",
+    alignItems: "flex-end",
   },
   sectionAction: {
     fontSize: theme.fontSize.sm,
@@ -209,6 +217,8 @@ export const createStyles = (theme) => StyleSheet.create({
     borderBottomColor: theme.colors.divider,
   },
   tableRow: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     flexDirection: "row",
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -275,6 +285,8 @@ export const createStyles = (theme) => StyleSheet.create({
     lineHeight: 24,
   },
   guestLoginButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     backgroundColor: theme.colors.primary,
     width: '100%',
     paddingVertical: 14,
@@ -287,6 +299,8 @@ export const createStyles = (theme) => StyleSheet.create({
     fontWeight: theme.fontWeight.semibold,
   },
   guestRegisterButton: {
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     borderWidth: 1.5,
     borderColor: theme.colors.primary,
     width: '100%',

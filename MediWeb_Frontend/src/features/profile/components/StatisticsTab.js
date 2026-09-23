@@ -329,6 +329,9 @@ export default function StatisticsTab() {
                   onPress={() => setSelectedPeriod(option.key)}
                   disabled={option.key === selectedPeriod}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${option.label} időszak`}
+                  accessibilityState={{ selected: isActive }}
                 >
                   <Text
                     style={[styles.periodTabLabel, isActive && styles.periodTabLabelActive]}

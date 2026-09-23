@@ -95,10 +95,20 @@ export default function ProfileScreen() {
             A kedvencek, emlékeztetők és gyógyszerprofilok eléréséhez
             jelentkezz be, vagy regisztrálj ingyen.
           </Text>
-          <TouchableOpacity style={styles.guestLoginButton} onPress={() => router.push('/login')}>
+          <TouchableOpacity
+            style={styles.guestLoginButton}
+            onPress={() => router.push('/login')}
+            accessibilityRole="button"
+            accessibilityLabel="Bejelentkezés"
+          >
             <Text style={styles.guestLoginText}>Bejelentkezés</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.guestRegisterButton} onPress={() => router.push('/register')}>
+          <TouchableOpacity
+            style={styles.guestRegisterButton}
+            onPress={() => router.push('/register')}
+            accessibilityRole="button"
+            accessibilityLabel="Regisztráció"
+          >
             <Text style={styles.guestRegisterText}>Regisztráció</Text>
           </TouchableOpacity>
         </View>
@@ -123,6 +133,8 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => handleMenuPress("account")}
+          accessibilityRole="button"
+          accessibilityLabel={`Szerkesztés: ${user.name || "Felhasználó"}`}
         >
           <FontAwesome5 name="pen" size={14} color={theme.colors.textSecondary} />
         </TouchableOpacity>
@@ -140,6 +152,8 @@ export default function ProfileScreen() {
             ]}
             onPress={() => handleMenuPress(item.key)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={item.label}
           >
             <View style={styles.menuIconWrapper}>
               <FontAwesome5 name={item.icon} size={18} color={theme.colors.primary} />
@@ -157,7 +171,12 @@ export default function ProfileScreen() {
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Kedvenceim ({favorites.length})</Text>
-          <TouchableOpacity onPress={() => router.push('/favorites')}>
+          <TouchableOpacity
+            onPress={() => router.push('/favorites')}
+            style={styles.sectionActionButton}
+            accessibilityRole="button"
+            accessibilityLabel="Összes kedvenc megtekintése"
+          >
             <Text style={styles.sectionAction}>Összes</Text>
           </TouchableOpacity>
         </View>
@@ -170,6 +189,8 @@ export default function ProfileScreen() {
                 key={index}
                 style={styles.horizontalCard}
                 onPress={() => router.push(`/medication/${item.medicationId}`)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.medicationName} megnyitása`}
               >
                 <Text style={styles.horizontalCardTitle} numberOfLines={2}>
                   {item.medicationName}
@@ -194,6 +215,8 @@ export default function ProfileScreen() {
                 key={index}
                 style={styles.horizontalCard}
                 onPress={() => router.push(`/medication/${item.medicationId}`)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.medicationName} megnyitása`}
               >
                 <Text style={styles.horizontalCardTitle} numberOfLines={2}>
                   {item.medicationName}
@@ -238,6 +261,8 @@ export default function ProfileScreen() {
                 key={index}
                 style={[styles.tableRow, index === reviews.length - 1 && { borderBottomWidth: 0 }]}
                 onPress={() => router.push(`/medication/${review.medicationId}`)}
+                accessibilityRole="button"
+                accessibilityLabel={`${review.medicationName} megnyitása`}
               >
                 <View style={styles.colMedication}>
                   <Text style={styles.tableCell} numberOfLines={2}>{review.medicationName}</Text>

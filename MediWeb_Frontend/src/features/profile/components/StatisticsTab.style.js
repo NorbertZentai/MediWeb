@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -47,6 +48,8 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   periodTab: {
     flex: 1,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: theme.borderRadius.md,
