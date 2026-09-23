@@ -37,6 +37,9 @@ export default function OfflineCacheSection() {
                 style={[styles.actionButton, cacheCount === 0 && styles.actionButtonDisabled]}
                 onPress={handleClearCache}
                 disabled={cacheCount === 0}
+                accessibilityRole="button"
+                accessibilityLabel="Cache törlése"
+                accessibilityState={{ disabled: cacheCount === 0 }}
             >
                 <Text style={styles.actionButtonText}>Cache törlése</Text>
             </TouchableOpacity>

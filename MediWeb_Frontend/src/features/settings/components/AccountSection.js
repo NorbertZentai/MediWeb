@@ -50,6 +50,8 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => router.push('/profile/account')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Profil adatok"
                 >
                     <View style={styles.menuIconWrapper}>
                         <FontAwesome5 name="user" size={18} color={theme.colors.primary} />
@@ -71,6 +73,9 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                     <Switch
                         value={emailEnabled}
                         onValueChange={onEmailToggle}
+                        accessibilityRole="switch"
+                        accessibilityLabel="Email értesítések"
+                        accessibilityState={{ checked: emailEnabled, disabled: false }}
                         trackColor={{ false: theme.colors.border, true: theme.colors.primaryMuted }}
                         thumbColor={emailEnabled ? theme.colors.primary : theme.colors.textTertiary}
                     />
@@ -93,6 +98,9 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                     <Switch
                         value={pushEnabled}
                         onValueChange={onPushToggle}
+                        accessibilityRole="switch"
+                        accessibilityLabel="Push értesítések"
+                        accessibilityState={{ checked: pushEnabled, disabled: Platform.OS === 'web' }}
                         trackColor={{ false: theme.colors.border, true: theme.colors.primaryMuted }}
                         thumbColor={pushEnabled ? theme.colors.primary : theme.colors.textTertiary}
                         disabled={Platform.OS === 'web'}
@@ -104,6 +112,8 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                 <TouchableOpacity
                     style={styles.menuItem}
                     onPress={handleDeleteAccount}
+                    accessibilityRole="button"
+                    accessibilityLabel="Fiók törlése"
                 >
                     <View style={[styles.menuIconWrapper, { backgroundColor: theme.colors.errorLight || '#FEE2E2' }]}>
                         <FontAwesome5 name="user-slash" size={16} color={theme.colors.error} />
@@ -125,6 +135,7 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                         <View style={styles.passwordContainer}>
                             <TextInput
                                 style={styles.passwordInput}
+                                accessibilityLabel="Jelenlegi jelszó"
                                 placeholder="Jelenlegi jelszó"
                                 placeholderTextColor={theme.colors.textTertiary}
                                 value={deletePassword}
@@ -135,6 +146,8 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                             <TouchableOpacity
                                 onPress={() => setShowDeletePassword(!showDeletePassword)}
                                 style={styles.eyeIcon}
+                                accessibilityRole="button"
+                                accessibilityLabel={showDeletePassword ? 'Jelszó elrejtése' : 'Jelszó megjelenítése'}
                             >
                                 <FontAwesome5
                                     name={showDeletePassword ? 'eye' : 'eye-slash'}
@@ -145,10 +158,10 @@ export default function AccountSection({ emailEnabled, pushEnabled, onEmailToggl
                         </View>
 
                         <View style={styles.alertButtons}>
-                            <TouchableOpacity onPress={() => { setDeleteModalVisible(false); setDeletePassword(''); }} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mégse" onPress={() => { setDeleteModalVisible(false); setDeletePassword(''); }} style={[styles.alertButton, { backgroundColor: theme.colors.border }]}>
                                 <Text style={[styles.alertButtonText, { color: theme.colors.textPrimary }]}>Mégse</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={confirmDeleteAccount} style={[styles.alertButton, { backgroundColor: theme.colors.error }]}>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Végleges törlés" onPress={confirmDeleteAccount} style={[styles.alertButton, { backgroundColor: theme.colors.error }]}>
                                 <Text style={[styles.alertButtonText, { color: '#fff' }]}>Végleges törlés</Text>
                             </TouchableOpacity>
                         </View>

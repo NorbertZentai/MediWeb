@@ -128,6 +128,9 @@ export default function AccountActionsSection() {
                     style={[styles.actionButton, exporting && styles.actionButtonDisabled]}
                     onPress={handleDataExport}
                     disabled={exporting}
+                    accessibilityRole="button"
+                    accessibilityLabel="Adatok exportálása"
+                    accessibilityState={{ disabled: exporting }}
                 >
                     {exporting ? (
                         <ActivityIndicator color={theme.colors.secondaryDark || theme.colors.primary} />
@@ -143,6 +146,9 @@ export default function AccountActionsSection() {
                     ]}
                     onPress={handleAccountDeletion}
                     disabled={deleting}
+                    accessibilityRole="button"
+                    accessibilityLabel="Fiók törlése"
+                    accessibilityState={{ disabled: deleting }}
                 >
                     {deleting ? (
                         <ActivityIndicator color={theme.colors.error} />
@@ -163,6 +169,7 @@ export default function AccountActionsSection() {
                             autoCorrect={false}
                             value={deletePassword}
                             onChangeText={setDeletePassword}
+                            accessibilityLabel="Jelszó"
                             placeholder="Jelszó"
                             placeholderTextColor={theme.colors.textTertiary}
                         />
@@ -176,6 +183,9 @@ export default function AccountActionsSection() {
                                 ]}
                                 onPress={handleConfirmAccountDeletion}
                                 disabled={deleting}
+                                accessibilityRole="button"
+                                accessibilityLabel="Törlés megerősítése"
+                                accessibilityState={{ disabled: deleting }}
                             >
                                 {deleting ? (
                                     <ActivityIndicator color={theme.colors.error} />
@@ -189,6 +199,9 @@ export default function AccountActionsSection() {
                                 style={styles.actionButton}
                                 onPress={handleCancelAccountDeletion}
                                 disabled={deleting}
+                                accessibilityRole="button"
+                                accessibilityLabel="Mégse"
+                                accessibilityState={{ disabled: deleting }}
                             >
                                 <Text style={styles.actionButtonText}>Mégse</Text>
                             </TouchableOpacity>

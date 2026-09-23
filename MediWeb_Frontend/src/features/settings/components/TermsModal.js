@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 
 export default function TermsModal({ visible, onClose }) {
     const { theme } = useTheme();
@@ -11,7 +12,7 @@ export default function TermsModal({ visible, onClose }) {
                 <View style={[styles.modalContainer, Platform.OS === 'web' && styles.modalContainerWeb]}>
                     <View style={styles.modalHeader}>
                         <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>Felhasználási Feltételek</Text>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Bezárás" onPress={onClose} style={styles.closeButton}>
                             <Text style={[styles.closeButtonText, { color: theme.colors.textSecondary }]}>✕</Text>
                         </TouchableOpacity>
                     </View>
@@ -43,7 +44,7 @@ export default function TermsModal({ visible, onClose }) {
                         </Text>
 
                         <View style={{ height: 20 }} />
-                        <TouchableOpacity onPress={onClose} style={[styles.okButton, { backgroundColor: theme.colors.primary }]}>
+                        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Elfogadom" onPress={onClose} style={[styles.okButton, { backgroundColor: theme.colors.primary }]}>
                             <Text style={styles.okButtonText}>Elfogadom</Text>
                         </TouchableOpacity>
                     </ScrollView>
@@ -85,6 +86,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     closeButton: {
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: 5,
     },
     closeButtonText: {
@@ -106,6 +111,9 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     okButton: {
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
         padding: 12,
         borderRadius: 8,
         alignItems: 'center',

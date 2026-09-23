@@ -67,6 +67,7 @@ export default function GeneralSettingsSection({ preferences, onSelect, onInputC
                         style={styles.textInput}
                         value={preferences.general.dailyDigestHour}
                         onChangeText={(text) => onInputChange('general', 'dailyDigestHour', text)}
+                        accessibilityLabel="Napi összefoglaló ideje"
                         placeholder="08:00"
                         placeholderTextColor={theme.colors.textTertiary}
                         keyboardType="numbers-and-punctuation"

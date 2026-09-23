@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from 'react-native';
+import { MIN_TOUCH_TARGET } from 'styles/theme';
 
 export const createStyles = (theme) => StyleSheet.create({
     container: {
@@ -38,6 +39,7 @@ export const createStyles = (theme) => StyleSheet.create({
         ...theme.shadows.sm,
     },
     menuItem: {
+        minHeight: MIN_TOUCH_TARGET,
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: theme.spacing.md,
@@ -83,6 +85,10 @@ export const createStyles = (theme) => StyleSheet.create({
         flexWrap: 'wrap',
     },
     themeButton: {
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
+        alignItems: 'center',
         paddingVertical: theme.spacing.sm,
         paddingHorizontal: theme.spacing.md,
         borderRadius: theme.borderRadius.sm,
@@ -100,6 +106,8 @@ export const createStyles = (theme) => StyleSheet.create({
         color: theme.colors.primary,
     },
     twoFaButton: {
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
         paddingVertical: 9,
         paddingHorizontal: 16,
         borderRadius: theme.borderRadius.sm,
@@ -120,6 +128,7 @@ export const createStyles = (theme) => StyleSheet.create({
         marginTop: 4,
     },
     logoutButton: {
+        minHeight: MIN_TOUCH_TARGET,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -179,6 +188,8 @@ export const createStyles = (theme) => StyleSheet.create({
         color: theme.colors.textPrimary,
     },
     eyeIcon: {
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
         paddingHorizontal: 12,
         justifyContent: 'center',
         alignItems: 'center',
@@ -191,6 +202,8 @@ export const createStyles = (theme) => StyleSheet.create({
     },
     alertButton: {
         flex: 1,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
         paddingVertical: 12,
         borderRadius: theme.borderRadius.sm,
         alignItems: 'center',
