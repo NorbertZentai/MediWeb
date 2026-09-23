@@ -22,3 +22,8 @@ export function SyncStatBadge({ label, value, color }) {
         </View>
     );
 }
+
+// TODO(#98): stub, implement accessible pagination (renders nothing until implemented)
+export function AdminPagination({ page, totalPages, onChange }) {
+    return null;
+}
