@@ -4,7 +4,8 @@ import CustomDropdown from "components/CustomDropdown";
 import { FontAwesome } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { renderStars } from "./ReviewStars";
+import ReviewStars from "./ReviewStars";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 import { createStyles } from "./ReviewSection.style";
 import { useTheme } from "contexts/ThemeContext";
 import ReportModal from "./ReportModal";
@@ -90,7 +91,7 @@ export default function ReviewSection({
       <View style={styles.ratingContainer}>
         <View style={styles.ratingSummary}>
           <Text style={styles.ratingNumber}>{averageRating.toFixed(1)}</Text>
-          {renderStars(averageRating, styles, theme)}
+          <ReviewStars value={averageRating} styles={styles} theme={theme} />
           <Text style={styles.totalRatingsText}>{totalRatings} értékelés</Text>
         </View>
 
@@ -116,20 +117,12 @@ export default function ReviewSection({
         <View style={styles.reviewForm}>
           <Text style={styles.reviewFormLabel}>Értékelés:</Text>
           <View style={styles.starPicker}>
-            {[1, 2, 3, 4, 5].map((val) => (
-              <TouchableOpacity key={val} onPress={() => setRating(val)}>
-                <FontAwesome
-                  name={val <= rating ? "star" : "star-o"}
-                  size={30}
-                  color={theme.colors.warning}
-                  style={{ marginHorizontal: 4 }}
-                />
-              </TouchableOpacity>
-            ))}
+            <ReviewStars interactive value={rating} onChange={setRating} theme={theme} styles={styles} />
           </View>
 
           <Text style={styles.reviewFormLabel}>Pozitív vélemény:</Text>
           <TextInput
+            accessibilityLabel="Pozitív vélemény"
             value={positive}
             onChangeText={setPositive}
             placeholder="Mi tetszett?"
@@ -140,6 +133,7 @@ export default function ReviewSection({
 
           <Text style={styles.reviewFormLabel}>Negatív vélemény:</Text>
           <TextInput
+            accessibilityLabel="Negatív vélemény"
             value={negative}
             onChangeText={setNegative}
             placeholder="Mi nem tetszett?"
@@ -149,9 +143,13 @@ export default function ReviewSection({
           />
 
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={ownReview ? "Véleményed frissítése" : "Vélemény küldése"}
+            accessibilityState={{ disabled: !!(submitting || rating === 0), busy: !!submitting }}
             style={[
               styles.reviewButton,
               (rating === 0 || submitting) && styles.disabledButton,
+              { minHeight: MIN_TOUCH_TARGET },
             ]}
             onPress={handleSubmit}
             disabled={submitting || rating === 0}
@@ -196,7 +194,7 @@ export default function ReviewSection({
             <View key={idx} style={styles.reviewCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={{ flex: 1 }}>
-                  <View style={styles.starRow}>{renderStars(rev.rating, styles, theme)}</View>
+                  <View style={styles.starRow}><ReviewStars value={rev.rating} styles={styles} theme={theme} /></View>
                   <Text style={styles.reviewMeta}>
                     Beküldte: {rev.author} –{" "}
                     {new Date(rev.createdAt).toLocaleDateString()}
@@ -205,7 +203,14 @@ export default function ReviewSection({
                 {isLoggedIn && rev.userId !== userId && (
                   <TouchableOpacity
                     onPress={() => handleOpenReport(rev)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Értékelés bejelentése"
+                    accessibilityState={{ disabled: false }}
                     style={{
+                      minWidth: MIN_TOUCH_TARGET,
+                      minHeight: MIN_TOUCH_TARGET,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       padding: 8,
                       borderRadius: 8,
                       backgroundColor: theme.colors.backgroundElevated,
