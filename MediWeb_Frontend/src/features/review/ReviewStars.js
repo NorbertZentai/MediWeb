@@ -19,3 +19,8 @@ export const renderStars = (value, styles, theme) => {
 
   return <View style={styles?.starRow}>{stars}</View>;
 };
+
+// TODO(#92): stub - accessible star rating (interactive buttons / read-only image) is not implemented yet.
+export default function ReviewStars() {
+  throw new Error("TODO(#92)");
+}
