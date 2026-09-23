@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from 'contexts/ThemeContext';
+import { MIN_TOUCH_TARGET } from 'styles/theme';
 import { createStyles } from './VerifyEmailScreen.style';
 import { verifyEmail } from './auth.api';
 import { Ionicons } from '@expo/vector-icons';
@@ -77,6 +78,7 @@ export const VerifyEmailScreen = () => {
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Ellenőrző kód</Text>
                         <TextInput
+                            accessibilityLabel="Ellenőrző kód"
                             style={styles.otpInput}
                             placeholder="123456"
                             placeholderTextColor={theme.colors.textTertiary}
@@ -95,8 +97,12 @@ export const VerifyEmailScreen = () => {
                     <TouchableOpacity 
                         style={[
                             styles.verifyButton,
-                            (isLoading || code.length < 6) && styles.verifyButtonDisabled
+                            (isLoading || code.length < 6) && styles.verifyButtonDisabled,
+                            { minHeight: MIN_TOUCH_TARGET }
                         ]}
+                        accessibilityRole="button"
+                        accessibilityLabel="Fiók aktiválása"
+                        accessibilityState={{ disabled: isLoading || code.length < 6, busy: isLoading }}
                         onPress={handleVerify}
                         disabled={isLoading || code.length < 6}
                     >
@@ -109,7 +115,10 @@ export const VerifyEmailScreen = () => {
                 </View>
 
                 <TouchableOpacity 
-                    style={styles.backButton}
+                    style={[styles.backButton, { minHeight: MIN_TOUCH_TARGET }]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Vissza a bejelentkezéshez"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     onPress={() => router.replace('/login')}
                 >
                     <Ionicons name="arrow-back" size={20} color={theme.colors.textSecondary} />

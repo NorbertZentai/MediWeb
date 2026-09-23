@@ -12,6 +12,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createStyles } from "./FilterModal.style";
 import { useTheme } from "contexts/ThemeContext";
+import { MIN_TOUCH_TARGET } from "styles/theme";
 import { haptics } from "utils/haptics";
 import DatePickerModal from "components/ui/DatePickerModal";
 import { toLocalDateString } from "utils/dateUtils";
@@ -75,7 +76,10 @@ export function FilterPanelContent({ filters, onFilterChange, onReset, showHeade
                     {activeCount > 0 && (
                         <TouchableOpacity
                             onPress={() => { haptics.light(); onReset(); }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Törlés"
                             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                            style={{ minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' }}
                         >
                             <Text style={styles.resetText}>Törlés</Text>
                         </TouchableOpacity>
@@ -92,7 +96,10 @@ export function FilterPanelContent({ filters, onFilterChange, onReset, showHeade
                     return (
                         <TouchableOpacity
                             key={field}
-                            style={[styles.toggleRow, !isLast && styles.toggleRowBorder]}
+                            style={[styles.toggleRow, !isLast && styles.toggleRowBorder, { minHeight: MIN_TOUCH_TARGET }]}
+                            accessibilityRole="checkbox"
+                            accessibilityLabel={label}
+                            accessibilityState={{ checked: isActive }}
                             onPress={() => { haptics.light(); onFilterChange(field, !filters[field]); }}
                             activeOpacity={0.6}
                         >
@@ -114,6 +121,7 @@ export function FilterPanelContent({ filters, onFilterChange, onReset, showHeade
                 <View style={styles.inputGroup}>
                     <Text style={styles.inputLabel}>ATC kód</Text>
                     <TextInput
+                        accessibilityLabel="ATC kód"
                         style={styles.input}
                         placeholder="pl. N02BE01"
                         placeholderTextColor={theme.colors.textTertiary}
@@ -125,6 +133,7 @@ export function FilterPanelContent({ filters, onFilterChange, onReset, showHeade
                 <View style={[styles.inputGroup, styles.inputGroupLast]}>
                     <Text style={styles.inputLabel}>Nyilvántartási szám</Text>
                     <TextInput
+                        accessibilityLabel="Nyilvántartási szám"
                         style={styles.input}
                         placeholder="pl. OGYI-T-12345"
                         placeholderTextColor={theme.colors.textTertiary}
@@ -215,19 +224,28 @@ export default function FilterModal({ visible, onClose, filters, onFilterChange,
     const styles = React.useMemo(() => createStyles(theme), [theme]);
     const insets = useSafeAreaInsets();
     const activeCount = getActiveFilterCount(filters);
+    const applyLabel = activeCount > 0 ? `Szűrők alkalmazása (${activeCount})` : "Bezárás";
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <View style={styles.container}>
                 {/* Header */}
                 <View style={[styles.header, { paddingTop: Math.max(insets.top, theme.spacing.md) }]}>
-                    <TouchableOpacity onPress={onClose} style={styles.headerButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={[styles.headerButton, { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET }]}
+                        accessibilityRole="button"
+                        accessibilityLabel="Bezárás"
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
                         <FontAwesome5 name="times" size={20} color={theme.colors.textPrimary} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Szűrők</Text>
                     <TouchableOpacity
                         onPress={() => { haptics.light(); onReset(); }}
-                        style={styles.headerButton}
+                        style={[styles.headerButton, { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET }]}
+                        accessibilityRole="button"
+                        accessibilityLabel="Törlés"
                         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
                         <Text style={[styles.resetText, activeCount === 0 && styles.resetTextDisabled]}>Törlés</Text>
@@ -241,14 +259,14 @@ export default function FilterModal({ visible, onClose, filters, onFilterChange,
                 {/* Footer with apply button */}
                 <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, theme.spacing.md) }]}>
                     <TouchableOpacity
-                        style={styles.applyButton}
+                        style={[styles.applyButton, { minHeight: MIN_TOUCH_TARGET }]}
                         onPress={() => { haptics.medium(); onClose(); }}
+                        accessibilityRole="button"
+                        accessibilityLabel={applyLabel}
                         activeOpacity={0.8}
                     >
                         <FontAwesome5 name="check" size={16} color={theme.colors.white} style={{ marginRight: 8 }} />
-                        <Text style={styles.applyButtonText}>
-                            {activeCount > 0 ? `Szűrők alkalmazása (${activeCount})` : "Bezárás"}
-                        </Text>
+                        <Text style={styles.applyButtonText}>{applyLabel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -288,6 +306,7 @@ function DateTrigger({ value, placeholder, onPress, onClear, theme, styles, onDa
                         }
                     }}
                     placeholder={placeholder}
+                    aria-label={placeholder}
                     style={{
                         flex: 1,
                         border: 'none',
@@ -304,8 +323,10 @@ function DateTrigger({ value, placeholder, onPress, onClear, theme, styles, onDa
                 {hasValue && (
                     <TouchableOpacity
                         onPress={() => { haptics.light(); onClear(); }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Dátum törlése"
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        style={{ marginLeft: 4 }}
+                        style={{ marginLeft: 4, minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, alignItems: 'center', justifyContent: 'center' }}
                     >
                         <FontAwesome5 name="times-circle" size={14} color={theme.colors.textTertiary} />
                     </TouchableOpacity>
@@ -317,7 +338,9 @@ function DateTrigger({ value, placeholder, onPress, onClear, theme, styles, onDa
     // Mobile: original touch trigger (opens custom DatePickerModal)
     return (
         <TouchableOpacity
-            style={[styles.dateTrigger, hasValue && styles.dateTriggerActive]}
+            style={[styles.dateTrigger, hasValue && styles.dateTriggerActive, { minHeight: MIN_TOUCH_TARGET }]}
+            accessibilityRole="button"
+            accessibilityLabel={hasValue ? formatDisplay(value) : placeholder}
             onPress={() => {
                 haptics.light();
                 onPress();
@@ -342,8 +365,10 @@ function DateTrigger({ value, placeholder, onPress, onClear, theme, styles, onDa
                         haptics.light();
                         onClear();
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Dátum törlése"
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    style={{ marginLeft: 4 }}
+                    style={{ marginLeft: 4, minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, alignItems: 'center', justifyContent: 'center' }}
                 >
                     <FontAwesome5 name="times-circle" size={14} color={theme.colors.textTertiary} />
                 </TouchableOpacity>

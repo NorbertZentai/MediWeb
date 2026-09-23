@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { MIN_TOUCH_TARGET } from 'styles/theme';
 
 const REPORT_REASONS = [
     { key: 'SPAM', label: 'Spam vagy hirdetés', icon: 'bullhorn' },
@@ -52,6 +53,7 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
         >
             <TouchableOpacity
                 style={styles.overlay}
+                accessible={false}
                 activeOpacity={1}
                 onPress={handleClose}
             >
@@ -59,7 +61,7 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                 >
-                    <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
+                    <TouchableOpacity accessible={false} activeOpacity={1} onPress={e => e.stopPropagation()}>
                         <View style={styles.modal}>
                             {/* Header */}
                             <View style={styles.header}>
@@ -74,7 +76,16 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
                                         </Text>
                                     )}
                                 </View>
-                                <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
+                                <TouchableOpacity
+                                    onPress={handleClose}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Bezárás"
+                                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                                    style={[
+                                        styles.closeBtn,
+                                        { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, alignItems: 'center', justifyContent: 'center' },
+                                    ]}
+                                >
                                     <FontAwesome5 name="times" size={18} color={theme.colors.textTertiary} />
                                 </TouchableOpacity>
                             </View>
@@ -87,7 +98,10 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
                                     return (
                                         <TouchableOpacity
                                             key={reason.key}
-                                            style={[styles.reasonBtn, isSelected && styles.reasonBtnSelected]}
+                                            accessibilityRole="radio"
+                                            accessibilityLabel={reason.label}
+                                            accessibilityState={{ checked: isSelected }}
+                                            style={[styles.reasonBtn, isSelected && styles.reasonBtnSelected, { minHeight: MIN_TOUCH_TARGET }]}
                                             onPress={() => setSelectedReason(reason.key)}
                                             activeOpacity={0.7}
                                         >
@@ -110,6 +124,7 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
                                 {/* Comment */}
                                 <Text style={styles.sectionLabel}>Megjegyzés (opcionális)</Text>
                                 <TextInput
+                                    accessibilityLabel="Megjegyzés (opcionális)"
                                     style={styles.commentInput}
                                     placeholder="Írd le bővebben, miért jelented be..."
                                     placeholderTextColor={theme.colors.textTertiary}
@@ -124,11 +139,19 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
 
                             {/* Actions */}
                             <View style={styles.actions}>
-                                <TouchableOpacity style={styles.cancelBtn} onPress={handleClose}>
+                                <TouchableOpacity
+                                    style={[styles.cancelBtn, { minHeight: MIN_TOUCH_TARGET }]}
+                                    onPress={handleClose}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Mégse"
+                                >
                                     <Text style={styles.cancelBtnText}>Mégse</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.submitBtn, (!selectedReason || submitting) && styles.submitBtnDisabled]}
+                                    style={[styles.submitBtn, (!selectedReason || submitting) && styles.submitBtnDisabled, { minHeight: MIN_TOUCH_TARGET }]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Bejelentés"
+                                    accessibilityState={{ disabled: !selectedReason || !!submitting, busy: !!submitting }}
                                     onPress={handleSubmit}
                                     disabled={!selectedReason || submitting}
                                 >
