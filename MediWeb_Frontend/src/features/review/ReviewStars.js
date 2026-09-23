@@ -2,6 +2,11 @@ import React from "react";
 import { View } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 
+// TODO(#92): stub - accessible star rating (interactive buttons / read-only image) is not implemented yet.
+export default function ReviewStars() {
+  throw new Error("TODO(#92)");
+}
+
 export const renderStars = (value, styles, theme) => {
   const fullStars = Math.floor(value);
   const halfStar = value % 1 >= 0.5;
@@ -19,8 +24,3 @@ export const renderStars = (value, styles, theme) => {
 
   return <View style={styles?.starRow}>{stars}</View>;
 };
-
-// TODO(#92): stub - accessible star rating (interactive buttons / read-only image) is not implemented yet.
-export default function ReviewStars() {
-  throw new Error("TODO(#92)");
-}
