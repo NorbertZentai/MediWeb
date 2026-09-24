@@ -46,4 +46,16 @@ describe('src/features/admin conventions (issue #76)', () => {
             expect(offending).toEqual([]);
         }
     );
+
+    it('AdminScreen.style.js contains no Platform.OS (issue #100)', () => {
+        const source = fs.readFileSync(path.join(ADMIN_ROOT, 'AdminScreen.style.js'), 'utf8');
+        expect(source).not.toMatch(/Platform\.OS/);
+    });
+
+    it.each(sourceFiles.map((f) => [path.relative(ADMIN_ROOT, f), f]))(
+        '%s has no hardcoded #fff colour (use theme.colors.white)',
+        (_relative, file) => {
+            expect(fs.readFileSync(file, 'utf8')).not.toMatch(/#fff/i);
+        }
+    );
 });

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import { createStyles } from './AdminScreen.style';
 import DashboardTab from './components/DashboardTab';
 import UsersTab from './components/UsersTab';
@@ -23,7 +24,8 @@ const TABS = [
 export default function AdminScreen() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>

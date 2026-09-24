@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 import { createStyles } from '../AdminScreen.style';
 import {
@@ -24,7 +25,8 @@ const CONFIG_FIELDS = [
 
 export default function SyncTab() {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     const [syncStatus, setSyncStatus] = useState(null);
     const [config, setConfig] = useState(null);
     const [editConfig, setEditConfig] = useState(null);
@@ -172,25 +174,25 @@ export default function SyncTab() {
                     {!isRunning ? (
                         <>
                             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Szinkron indítás" style={[styles.syncBtn, { backgroundColor: theme.colors.primary }]} onPress={() => handleStartSync(false)}>
-                                <FontAwesome5 name="play" size={14} color="#fff" />
+                                <FontAwesome5 name="play" size={14} color={theme.colors.white} />
                                 <Text style={styles.syncBtnText}>Szinkron indítás</Text>
                             </TouchableOpacity>
                             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Kényszerített" style={[styles.syncBtn, { backgroundColor: theme.colors.warning }]} onPress={() => handleStartSync(true)}>
-                                <FontAwesome5 name="redo" size={14} color="#fff" />
+                                <FontAwesome5 name="redo" size={14} color={theme.colors.white} />
                                 <Text style={styles.syncBtnText}>Kényszerített</Text>
                             </TouchableOpacity>
                             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hiányzó képek" style={[styles.syncBtn, { backgroundColor: theme.colors.info }]} onPress={() => handleImageSync(false, false)}>
-                                <FontAwesome5 name="image" size={14} color="#fff" />
+                                <FontAwesome5 name="image" size={14} color={theme.colors.white} />
                                 <Text style={styles.syncBtnText}>Hiányzó képek</Text>
                             </TouchableOpacity>
                             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Képek + cleanup" style={[styles.syncBtn, { backgroundColor: theme.colors.secondary }]} onPress={() => handleImageSync(false, true)}>
-                                <FontAwesome5 name="broom" size={14} color="#fff" />
+                                <FontAwesome5 name="broom" size={14} color={theme.colors.white} />
                                 <Text style={styles.syncBtnText}>Képek + cleanup</Text>
                             </TouchableOpacity>
                         </>
                     ) : (
                         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Leállítás" style={[styles.syncBtn, { backgroundColor: theme.colors.error }]} onPress={handleStopSync}>
-                            <FontAwesome5 name="stop" size={14} color="#fff" />
+                            <FontAwesome5 name="stop" size={14} color={theme.colors.white} />
                             <Text style={styles.syncBtnText}>
                                 {syncStatus.cancellationRequested ? 'Leállítás...' : 'Leállítás'}
                             </Text>
@@ -224,7 +226,7 @@ export default function SyncTab() {
                         onPress={handleSaveConfig}
                         disabled={saving}
                     >
-                        <FontAwesome5 name="save" size={14} color="#fff" />
+                        <FontAwesome5 name="save" size={14} color={theme.colors.white} />
                         <Text style={styles.saveConfigBtnText}>{saving ? 'Mentés...' : 'Beállítások mentése'}</Text>
                     </TouchableOpacity>
                 </View>
