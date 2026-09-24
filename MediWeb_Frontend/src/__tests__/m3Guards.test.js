@@ -110,6 +110,23 @@ describe('M3 guard C: no template theme imports', () => {
   });
 });
 
+describe('M3 guard E: no window width reads in layout code', () => {
+  const files = scan(['src/features', 'src/components', 'app']);
+  // Built by concatenation so this file never contains the forbidden identifier itself.
+  const needle = 'inner' + 'Width';
+
+  it('scans a meaningful number of files', () => {
+    expect(files.length).toBeGreaterThanOrEqual(30);
+  });
+
+  it('no file under src/features, src/components or app reads window width directly', () => {
+    const offenders = files
+      .filter((file) => fs.readFileSync(file, 'utf8').includes(needle))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('M3 guard D: labelled text inputs', () => {
   const files = scan(['src/features', 'src/components', 'app']);
   const collect = () => {
