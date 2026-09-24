@@ -142,6 +142,10 @@ export function createStyles(theme) {
         // ── Reviews ──
         filterRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
         filterBtn: {
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
+            justifyContent: 'center',
+            alignItems: 'center',
             paddingHorizontal: 16,
             paddingVertical: 8,
             borderRadius: 20,
@@ -153,6 +157,8 @@ export function createStyles(theme) {
         filterBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary },
         filterBtnTextActive: { color: '#fff' },
         reportedHeader: {
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
