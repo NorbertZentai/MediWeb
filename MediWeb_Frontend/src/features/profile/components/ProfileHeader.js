@@ -219,7 +219,7 @@ export default function ProfileHeader() {
           accessibilityRole="button"
           accessibilityLabel="Bezárás"
         >
-          <Pressable style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
+          <Pressable accessible={false} style={styles.modalBox} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHandle} />
 
             <Text style={styles.modalTitle}>

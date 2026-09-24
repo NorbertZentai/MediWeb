@@ -13,7 +13,12 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: 'Oops!' }} />
       <View style={styles.container}>
         <Text style={styles.title}>Ez az oldal nem található.</Text>
-        <TouchableOpacity style={styles.link} onPress={() => router.push('/')}>
+        <TouchableOpacity
+          style={styles.link}
+          onPress={() => router.push('/')}
+          accessibilityRole="link"
+          accessibilityLabel="Vissza a főoldalra"
+        >
           <Text style={styles.linkText}>Vissza a főoldalra</Text>
         </TouchableOpacity>
       </View>
@@ -37,6 +42,10 @@ const createStyles = (theme: any) =>
     link: {
       marginTop: theme.spacing.md,
       paddingVertical: theme.spacing.md,
+      minHeight: 44,
+      minWidth: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     linkText: {
       fontSize: theme.fontSize.base,

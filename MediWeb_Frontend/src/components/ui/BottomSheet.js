@@ -20,7 +20,7 @@ export default function BottomSheet({ visible, onClose, children, maxHeight = "9
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ width: "100%" }}
         >
-          <Pressable style={[styles.container, { maxHeight }]} onPress={(e) => e.stopPropagation()}>
+          <Pressable accessible={false} style={[styles.container, { maxHeight }]} onPress={(e) => e.stopPropagation()}>
             <View style={styles.handle} />
             {children}
           </Pressable>

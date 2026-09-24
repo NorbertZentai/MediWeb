@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useContext } from 'react';
-import { Platform, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { Platform, View, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 import { CustomTabBar } from '@/components/navigation';
@@ -9,18 +9,18 @@ import { HapticTab } from '@/components/HapticTab';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AuthContext } from '@/src/contexts/AuthContext';
 import Navbar from '@/src/components/Navbar';
+import { useResponsiveLayout } from '@/src/hooks/useResponsiveLayout';
 
 // Feature flag for easy rollback
 const USE_CUSTOM_TAB_BAR = true;
-const MOBILE_BREAKPOINT = 768;
 
 export default function TabLayout() {
   const { isDark } = useTheme();
   const { user } = useContext(AuthContext) as { user: any };
   const colorScheme = isDark ? 'dark' : 'light';
   const isWeb = Platform.OS === 'web';
-  const { width } = useWindowDimensions();
-  const isMobileWeb = isWeb && width < MOBILE_BREAKPOINT;
+  const { isMobile } = useResponsiveLayout();
+  const isMobileWeb = Platform.OS === 'web' && isMobile;
   const colors = TAB_BAR_COLORS[colorScheme ?? 'light'];
   const isAdmin = user?.role === 'ADMIN';
 
