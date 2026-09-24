@@ -15,7 +15,10 @@ function collectInteractiveNodes(node, acc = []) {
     return acc;
   }
   if (typeof node !== 'object') return acc;
-  if (node.props && node.props.focusable === true) {
+  // accessible={false} removes a node from the accessibility tree (e.g. the inner
+  // stopPropagation Pressable of a modal sheet), so it is not a control; its
+  // children are still walked.
+  if (node.props && node.props.focusable === true && node.props.accessible !== false) {
     acc.push(node);
   }
   collectInteractiveNodes(node.children, acc);
