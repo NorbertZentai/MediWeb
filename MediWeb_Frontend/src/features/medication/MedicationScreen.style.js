@@ -33,6 +33,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     paddingRight: theme.spacing.md,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
   },
 
   backButtonText: {
@@ -106,6 +107,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: theme.colors.border,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 
@@ -148,6 +150,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     paddingVertical: 12,
     borderRadius: theme.borderRadius.md,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 
@@ -202,6 +205,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     flex: 1,
     paddingVertical: theme.spacing.sm,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     justifyContent: "center",
   },
 
@@ -325,6 +329,7 @@ export const createStyles = (theme, isMobile = false) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
 

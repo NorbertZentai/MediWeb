@@ -18,6 +18,7 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingHorizontal: theme.spacing.md,
         paddingVertical: 14,
         minHeight: 52,
+        minWidth: MIN_TOUCH_TARGET,
         ...theme.shadows.sm,
     },
     triggerOpen: {
