@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Platform } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 import { createStyles } from '../AdminScreen.style';
 import { getAdminUsers, updateUserRole, toggleUserActive, deleteAdminUser } from '../admin.api';
@@ -13,7 +14,8 @@ import { LoadingView, AdminPagination } from './AdminShared';
 
 export default function UsersTab() {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);

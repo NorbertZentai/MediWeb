@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 import { createStyles } from '../AdminScreen.style';
 import { getAdminDashboard } from '../admin.api';
@@ -13,7 +14,8 @@ import { LoadingView } from './AdminShared';
 
 export default function DashboardTab() {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,7 @@ export default function DashboardTab() {
                 <Text style={styles.sectionTitle}>Áttekintés</Text>
                 <View style={styles.cardsGrid}>
                     {cards.map((card, i) => (
-                        <View key={i} style={styles.statCard}>
+                        <View key={i} testID={`admin-stat-card-${i}`} style={styles.statCard}>
                             <View style={[styles.statIconWrap, { backgroundColor: card.color + '18' }]}>
                                 <FontAwesome5 name={card.icon} size={20} color={card.color} />
                             </View>

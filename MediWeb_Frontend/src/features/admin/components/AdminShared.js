@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import { createStyles } from '../AdminScreen.style';
 
 // ────────── Shared Components ──────────
@@ -27,7 +28,8 @@ export function SyncStatBadge({ label, value, color }) {
 
 export function AdminPagination({ page, totalPages, onChange }) {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     if (totalPages <= 1) return null;
 
     const prevDisabled = page === 0;

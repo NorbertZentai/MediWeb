@@ -5,8 +5,7 @@ import { MIN_TOUCH_TARGET } from 'styles/theme';
 //  ADMIN STYLES — shared by AdminScreen shell and every tab
 // ════════════════════════════════════════════════════════
 
-export function createStyles(theme) {
-    const isWeb = Platform.OS === 'web';
+export function createStyles(theme, { isMobile } = {}) {
     return StyleSheet.create({
         container: { flex: 1, backgroundColor: theme.colors.background },
         // ── Tab Bar ──
@@ -42,8 +41,8 @@ export function createStyles(theme) {
         // that responsibility now belongs to <ResponsiveContainer>, so only the
         // original padding values remain (see issue #76).
         contentInner: {
-            padding: isWeb ? 24 : 14,
-            paddingBottom: isWeb ? 48 : 120, // Extra bottom padding on mobile for tab bar
+            padding: !isMobile ? 24 : 14,
+            paddingBottom: Platform.select({ web: 48, default: 120 }), // Extra bottom padding on mobile for tab bar
         },
         sectionTitle: { fontSize: 22, fontWeight: '700', color: theme.colors.textPrimary, marginBottom: 16 },
         subsectionTitle: { fontSize: 17, fontWeight: '600', color: theme.colors.textPrimary, marginTop: 24, marginBottom: 12 },
@@ -53,8 +52,8 @@ export function createStyles(theme) {
             backgroundColor: theme.colors.backgroundCard,
             borderRadius: theme.borderRadius.md,
             padding: 20,
-            minWidth: isWeb ? 170 : '46%',
-            flex: isWeb ? undefined : 1,
+            minWidth: !isMobile ? 170 : '46%',
+            flex: !isMobile ? undefined : 1,
             borderWidth: 1,
             borderColor: theme.colors.border,
             ...theme.shadows.sm,
@@ -97,9 +96,9 @@ export function createStyles(theme) {
         roleBadgeText: { fontSize: 11, fontWeight: '700', color: theme.colors.primary },
         roleBadgeTextAdmin: { color: theme.colors.warning },
         userMeta: {
-            flexDirection: isWeb ? 'row' : 'column',
+            flexDirection: !isMobile ? 'row' : 'column',
             flexWrap: 'wrap',
-            gap: isWeb ? 12 : 6,
+            gap: !isMobile ? 12 : 6,
             marginBottom: 12,
         },
         metaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
@@ -155,7 +154,7 @@ export function createStyles(theme) {
         },
         filterBtnActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
         filterBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.textSecondary },
-        filterBtnTextActive: { color: '#fff' },
+        filterBtnTextActive: { color: theme.colors.white },
         reportedHeader: {
             minWidth: MIN_TOUCH_TARGET,
             minHeight: MIN_TOUCH_TARGET,
@@ -280,10 +279,10 @@ export function createStyles(theme) {
             borderRadius: theme.borderRadius.md,
             minWidth: MIN_TOUCH_TARGET,
             minHeight: MIN_TOUCH_TARGET,
-            flexGrow: isWeb ? 0 : 1,
-            flexBasis: isWeb ? undefined : '45%',
+            flexGrow: !isMobile ? 0 : 1,
+            flexBasis: !isMobile ? undefined : '45%',
         },
-        syncBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+        syncBtnText: { color: theme.colors.white, fontSize: 14, fontWeight: '600' },
         // ── Config ──
         configCard: {
             backgroundColor: theme.colors.backgroundCard,
@@ -293,16 +292,16 @@ export function createStyles(theme) {
             borderColor: theme.colors.border,
         },
         configRow: {
-            flexDirection: isWeb ? 'row' : 'column',
-            alignItems: isWeb ? 'center' : 'flex-start',
+            flexDirection: !isMobile ? 'row' : 'column',
+            alignItems: !isMobile ? 'center' : 'flex-start',
             marginBottom: 14,
-            gap: isWeb ? 12 : 4,
+            gap: !isMobile ? 12 : 4,
         },
         configLabel: {
             fontSize: 13,
             fontWeight: '500',
             color: theme.colors.textSecondary,
-            minWidth: isWeb ? 220 : undefined,
+            minWidth: !isMobile ? 220 : undefined,
         },
         configInput: {
             backgroundColor: theme.colors.backgroundElevated,
@@ -313,8 +312,8 @@ export function createStyles(theme) {
             paddingVertical: 8,
             fontSize: 14,
             color: theme.colors.textPrimary,
-            minWidth: isWeb ? 100 : undefined,
-            width: isWeb ? undefined : '100%',
+            minWidth: !isMobile ? 100 : undefined,
+            width: !isMobile ? undefined : '100%',
             ...Platform.select({ web: { outlineStyle: 'none' }, default: {} }),
         },
         saveConfigBtn: {
@@ -329,6 +328,6 @@ export function createStyles(theme) {
             paddingVertical: 12,
             marginTop: 8,
         },
-        saveConfigBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+        saveConfigBtnText: { color: theme.colors.white, fontSize: 14, fontWeight: '600' },
     });
 }

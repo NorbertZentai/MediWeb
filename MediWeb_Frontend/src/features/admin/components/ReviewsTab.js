@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 import { createStyles } from '../AdminScreen.style';
 import {
@@ -22,7 +23,8 @@ const FILTERS = [
 
 export default function ReviewsTab() {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     const [reviews, setReviews] = useState([]);
     const [filter, setFilter] = useState('unchecked');
     const [page, setPage] = useState(0);
@@ -130,13 +132,13 @@ export default function ReviewsTab() {
                     accessibilityState={{ expanded: showReported }}
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                        <FontAwesome5 name="flag" size={14} color={showReported ? '#fff' : theme.colors.error} />
-                        <Text style={[styles.reportedHeaderText, showReported && { color: '#fff' }]}>
+                        <FontAwesome5 name="flag" size={14} color={showReported ? theme.colors.white : theme.colors.error} />
+                        <Text style={[styles.reportedHeaderText, showReported && { color: theme.colors.white }]}>
                             Bejelentett értékelések
                         </Text>
                     </View>
                     <FontAwesome5 name={showReported ? 'chevron-up' : 'chevron-down'} size={12}
-                        color={showReported ? '#fff' : theme.colors.textTertiary} />
+                        color={showReported ? theme.colors.white : theme.colors.textTertiary} />
                 </TouchableOpacity>
 
                 {showReported && (
