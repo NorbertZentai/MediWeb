@@ -235,6 +235,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Jelenlegi jelszó"
+                  accessibilityLabel="Jelenlegi jelszó"
                   placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={currentPassword}
@@ -243,6 +244,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó"
+                  accessibilityLabel="Új jelszó"
                   placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={newPassword}
@@ -251,6 +253,7 @@ export default function ProfileHeader() {
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Új jelszó megerősítése"
+                  accessibilityLabel="Új jelszó megerősítése"
                   placeholderTextColor={theme.colors.textTertiary}
                   secureTextEntry
                   value={confirmPassword}
@@ -280,6 +283,11 @@ export default function ProfileHeader() {
                 value={inputValue}
                 onChangeText={setInputValue}
                 placeholder={
+                  editingField === "name" ? "Neved" :
+                    editingField === "email" ? "Email címed" :
+                      "Telefonszámod"
+                }
+                accessibilityLabel={
                   editingField === "name" ? "Neved" :
                     editingField === "email" ? "Email címed" :
                       "Telefonszámod"

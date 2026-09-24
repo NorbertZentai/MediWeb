@@ -126,6 +126,7 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               placeholder="6 számjegyű hitelesítő kód"
+              accessibilityLabel="Hitelesítő kód"
               placeholderTextColor={theme.colors.textTertiary}
               value={twoFaCode}
               onChangeText={setTwoFaCode}

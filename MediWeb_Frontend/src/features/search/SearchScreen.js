@@ -79,6 +79,7 @@ export default function SearchScreen() {
             <TextInput
               style={styles.searchInput}
               placeholder="Keress gyógyszer nevére..."
+              accessibilityLabel="Gyógyszer neve"
               placeholderTextColor={theme.colors.textTertiary}
               value={searchQuery}
               onChangeText={setSearchQuery}
