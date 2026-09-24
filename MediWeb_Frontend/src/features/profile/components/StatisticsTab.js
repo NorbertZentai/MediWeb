@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { LineChart, PieChart, BarChart, ProgressChart } from "react-native-chart-kit";
 import { toast } from 'utils/toast';
 import {
@@ -11,6 +11,7 @@ import {
 } from "features/profile/profile.api";
 import { createStyles } from "./StatisticsTab.style";
 import { useTheme } from "contexts/ThemeContext";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 
 const periodOptions = [
   { key: "weekly", label: "Heti" },
@@ -115,7 +116,7 @@ const normalizeSeries = (payload) => {
 export default function StatisticsTab() {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { width } = useWindowDimensions();
+  const { screenWidth: width } = useResponsiveLayout();
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [statistics, setStatistics] = useState(fallbackStatistics);
   const [loading, setLoading] = useState(true);
