@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Platform } from "react-native";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import { searchMedications } from "./search.api";
 
 export function useSearchService() {
+  const { isMobile } = useResponsiveLayout();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     atcCode: "",
@@ -135,18 +136,6 @@ export function useSearchService() {
   }, [fetchPage, hasMore, loading, page]);
 
   useEffect(() => {
-    if (Platform.OS === "web") {
-      const handleResize = () => {
-        const mobile = window.innerWidth < 600;
-        if (mobile) setViewMode("list");
-      };
-      window.addEventListener("resize", handleResize);
-      handleResize();
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, []);
-
-  useEffect(() => {
     const trimmedLength = searchQuery.trim().length;
     const filtersActive = hasActiveFilters();
 
@@ -166,6 +155,10 @@ export function useSearchService() {
     return () => clearTimeout(timeout);
   }, [fetchPage, hasActiveFilters, resetState, searchQuery]);
 
+  // Narrow layouts have no grid/list switcher, so they always show the list.
+  // The stored choice is kept and comes back when the layout widens again.
+  const effectiveViewMode = isMobile ? "list" : viewMode;
+
   return {
     searchQuery,
     setSearchQuery,
@@ -175,7 +168,7 @@ export function useSearchService() {
     totalCount,
     handleSearch,
     loading,
-    viewMode,
+    viewMode: effectiveViewMode,
     setViewMode,
     loadMore,
     hasMore,
