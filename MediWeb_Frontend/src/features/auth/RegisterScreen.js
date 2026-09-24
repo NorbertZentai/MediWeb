@@ -216,31 +216,31 @@ export default function RegisterScreen() {
             />
 
             <Text style={styles.label}>Nem</Text>
-            <View style={styles.segmentedControl}>
+            <View style={styles.segmentedControl} accessible accessibilityRole="radiogroup" accessibilityLabel="Nem">
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'male' && styles.segmentButtonActive]}
                 onPress={() => setGender('male')}
-                accessibilityRole="button"
+                accessibilityRole="radio"
                 accessibilityLabel="Férfi"
-                accessibilityState={{ selected: gender === 'male' }}
+                accessibilityState={{ checked: gender === 'male' }}
               >
                 <Text style={[styles.segmentText, gender === 'male' && styles.segmentTextActive]}>Férfi</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'female' && styles.segmentButtonActive]}
                 onPress={() => setGender('female')}
-                accessibilityRole="button"
+                accessibilityRole="radio"
                 accessibilityLabel="Nő"
-                accessibilityState={{ selected: gender === 'female' }}
+                accessibilityState={{ checked: gender === 'female' }}
               >
                 <Text style={[styles.segmentText, gender === 'female' && styles.segmentTextActive]}>Nő</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.segmentButton, gender === 'other' && styles.segmentButtonActive]}
                 onPress={() => setGender('other')}
-                accessibilityRole="button"
+                accessibilityRole="radio"
                 accessibilityLabel="Egyéb"
-                accessibilityState={{ selected: gender === 'other' }}
+                accessibilityState={{ checked: gender === 'other' }}
               >
                 <Text style={[styles.segmentText, gender === 'other' && styles.segmentTextActive]}>Egyéb</Text>
               </TouchableOpacity>

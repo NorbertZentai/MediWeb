@@ -103,6 +103,7 @@ export const createStyles = (theme) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: theme.borderRadius.sm - 2,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   segmentButtonActive: {
@@ -127,6 +128,7 @@ export const createStyles = (theme) => StyleSheet.create({
     justifyContent: "center",
     marginTop: 20,
     marginBottom: 16,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
@@ -137,6 +139,7 @@ export const createStyles = (theme) => StyleSheet.create({
   },
   linkButton: {
     width: "100%",
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: "center",
     alignItems: "center",
@@ -161,6 +164,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DADCE0',
     marginTop: 10,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   googleButtonText: {
@@ -190,6 +194,7 @@ export const createStyles = (theme) => StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   guestLinkText: {
