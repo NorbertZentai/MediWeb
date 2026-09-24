@@ -7,7 +7,7 @@ import { createStyles } from '../AdminScreen.style';
 import {
     getAdminReviews, checkReview, deleteReview, getReportedReviews, dismissReport,
 } from '../admin.api';
-import { LoadingView } from './AdminShared';
+import { LoadingView, AdminPagination } from './AdminShared';
 import { REASON_LABELS } from './reasonLabels';
 
 // ════════════════════════════════════════════════════════
@@ -109,6 +109,9 @@ export default function ReviewsTab() {
                             key={f.key}
                             style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
                             onPress={() => { setFilter(f.key); setPage(0); }}
+                            accessibilityRole="button"
+                            accessibilityLabel={f.label}
+                            accessibilityState={{ selected: filter === f.key }}
                         >
                             <Text style={[styles.filterBtnText, filter === f.key && styles.filterBtnTextActive]}>
                                 {f.label}
@@ -122,6 +125,9 @@ export default function ReviewsTab() {
                     style={[styles.reportedHeader, showReported && styles.reportedHeaderActive]}
                     onPress={() => setShowReported(!showReported)}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Bejelentett értékelések"
+                    accessibilityState={{ expanded: showReported }}
                 >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                         <FontAwesome5 name="flag" size={14} color={showReported ? '#fff' : theme.colors.error} />
@@ -192,11 +198,11 @@ export default function ReviewsTab() {
 
                                         {/* Actions */}
                                         <View style={styles.reviewActions}>
-                                            <TouchableOpacity style={styles.actionBtn} onPress={() => handleDismiss(report.reportId)}>
+                                            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Bejelentés elutasítása" onPress={() => handleDismiss(report.reportId)}>
                                                 <FontAwesome5 name="times-circle" size={12} color={theme.colors.info} />
                                                 <Text style={[styles.actionBtnText, { color: theme.colors.info }]}>Elutasítás</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(report.reviewId)}>
+                                            <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Értékelés törlése" onPress={() => handleDelete(report.reviewId)}>
                                                 <FontAwesome5 name="trash" size={12} color={theme.colors.error} />
                                                 <Text style={[styles.actionBtnText, { color: theme.colors.error }]}>Értékelés törlése</Text>
                                             </TouchableOpacity>
@@ -204,27 +210,7 @@ export default function ReviewsTab() {
                                     </View>
                                 ))}
 
-                                {reportedTotalPages > 1 && (
-                                    <View style={styles.pagination}>
-                                        <TouchableOpacity
-                                            style={[styles.pageBtn, reportedPage === 0 && styles.pageBtnDisabled]}
-                                            onPress={() => setReportedPage(Math.max(0, reportedPage - 1))}
-                                            disabled={reportedPage === 0}
-                                        >
-                                            <FontAwesome5 name="chevron-left" size={12}
-                                                color={reportedPage === 0 ? theme.colors.textTertiary : theme.colors.primary} />
-                                        </TouchableOpacity>
-                                        <Text style={styles.pageText}>{reportedPage + 1} / {reportedTotalPages}</Text>
-                                        <TouchableOpacity
-                                            style={[styles.pageBtn, reportedPage >= reportedTotalPages - 1 && styles.pageBtnDisabled]}
-                                            onPress={() => setReportedPage(Math.min(reportedTotalPages - 1, reportedPage + 1))}
-                                            disabled={reportedPage >= reportedTotalPages - 1}
-                                        >
-                                            <FontAwesome5 name="chevron-right" size={12}
-                                                color={reportedPage >= reportedTotalPages - 1 ? theme.colors.textTertiary : theme.colors.primary} />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
+                                <AdminPagination page={reportedPage} totalPages={reportedTotalPages} onChange={setReportedPage} />
                             </>
                         )}
                     </View>
@@ -275,12 +261,12 @@ export default function ReviewsTab() {
 
                                 <View style={styles.reviewActions}>
                                     {!review.checked && (
-                                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleCheck(review.id)}>
+                                        <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Megjelölés ellenőrzöttként" onPress={() => handleCheck(review.id)}>
                                             <FontAwesome5 name="check" size={12} color={theme.colors.success} />
                                             <Text style={[styles.actionBtnText, { color: theme.colors.success }]}>Ellenőrzött</Text>
                                         </TouchableOpacity>
                                     )}
-                                    <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(review.id)}>
+                                    <TouchableOpacity style={styles.actionBtn} accessibilityRole="button" accessibilityLabel="Értékelés törlése" onPress={() => handleDelete(review.id)}>
                                         <FontAwesome5 name="trash" size={12} color={theme.colors.error} />
                                         <Text style={[styles.actionBtnText, { color: theme.colors.error }]}>Törlés</Text>
                                     </TouchableOpacity>
@@ -288,25 +274,7 @@ export default function ReviewsTab() {
                             </View>
                         ))}
 
-                        {totalPages > 1 && (
-                            <View style={styles.pagination}>
-                                <TouchableOpacity
-                                    style={[styles.pageBtn, page === 0 && styles.pageBtnDisabled]}
-                                    onPress={() => setPage(Math.max(0, page - 1))}
-                                    disabled={page === 0}
-                                >
-                                    <FontAwesome5 name="chevron-left" size={12} color={page === 0 ? theme.colors.textTertiary : theme.colors.primary} />
-                                </TouchableOpacity>
-                                <Text style={styles.pageText}>{page + 1} / {totalPages}</Text>
-                                <TouchableOpacity
-                                    style={[styles.pageBtn, page >= totalPages - 1 && styles.pageBtnDisabled]}
-                                    onPress={() => setPage(Math.min(totalPages - 1, page + 1))}
-                                    disabled={page >= totalPages - 1}
-                                >
-                                    <FontAwesome5 name="chevron-right" size={12} color={page >= totalPages - 1 ? theme.colors.textTertiary : theme.colors.primary} />
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                        <AdminPagination page={page} totalPages={totalPages} onChange={setPage} />
                     </>
                 )}
             </ResponsiveContainer>
