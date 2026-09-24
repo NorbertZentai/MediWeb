@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from 'react-native';
+import { MIN_TOUCH_TARGET } from 'styles/theme';
 
 // ════════════════════════════════════════════════════════
 //  ADMIN STYLES — shared by AdminScreen shell and every tab
@@ -22,6 +23,8 @@ export function createStyles(theme) {
         },
         tab: {
             flex: 1,
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -110,6 +113,9 @@ export function createStyles(theme) {
             paddingTop: 10,
         },
         actionBtn: {
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
+            justifyContent: 'center',
             flexDirection: 'row',
             alignItems: 'center',
             gap: 5,
@@ -122,9 +128,9 @@ export function createStyles(theme) {
         // ── Pagination ──
         pagination: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 16 },
         pageBtn: {
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: MIN_TOUCH_TARGET,
+            height: MIN_TOUCH_TARGET,
+            borderRadius: MIN_TOUCH_TARGET / 2,
             backgroundColor: theme.colors.backgroundCard,
             justifyContent: 'center',
             alignItems: 'center',
@@ -266,8 +272,10 @@ export function createStyles(theme) {
             paddingVertical: 12,
             paddingHorizontal: 18,
             borderRadius: theme.borderRadius.md,
-            flex: isWeb ? undefined : 1,
-            minWidth: isWeb ? undefined : '45%',
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
+            flexGrow: isWeb ? 0 : 1,
+            flexBasis: isWeb ? undefined : '45%',
         },
         syncBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
         // ── Config ──
@@ -304,6 +312,8 @@ export function createStyles(theme) {
             ...Platform.select({ web: { outlineStyle: 'none' }, default: {} }),
         },
         saveConfigBtn: {
+            minWidth: MIN_TOUCH_TARGET,
+            minHeight: MIN_TOUCH_TARGET,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',

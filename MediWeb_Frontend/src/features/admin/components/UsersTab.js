@@ -5,7 +5,7 @@ import { useTheme } from 'contexts/ThemeContext';
 import ResponsiveContainer from 'components/ui/ResponsiveContainer';
 import { createStyles } from '../AdminScreen.style';
 import { getAdminUsers, updateUserRole, toggleUserActive, deleteAdminUser } from '../admin.api';
-import { LoadingView } from './AdminShared';
+import { LoadingView, AdminPagination } from './AdminShared';
 
 // ════════════════════════════════════════════════════════
 //  USERS TAB
@@ -129,6 +129,8 @@ export default function UsersTab() {
                                 <View style={styles.userActions}>
                                     <TouchableOpacity
                                         style={styles.actionBtn}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`${user.role === 'ADMIN' ? 'Admin jog elvétele' : 'Admin jog megadása'}: ${user.name}`}
                                         onPress={() => handleRoleChange(user.id, user.role === 'ADMIN' ? 'USER' : 'ADMIN')}
                                     >
                                         <FontAwesome5 name="user-shield" size={12} color={theme.colors.info} />
@@ -138,6 +140,8 @@ export default function UsersTab() {
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.actionBtn}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`${user.isActive ? 'Tiltás' : 'Aktiválás'}: ${user.name}`}
                                         onPress={() => handleToggleActive(user.id, !user.isActive)}
                                     >
                                         <FontAwesome5 name={user.isActive ? 'ban' : 'check'} size={12} color={theme.colors.warning} />
@@ -147,6 +151,8 @@ export default function UsersTab() {
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         style={styles.actionBtn}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`Törlés: ${user.name}`}
                                         onPress={() => handleDelete(user.id, user.name)}
                                     >
                                         <FontAwesome5 name="trash" size={12} color={theme.colors.error} />
@@ -157,25 +163,7 @@ export default function UsersTab() {
                         ))}
 
                         {/* Pagination */}
-                        {totalPages > 1 && (
-                            <View style={styles.pagination}>
-                                <TouchableOpacity
-                                    style={[styles.pageBtn, page === 0 && styles.pageBtnDisabled]}
-                                    onPress={() => setPage(Math.max(0, page - 1))}
-                                    disabled={page === 0}
-                                >
-                                    <FontAwesome5 name="chevron-left" size={12} color={page === 0 ? theme.colors.textTertiary : theme.colors.primary} />
-                                </TouchableOpacity>
-                                <Text style={styles.pageText}>{page + 1} / {totalPages}</Text>
-                                <TouchableOpacity
-                                    style={[styles.pageBtn, page >= totalPages - 1 && styles.pageBtnDisabled]}
-                                    onPress={() => setPage(Math.min(totalPages - 1, page + 1))}
-                                    disabled={page >= totalPages - 1}
-                                >
-                                    <FontAwesome5 name="chevron-right" size={12} color={page >= totalPages - 1 ? theme.colors.textTertiary : theme.colors.primary} />
-                                </TouchableOpacity>
-                            </View>
-                        )}
+                        <AdminPagination page={page} totalPages={totalPages} onChange={setPage} />
                     </>
                 )}
             </ResponsiveContainer>

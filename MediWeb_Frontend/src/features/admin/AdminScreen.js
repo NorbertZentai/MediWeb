@@ -28,12 +28,15 @@ export default function AdminScreen() {
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Tab Bar */}
-            <View style={styles.tabBar}>
+            <View style={styles.tabBar} accessible accessibilityRole="tablist">
                 {TABS.map(tab => (
                     <TouchableOpacity
                         key={tab.key}
                         style={[styles.tab, activeTab === tab.key && styles.tabActive]}
                         onPress={() => setActiveTab(tab.key)}
+                        accessibilityRole="tab"
+                        accessibilityLabel={tab.label}
+                        accessibilityState={{ selected: activeTab === tab.key }}
                         activeOpacity={0.7}
                     >
                         <FontAwesome5
