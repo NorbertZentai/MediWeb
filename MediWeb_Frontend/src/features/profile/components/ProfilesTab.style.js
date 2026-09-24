@@ -232,12 +232,14 @@ export const createStyles = (theme) => StyleSheet.create({
   // --- Modális ablak (Bottom Sheet style) ---
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Default overlay color
+    backgroundColor: theme.components.modal.overlay,
     justifyContent: "flex-end",
   },
+  // Centered-dialog variants, used when the window is not phone-width (!isMobile).
+  // The 'Web' suffix in the key names is historical.
   modalOverlayWeb: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: theme.components.modal.overlay,
     justifyContent: "center",
     alignItems: "center",
   },

@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Platform } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { createStyles } from "../ProfilesTab.style";
 import { createProfile } from "features/profile/profile.api";
 import { toast } from 'utils/toast';
 import { useTheme } from "contexts/ThemeContext";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 
 export default function AddProfileModal({ onClose, onProfileCreated }) {
   const { theme } = useTheme();
+  const { isMobile } = useResponsiveLayout();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -28,8 +30,8 @@ export default function AddProfileModal({ onClose, onProfileCreated }) {
 
   return (
     <Modal visible={true} transparent={true} animationType="slide" onRequestClose={onClose}>
-      <View style={Platform.OS === 'web' ? styles.modalOverlayWeb : styles.modalOverlay}>
-        <View style={Platform.OS === 'web' ? styles.modalContainerWeb : styles.modalContainer}>
+      <View testID="add-profile-modal-overlay" style={isMobile ? styles.modalOverlay : styles.modalOverlayWeb}>
+        <View testID="add-profile-modal-container" style={isMobile ? styles.modalContainer : styles.modalContainerWeb}>
           <View style={styles.modalHandle} />
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Text style={styles.modalTitle}>Új profil létrehozása</Text>

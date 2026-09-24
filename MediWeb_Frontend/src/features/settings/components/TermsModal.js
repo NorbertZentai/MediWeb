@@ -1,15 +1,18 @@
-import React from "react";
-import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import React, { useMemo } from "react";
+import { Modal, View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useTheme } from "contexts/ThemeContext";
-import { MIN_TOUCH_TARGET } from "styles/theme";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
+import { createStyles } from "./LegalModal.style";
 
 export default function TermsModal({ visible, onClose }) {
     const { theme } = useTheme();
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
 
     return (
         <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContainer, Platform.OS === 'web' && styles.modalContainerWeb]}>
+            <View testID="terms-modal-overlay" style={styles.modalOverlay}>
+                <View testID="terms-modal-container" style={styles.modalContainer}>
                     <View style={styles.modalHeader}>
                         <Text style={[styles.modalTitle, { color: theme.colors.textPrimary }]}>Felhasználási Feltételek</Text>
                         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Bezárás" onPress={onClose} style={styles.closeButton}>
@@ -53,75 +56,3 @@ export default function TermsModal({ visible, onClose }) {
         </Modal>
     );
 }
-
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContainer: {
-        width: '100%',
-        maxHeight: '80%',
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    modalContainerWeb: {
-        maxWidth: 600,
-        maxHeight: '90%',
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    closeButton: {
-        minWidth: MIN_TOUCH_TARGET,
-        minHeight: MIN_TOUCH_TARGET,
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 5,
-    },
-    closeButtonText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    modalContent: {
-        padding: 20,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 15,
-        marginBottom: 8,
-    },
-    paragraph: {
-        fontSize: 14,
-        lineHeight: 22,
-        marginBottom: 10,
-    },
-    okButton: {
-        minWidth: MIN_TOUCH_TARGET,
-        minHeight: MIN_TOUCH_TARGET,
-        justifyContent: 'center',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    okButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-});
