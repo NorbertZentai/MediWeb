@@ -52,6 +52,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     paddingHorizontal: 26,
     borderRadius: 16,
     marginTop: 20,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     ...theme.shadows.sm,
@@ -145,6 +146,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     flex: 1,
   },
   sectionActionButton: {
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     alignItems: 'flex-end',
@@ -197,6 +199,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderColor: theme.colors.border,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
@@ -243,6 +246,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     borderRadius: 18,
     padding: 18,
     marginBottom: 16,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   todayCardHeader: {
@@ -345,6 +349,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   primaryButtonText: {
@@ -359,6 +364,7 @@ export const createStyles = (theme, isMobile = false, isDark = false) => StyleSh
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: theme.colors.primary,
+    minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
   },
   secondaryButtonText: {
