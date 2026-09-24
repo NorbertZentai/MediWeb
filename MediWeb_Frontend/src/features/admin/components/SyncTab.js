@@ -208,6 +208,7 @@ export default function SyncTab() {
                             <Text style={styles.configLabel}>{field.label}</Text>
                             <TextInput
                                 style={styles.configInput}
+                                accessibilityLabel={field.label}
                                 value={String(editConfig[field.key] ?? '')}
                                 onChangeText={val => {
                                     const parsed = field.type === 'decimal' ? parseFloat(val) || 0 : parseInt(val) || 0;

@@ -91,6 +91,7 @@ export default function UsersTab() {
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Keresés név vagy email alapján..."
+                        accessibilityLabel="Felhasználók keresése"
                         placeholderTextColor={theme.colors.textTertiary}
                         value={search}
                         onChangeText={(val) => { setSearch(val); setPage(0); }}
