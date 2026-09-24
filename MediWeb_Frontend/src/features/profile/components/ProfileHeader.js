@@ -192,6 +192,18 @@ export default function ProfileHeader() {
         {/* Info Cards */}
         <View style={styles.infoCardsContainer}>
           <InfoCard
+            icon="user"
+            label="Név"
+            value={name}
+            onEdit={() => openEditModal("name")}
+          />
+          <InfoCard
+            icon="envelope"
+            label="Email"
+            value={email}
+            onEdit={() => openEditModal("email")}
+          />
+          <InfoCard
             icon="phone"
             label="Telefonszám"
             value={phone}
