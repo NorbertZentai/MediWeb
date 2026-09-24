@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import CustomDropdown from "components/CustomDropdown";
 import { FontAwesome } from "@expo/vector-icons";
 import { FontAwesome5 } from "@expo/vector-icons";
@@ -10,6 +10,7 @@ import { createStyles } from "./ReviewSection.style";
 import { useTheme } from "contexts/ThemeContext";
 import ReportModal from "./ReportModal";
 import { reportReview } from "./review.api";
+import { showAlert } from "utils/dialogs";
 
 export default function ReviewSection({
   reviews = [],
@@ -80,7 +81,7 @@ export default function ReviewSection({
   const handleReport = async (reason, comment) => {
     if (!reportTarget) return;
     await reportReview(reportTarget.reviewId || reportTarget.id, reason, comment);
-    Alert.alert('Köszönjük!', 'A bejelentést sikeresen rögzítettük. Csapatunk hamarosan felülvizsgálja.');
+    showAlert('Köszönjük!', 'A bejelentést sikeresen rögzítettük. Csapatunk hamarosan felülvizsgálja.');
   };
 
   return (
@@ -149,7 +150,7 @@ export default function ReviewSection({
             style={[
               styles.reviewButton,
               (rating === 0 || submitting) && styles.disabledButton,
-              { minHeight: MIN_TOUCH_TARGET },
+              { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET },
             ]}
             onPress={handleSubmit}
             disabled={submitting || rating === 0}
