@@ -49,4 +49,9 @@ describe('UsersTab a11y', () => {
         const { toJSON } = await renderTab();
         assertInteractiveNodesAreAccessible(toJSON());
     });
+
+    it('a kereső mező "Felhasználók keresése" címkét kap', async () => {
+        await renderTab();
+        expect(screen.getByLabelText('Felhasználók keresése')).toBeTruthy();
+    });
 });

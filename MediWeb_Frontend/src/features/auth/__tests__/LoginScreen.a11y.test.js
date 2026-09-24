@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import LoginScreen from '../LoginScreen';
 import { AuthContext } from 'contexts/AuthContext';
 import { ThemeContext } from 'contexts/ThemeContext';
@@ -15,9 +15,9 @@ jest.mock('expo-auth-session/providers/google', () => ({
   useIdTokenAuthRequest: () => [null, null, jest.fn()],
 }));
 
-function renderLogin() {
+function renderLogin(login = jest.fn()) {
   return render(
-    <AuthContext.Provider value={{ user: null, login: jest.fn(), googleLogin: jest.fn() }}>
+    <AuthContext.Provider value={{ user: null, login, googleLogin: jest.fn() }}>
       <ThemeContext.Provider value={{ theme: lightTheme, isDark: false, toggleTheme: jest.fn() }}>
         <LoginScreen />
       </ThemeContext.Provider>
@@ -44,5 +44,14 @@ describe('LoginScreen accessibility (#78)', () => {
     await renderLogin();
     const googleButton = screen.getByRole('button', { name: /Google/ });
     expect(googleButton.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('labels the 2FA code input "Hitelesítő kód" once 2FA is required', async () => {
+    const login = jest.fn().mockResolvedValue({ requires2fa: true });
+    await renderLogin(login);
+    await fireEvent.changeText(screen.getByLabelText('Email cím'), 'a@b.hu');
+    await fireEvent.changeText(screen.getByLabelText('Jelszó'), 'titok123');
+    await fireEvent.press(screen.getByRole('button', { name: 'Bejelentkezés' }));
+    expect(await screen.findByLabelText('Hitelesítő kód')).toBeTruthy();
   });
 });

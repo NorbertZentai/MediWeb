@@ -43,4 +43,10 @@ describe('SyncTab a11y', () => {
         const { toJSON } = await renderTab();
         assertInteractiveNodesAreAccessible(toJSON());
     });
+
+    it('a konfigurációs mezők a látható címkéjükön megtalálhatók', async () => {
+        await renderTab();
+        expect(screen.getByLabelText('Párhuzamosság (szálak)')).toBeTruthy();
+        expect(screen.getByLabelText('Késleltetés (ms)')).toBeTruthy();
+    });
 });

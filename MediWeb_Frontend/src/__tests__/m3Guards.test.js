@@ -109,3 +109,33 @@ describe('M3 guard C: no template theme imports', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('M3 guard D: labelled text inputs', () => {
+  const files = scan(['src/features', 'src/components', 'app']);
+  const collect = () => {
+    const found = [];
+    const offenders = [];
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf8');
+      for (const match of content.matchAll(/<TextInput\b/g)) {
+        found.push(file);
+        const rest = content.slice(match.index);
+        const end = rest.indexOf('/>');
+        const tag = end === -1 ? rest : rest.slice(0, end);
+        if (!tag.includes('accessibilityLabel=')) {
+          const line = content.slice(0, match.index).split('\n').length;
+          offenders.push(`${rel(file)}:${line}`);
+        }
+      }
+    }
+    return { found, offenders };
+  };
+
+  it('finds a meaningful number of TextInput occurrences', () => {
+    expect(collect().found.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('every TextInput has an accessibilityLabel', () => {
+    expect(collect().offenders).toEqual([]);
+  });
+});
