@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTheme } from 'contexts/ThemeContext';
+import { useResponsiveLayout } from 'hooks/useResponsiveLayout';
 import { MIN_TOUCH_TARGET } from 'styles/theme';
 
 const REPORT_REASONS = [
@@ -17,7 +18,8 @@ const REPORT_REASONS = [
 
 export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }) {
     const { theme } = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+    const { isMobile } = useResponsiveLayout();
+    const styles = useMemo(() => createStyles(theme, { isMobile }), [theme, isMobile]);
     const [selectedReason, setSelectedReason] = useState(null);
     const [comment, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -59,10 +61,11 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
             >
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    testID="report-modal-keyboard-view"
                     style={styles.keyboardView}
                 >
                     <TouchableOpacity accessible={false} activeOpacity={1} onPress={e => e.stopPropagation()}>
-                        <View style={styles.modal}>
+                        <View testID="report-modal-container" style={styles.modal}>
                             {/* Header */}
                             <View style={styles.header}>
                                 <View style={styles.headerIcon}>
@@ -173,8 +176,7 @@ export default function ReportModal({ visible, onClose, onSubmit, reviewAuthor }
     );
 }
 
-function createStyles(theme) {
-    const isWeb = Platform.OS === 'web';
+function createStyles(theme, { isMobile } = {}) {
     return StyleSheet.create({
         overlay: {
             flex: 1,
@@ -185,7 +187,7 @@ function createStyles(theme) {
         },
         keyboardView: {
             width: '100%',
-            maxWidth: isWeb ? 480 : undefined,
+            maxWidth: isMobile ? undefined : 480,
             alignItems: 'center',
         },
         modal: {
@@ -193,7 +195,7 @@ function createStyles(theme) {
             borderRadius: theme.components.modal.borderRadius,
             padding: 24,
             width: '100%',
-            maxWidth: isWeb ? 480 : undefined,
+            maxWidth: isMobile ? undefined : 480,
             ...theme.shadows.lg,
         },
         header: {

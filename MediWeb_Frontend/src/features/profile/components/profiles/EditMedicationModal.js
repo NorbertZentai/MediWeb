@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Platform } from "react-native";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from "react-native";
 import { createStyles } from "../ProfilesTab.style";
 import { updateMedicationForProfile, removeMedicationFromProfile } from "features/profile/profile.api";
 import { useTheme } from "contexts/ThemeContext";
+import { useResponsiveLayout } from "hooks/useResponsiveLayout";
 import TimePickerModal from "components/ui/TimePickerModal";
 
 const DAYS = ["H", "K", "Sze", "Cs", "P", "Szo", "V"];
@@ -18,6 +19,7 @@ const DAY_LABELS = {
 
 export default function EditMedicationModal({ profileId, medication, onClose, onUpdated, onDeleted }) {
   const { theme } = useTheme();
+  const { isMobile } = useResponsiveLayout();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [note, setNote] = useState(medication.notes || "");
@@ -114,8 +116,8 @@ export default function EditMedicationModal({ profileId, medication, onClose, on
 
   return (
     <Modal visible={true} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={Platform.OS === 'web' ? styles.modalOverlayWeb : styles.modalOverlay}>
-        <View style={Platform.OS === 'web' ? styles.editMedicationModalWeb : styles.editMedicationModalContainer}>
+      <View testID="edit-medication-modal-overlay" style={isMobile ? styles.modalOverlay : styles.modalOverlayWeb}>
+        <View testID="edit-medication-modal-container" style={isMobile ? styles.editMedicationModalContainer : styles.editMedicationModalWeb}>
           <View style={styles.modalHandle} />
           <ScrollView contentContainerStyle={styles.modalContent}>
             <Text style={styles.modalTitle}>Gyógyszer szerkesztése</Text>
