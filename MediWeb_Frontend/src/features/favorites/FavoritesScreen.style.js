@@ -57,6 +57,7 @@ export const createStyles = (theme) => StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: theme.borderRadius.md,
+        minWidth: MIN_TOUCH_TARGET,
         minHeight: MIN_TOUCH_TARGET,
         ...theme.shadows.sm,
     },
@@ -76,6 +77,7 @@ export const createStyles = (theme) => StyleSheet.create({
         borderRadius: theme.borderRadius.md,
         borderWidth: 1,
         borderColor: theme.colors.border,
+        minWidth: MIN_TOUCH_TARGET,
         minHeight: MIN_TOUCH_TARGET,
         ...theme.shadows.sm,
     },
@@ -147,6 +149,7 @@ export const createStyles = (theme) => StyleSheet.create({
         borderColor: theme.colors.border,
         alignItems: 'center',
         justifyContent: 'center',
+        minWidth: MIN_TOUCH_TARGET,
         minHeight: MIN_TOUCH_TARGET,
     },
     cancelButtonText: {
@@ -161,6 +164,7 @@ export const createStyles = (theme) => StyleSheet.create({
         backgroundColor: theme.colors.error,
         alignItems: 'center',
         justifyContent: 'center',
+        minWidth: MIN_TOUCH_TARGET,
         minHeight: MIN_TOUCH_TARGET,
     },
     deleteButtonText: {
