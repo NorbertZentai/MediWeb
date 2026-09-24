@@ -112,6 +112,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.secondaryLight,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
   },
   activeChipText: {
     fontSize: theme.fontSize.sm,
@@ -130,6 +131,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.borderDark,
     borderStyle: "dashed",
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     justifyContent: "center",
   },
   clearAllChipText: {
@@ -204,6 +206,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderColor: theme.colors.border,
     alignSelf: "stretch",
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     ...theme.shadows.sm,
   },
   medName: {
@@ -245,6 +248,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.primary,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -309,6 +313,7 @@ export const createStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.secondaryLight,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
   },
   clearAllButtonText: {
     fontSize: theme.fontSize.base,
